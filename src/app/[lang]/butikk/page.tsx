@@ -34,6 +34,9 @@ async function getProducts(collectionSlug?: string): Promise<Product[]> {
       if (collection) {
         query = query.eq('collection_id', collection.id);
       }
+    } else {
+      // Limit to 3 products when no collection is selected (default view)
+      query = query.limit(3);
     }
 
     const { data: products, error } = await query;

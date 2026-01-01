@@ -22,23 +22,30 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Create Supabase client for middleware
-    let response = NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    });
+    // Check if Supabase env vars are configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
+    if (!supabaseUrl || !supabaseKey) {
+      // Skip auth check if Supabase not configured
+      return NextResponse.next();
+    }
+
+    try {
+      // Create Supabase client for middleware
+      let response = NextResponse.next({
+        request: {
+          headers: request.headers,
+        },
+      });
+
+      const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
           getAll() {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value }) =>
               request.cookies.set(name, value)
             );
             response = NextResponse.next({
@@ -51,20 +58,26 @@ export async function middleware(request: NextRequest) {
             );
           },
         },
+      });
+
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        // Redirect to login page
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin/login';
+        return NextResponse.redirect(url);
       }
-    );
 
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      // Redirect to login page
+      return response;
+    } catch (error) {
+      // On error, redirect to login
+      console.error('Middleware auth error:', error);
       const url = request.nextUrl.clone();
       url.pathname = '/admin/login';
       return NextResponse.redirect(url);
     }
-
-    return response;
   }
 
   // Handle i18n for non-admin routes

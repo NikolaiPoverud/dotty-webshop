@@ -1,21 +1,17 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import Image from 'next/image';
 import type { Locale } from '@/types';
-import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
 const heroText = {
   no: {
     title: 'Pop-art med personlighet',
     subtitle: 'Unike kunstverk som bringer energi og farge til ditt hjem',
-    cta: 'Utforsk butikken',
   },
   en: {
     title: 'Pop-art with personality',
     subtitle: 'Unique artworks that bring energy and color to your home',
-    cta: 'Explore the shop',
   },
 };
 
@@ -85,26 +81,6 @@ export function Hero({ lang }: { lang: Locale }) {
             >
               {t.subtitle}
             </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="mt-10"
-            >
-              <Link
-                href={getLocalizedPath(lang, 'shop')}
-                className="inline-block"
-              >
-                <motion.button
-                  className="px-8 py-4 bg-primary text-background font-semibold text-lg uppercase tracking-widest pop-outline transition-all duration-300 hover:bg-primary-light"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {t.cta}
-                </motion.button>
-              </Link>
-            </motion.div>
           </motion.div>
 
           {/* Artist Image */}
