@@ -4,6 +4,9 @@ import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { ArtistStatement } from '@/components/landing/artist-statement';
 import { createClient } from '@/lib/supabase/server';
 
+// Disable caching to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();

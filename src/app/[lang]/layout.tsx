@@ -4,6 +4,9 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { createClient } from '@/lib/supabase/server';
 
+// Disable caching to always fetch fresh collections for header
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }

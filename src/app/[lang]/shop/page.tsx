@@ -2,6 +2,9 @@ import type { Locale, Product, Collection } from '@/types';
 import { ShopContent } from '@/components/shop/shop-content';
 import { createClient } from '@/lib/supabase/server';
 
+// Disable caching to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
 const pageText = {
   no: {
     title: 'Shop',
