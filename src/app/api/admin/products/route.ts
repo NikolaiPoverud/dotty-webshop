@@ -13,13 +13,16 @@ export async function GET() {
       .order('display_order', { ascending: true });
 
     if (error) {
+      console.error('Database error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ data: products });
   } catch (error) {
+    console.error('Failed to fetch products:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch products';
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

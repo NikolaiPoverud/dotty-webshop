@@ -9,11 +9,14 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File | null;
 
     if (!file) {
+      console.error('No file provided in upload request');
       return NextResponse.json(
         { error: 'No file provided' },
         { status: 400 }
       );
     }
+
+    console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -53,11 +56,14 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
+      console.error('Storage upload error:', uploadError);
       return NextResponse.json(
-        { error: uploadError.message },
+        { error: `Upload failed: ${uploadError.message}` },
         { status: 500 }
       );
     }
+
+    console.log('File uploaded successfully to:', path);
 
     // Get public URL
     const { data: urlData } = supabase.storage
