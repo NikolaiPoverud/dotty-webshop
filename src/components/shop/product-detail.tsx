@@ -2,8 +2,13 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Check } from 'lucide-react';
 import type { Locale, Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { useCart } from '@/components/cart/cart-provider';
+import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
 const text = {
   no: {
@@ -13,6 +18,8 @@ const text = {
     available: 'Tilgjengelig',
     soldOut: 'Utsolgt',
     addToCart: 'Legg i Handlekurv',
+    addedToCart: 'Lagt i handlekurv',
+    viewCart: 'Se handlekurv',
     original: 'Original',
     print: 'Trykk',
   },
@@ -23,6 +30,8 @@ const text = {
     available: 'Available',
     soldOut: 'Sold out',
     addToCart: 'Add to Cart',
+    addedToCart: 'Added to cart',
+    viewCart: 'View cart',
     original: 'Original',
     print: 'Print',
   },
@@ -36,14 +45,34 @@ interface ProductDetailProps {
 
 export function ProductDetail({ product, collectionName, lang }: ProductDetailProps) {
   const t = text[lang];
-  
+  const router = useRouter();
+  const { addItem, cart } = useCart();
+  const [isAdded, setIsAdded] = useState(false);
+
+  // Check if item is already in cart
+  const isInCart = cart.items.some((item) => item.product.id === product.id);
+
   // Extract year from created_at
   const year = new Date(product.created_at).getFullYear();
-  
+
   // Format dimensions
   const dimensionsText = product.sizes && product.sizes.length > 0
     ? product.sizes[0].label
     : '-';
+
+  const handleAddToCart = () => {
+    if (!product.is_available) return;
+
+    addItem(product, 1);
+    setIsAdded(true);
+
+    // Reset after 3 seconds
+    setTimeout(() => setIsAdded(false), 3000);
+  };
+
+  const handleViewCart = () => {
+    router.push(getLocalizedPath(lang, 'cart'));
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -124,14 +153,36 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
             )}
 
             {/* Add to Cart Button */}
-            <motion.button
-              className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed"
-              whileHover={{ scale: product.is_available ? 1.02 : 1 }}
-              whileTap={{ scale: product.is_available ? 0.98 : 1 }}
-              disabled={!product.is_available}
-            >
-              {t.addToCart}
-            </motion.button>
+            {isAdded || isInCart ? (
+              <div className="space-y-3">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="w-full py-6 bg-success text-background font-semibold text-lg uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+                >
+                  <Check className="w-6 h-6" />
+                  {t.addedToCart}
+                </motion.div>
+                <motion.button
+                  onClick={handleViewCart}
+                  className="w-full py-4 bg-muted text-foreground font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-muted/80"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {t.viewCart}
+                </motion.button>
+              </div>
+            ) : (
+              <motion.button
+                onClick={handleAddToCart}
+                className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: product.is_available ? 1.02 : 1 }}
+                whileTap={{ scale: product.is_available ? 0.98 : 1 }}
+                disabled={!product.is_available}
+              >
+                {product.is_available ? t.addToCart : t.soldOut}
+              </motion.button>
+            )}
           </motion.div>
         </div>
       </div>

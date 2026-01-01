@@ -108,17 +108,62 @@ export default function CheckoutPage({
   };
 
   const handleCheckout = async (provider: 'stripe' | 'vipps') => {
+    // Validate form
+    if (!formData.name || !formData.email || !formData.phone ||
+        !formData.address || !formData.city || !formData.postalCode) {
+      alert(locale === 'no' ? 'Vennligst fyll ut alle påkrevde felt' : 'Please fill in all required fields');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // TODO: Create Stripe/Vipps checkout session via API
-      // For now, simulate
-      await new Promise((r) => setTimeout(r, 2000));
+      if (provider === 'stripe') {
+        // Create Stripe checkout session
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cart.items.map(item => ({
+              product_id: item.product.id,
+              title: item.product.title,
+              price: item.product.price,
+              quantity: item.quantity,
+              image_url: item.product.image_url,
+            })),
+            customer_email: formData.email,
+            customer_name: formData.name,
+            customer_phone: formData.phone,
+            shipping_address: {
+              line1: formData.address,
+              line2: formData.addressLine2 || undefined,
+              city: formData.city,
+              postal_code: formData.postalCode,
+              country: formData.country,
+            },
+            discount_code: cart.discountCode,
+            discount_amount: cart.discountAmount,
+            locale,
+          }),
+        });
 
-      // Redirect to success for demo
-      window.location.href = getLocalizedPath(locale, 'success');
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to create checkout session');
+        }
+
+        // Redirect to Stripe checkout
+        if (result.url) {
+          window.location.href = result.url;
+        }
+      } else {
+        // Vipps - placeholder for now
+        alert(locale === 'no' ? 'Vipps-betaling kommer snart!' : 'Vipps payment coming soon!');
+      }
     } catch (error) {
       console.error('Checkout error:', error);
+      alert(locale === 'no' ? 'Noe gikk galt. Vennligst prøv igjen.' : 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -2,11 +2,13 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { CheckCircle, Package } from 'lucide-react';
-import { use, useEffect } from 'react';
+import { CheckCircle, Package, Loader2 } from 'lucide-react';
+import { Suspense, use, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { Locale } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import { formatPrice } from '@/lib/utils';
 
 const text = {
   no: {
@@ -16,6 +18,8 @@ const text = {
     emailSent: 'Bekreftelse sendt til',
     shippingNote: 'Vi kontakter deg snart med informasjon om frakt.',
     backToShop: 'Tilbake til butikken',
+    total: 'Total betalt',
+    loading: 'Henter ordredetaljer...',
   },
   en: {
     title: 'Thank you for your order!',
@@ -24,26 +28,60 @@ const text = {
     emailSent: 'Confirmation sent to',
     shippingNote: 'We will contact you soon with shipping information.',
     backToShop: 'Back to shop',
+    total: 'Total paid',
+    loading: 'Loading order details...',
   },
 };
 
-export default function SuccessPage({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}) {
-  const { lang } = use(params);
-  const locale = lang as Locale;
-  const t = text[locale];
-  const { clearCart } = useCart();
+interface OrderInfo {
+  id: string;
+  email: string;
+  total: number;
+}
 
-  // Clear cart on success page load
+function LoadingFallback({ t }: { t: typeof text['no'] }) {
+  return (
+    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="flex items-center gap-2">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <span className="text-muted-foreground">{t.loading}</span>
+      </div>
+    </div>
+  );
+}
+
+function SuccessContent({ locale, t }: { locale: Locale; t: typeof text['no'] }) {
+  const { clearCart } = useCart();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('session_id');
+
+  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Clear cart and fetch order info on success page load
   useEffect(() => {
     clearCart();
-  }, [clearCart]);
 
-  // Generate fake order number for demo
-  const orderNumber = `DOT-${Date.now().toString(36).toUpperCase()}`;
+    // Fetch order info from session
+    if (sessionId) {
+      fetch('/api/checkout/session?session_id=' + sessionId)
+        .then(res => res.json())
+        .then(data => {
+          if (data.order) {
+            setOrderInfo(data.order);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
+    }
+  }, [clearCart, sessionId]);
+
+  // Generate order number from session or timestamp
+  const orderNumber = orderInfo?.id
+    ? orderInfo.id.slice(0, 8).toUpperCase()
+    : 'DOT-' + Date.now().toString(36).toUpperCase();
 
   return (
     <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
@@ -89,15 +127,38 @@ export default function SuccessPage({
           transition={{ delay: 0.5 }}
           className="bg-muted rounded-lg p-6 mb-8"
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Package className="w-5 h-5 text-primary" />
-            <span className="text-sm text-muted-foreground">{t.orderNumber}</span>
-          </div>
-          <p className="text-2xl font-bold font-mono">{orderNumber}</p>
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <span className="text-muted-foreground">{t.loading}</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Package className="w-5 h-5 text-primary" />
+                <span className="text-sm text-muted-foreground">{t.orderNumber}</span>
+              </div>
+              <p className="text-2xl font-bold font-mono">{orderNumber}</p>
 
-          <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground">{t.shippingNote}</p>
-          </div>
+              {orderInfo?.email && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">{t.emailSent}</p>
+                  <p className="font-medium">{orderInfo.email}</p>
+                </div>
+              )}
+
+              {orderInfo?.total && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">{t.total}</p>
+                  <p className="text-xl font-bold">{formatPrice(orderInfo.total)}</p>
+                </div>
+              )}
+
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground">{t.shippingNote}</p>
+              </div>
+            </>
+          )}
         </motion.div>
 
         {/* Back to Shop */}
@@ -136,5 +197,21 @@ export default function SuccessPage({
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function SuccessPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = use(params);
+  const locale = lang as Locale;
+  const t = text[locale];
+
+  return (
+    <Suspense fallback={<LoadingFallback t={t} />}>
+      <SuccessContent locale={locale} t={t} />
+    </Suspense>
   );
 }
