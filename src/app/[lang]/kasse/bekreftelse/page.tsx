@@ -17,7 +17,7 @@ const text = {
     orderNumber: 'Ordrenummer',
     emailSent: 'Bekreftelse sendt til',
     shippingNote: 'Vi kontakter deg snart med informasjon om frakt.',
-    backToShop: 'Tilbake til butikken',
+    backToShop: 'Tilbake til shop',
     total: 'Total betalt',
     loading: 'Henter ordredetaljer...',
   },

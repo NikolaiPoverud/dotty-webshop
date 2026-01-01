@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Loader2, GripVertical } from 'lucide-react';
+import { Plus, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import type { GalleryImage } from '@/types';
 
@@ -80,13 +80,6 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
     onChange(newImages);
   };
 
-  const moveImage = useCallback((fromIndex: number, toIndex: number) => {
-    const newImages = [...value];
-    const [movedImage] = newImages.splice(fromIndex, 1);
-    newImages.splice(toIndex, 0, movedImage);
-    onChange(newImages);
-  }, [value, onChange]);
-
   return (
     <div className="space-y-3">
       {/* Existing Images */}
@@ -96,7 +89,7 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="grid grid-cols-3 gap-3"
+            className="grid grid-cols-4 sm:grid-cols-5 gap-2"
           >
             {value.map((image, index) => (
               <motion.div
@@ -104,7 +97,7 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className="relative aspect-square rounded-lg overflow-hidden bg-muted group"
+                className="relative aspect-square rounded-md overflow-hidden bg-muted group"
               >
                 <Image
                   src={image.url}
@@ -114,41 +107,19 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
                 />
 
                 {/* Order indicator */}
-                <div className="absolute top-1 left-1 w-5 h-5 bg-background/80 rounded-full flex items-center justify-center text-xs font-medium">
+                <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-background/80 rounded-full flex items-center justify-center text-[10px] font-medium">
                   {index + 1}
                 </div>
 
-                {/* Actions overlay */}
-                <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => moveImage(index, index - 1)}
-                      className="p-1.5 bg-background rounded-full hover:bg-muted transition-colors"
-                      title="Flytt til venstre"
-                    >
-                      <GripVertical className="w-4 h-4 rotate-90" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(index)}
-                    className="p-1.5 bg-error text-background rounded-full hover:bg-error/80 transition-colors"
-                    title="Fjern"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  {index < value.length - 1 && (
-                    <button
-                      type="button"
-                      onClick={() => moveImage(index, index + 1)}
-                      className="p-1.5 bg-background rounded-full hover:bg-muted transition-colors"
-                      title="Flytt til høyre"
-                    >
-                      <GripVertical className="w-4 h-4 rotate-90" />
-                    </button>
-                  )}
-                </div>
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  className="absolute top-0.5 right-0.5 p-0.5 bg-error text-background rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Fjern"
+                >
+                  <X className="w-3 h-3" />
+                </button>
               </motion.div>
             ))}
           </motion.div>

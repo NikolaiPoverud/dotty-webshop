@@ -16,7 +16,7 @@ export const defaultLocale: Locale = 'no';
 // Route mapping per language
 export const routes = {
   no: {
-    shop: 'butikk',
+    shop: 'shop',
     cart: 'handlekurv',
     checkout: 'kasse',
     sold: 'solgt',

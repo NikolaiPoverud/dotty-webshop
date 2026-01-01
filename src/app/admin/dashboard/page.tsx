@@ -148,7 +148,7 @@ export default function AdminDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Oversikt over butikken din</p>
+          <p className="text-muted-foreground mt-1">Oversikt over din shop</p>
         </div>
         <button onClick={fetchStats} className="p-2 hover:bg-muted rounded-lg">
           <RefreshCw className="w-5 h-5" />

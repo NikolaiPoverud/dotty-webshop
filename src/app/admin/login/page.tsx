@@ -133,7 +133,7 @@ export default function AdminLoginPage() {
         {/* Back to shop link */}
         <p className="text-center mt-6 text-sm text-muted-foreground">
           <a href="/no" className="hover:text-primary transition-colors">
-            Tilbake til butikken
+            Tilbake til shop
           </a>
         </p>
       </motion.div>

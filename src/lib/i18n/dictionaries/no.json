@@ -1,16 +1,16 @@
 {
   "navigation": {
-    "shop": "Butikk",
+    "shop": "Shop",
     "cart": "Handlekurv",
     "about": "Om kunstneren"
   },
   "hero": {
     "title": "Pop-art med personlighet",
     "subtitle": "Unike kunstverk som bringer energi og farge til ditt hjem",
-    "cta": "Utforsk butikken"
+    "cta": "Utforsk shop"
   },
   "shop": {
-    "title": "Butikk",
+    "title": "Shop",
     "allCollections": "Alle verk",
     "addToCart": "Legg i handlekurv",
     "soldOut": "Utsolgt",

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
-import type { Locale, Product } from '@/types';
+import type { Locale, Product, Collection } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 
@@ -16,8 +16,6 @@ const sectionText = {
     print: 'Trykk',
     empty: 'Kommer snart...',
     all: 'Alle',
-    originals: 'Originaler',
-    prints: 'Trykk',
   },
   en: {
     title: 'Latest works',
@@ -26,8 +24,6 @@ const sectionText = {
     print: 'Print',
     empty: 'Coming soon...',
     all: 'All',
-    originals: 'Originals',
-    prints: 'Prints',
   },
 };
 
@@ -52,22 +48,31 @@ const gradients = [
 interface FeaturedGridProps {
   lang: Locale;
   products: Product[];
+  collections: Collection[];
   showFilters?: boolean;
 }
 
-export function FeaturedGrid({ lang, products, showFilters = true }: FeaturedGridProps) {
+export function FeaturedGrid({ lang, products, collections, showFilters = true }: FeaturedGridProps) {
   const t = sectionText[lang];
   const [activeFilter, setActiveFilter] = useState('all');
 
-  const filterOptions: FilterOption[] = [
-    { id: 'all', label: t.all },
-    { id: 'original', label: t.originals },
-    { id: 'print', label: t.prints },
-  ];
+  const filterOptions: FilterOption[] = useMemo(() => {
+    const options: FilterOption[] = [{ id: 'all', label: t.all }];
+
+    // Add collections that have products
+    collections.forEach((collection) => {
+      const hasProducts = products.some(p => p.collection_id === collection.id);
+      if (hasProducts) {
+        options.push({ id: collection.id, label: collection.name });
+      }
+    });
+
+    return options;
+  }, [collections, products, t.all]);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === 'all') return products;
-    return products.filter(p => p.product_type === activeFilter);
+    return products.filter(p => p.collection_id === activeFilter);
   }, [products, activeFilter]);
 
   if (products.length === 0) {
@@ -116,7 +121,7 @@ export function FeaturedGrid({ lang, products, showFilters = true }: FeaturedGri
         </div>
 
         {/* Filter Tabs - Centered */}
-        {showFilters && (
+        {showFilters && filterOptions.length > 1 && (
           <motion.div
             className="mb-12"
             initial={{ opacity: 0, y: 10 }}

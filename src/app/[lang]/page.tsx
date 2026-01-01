@@ -1,4 +1,4 @@
-import type { Locale, Product } from '@/types';
+import type { Locale, Product, Collection } from '@/types';
 import { Hero } from '@/components/landing/hero';
 import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { ArtistStatement } from '@/components/landing/artist-statement';
@@ -27,6 +27,27 @@ async function getFeaturedProducts(): Promise<Product[]> {
   }
 }
 
+async function getCollections(): Promise<Collection[]> {
+  try {
+    const supabase = await createClient();
+
+    const { data: collections, error } = await supabase
+      .from('collections')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (error) {
+      console.error('Failed to fetch collections:', error);
+      return [];
+    }
+
+    return collections || [];
+  } catch (error) {
+    console.error('Failed to fetch collections:', error);
+    return [];
+  }
+}
+
 export default async function HomePage({
   params,
 }: {
@@ -35,12 +56,15 @@ export default async function HomePage({
   const { lang } = await params;
   const locale = lang as Locale;
 
-  const products = await getFeaturedProducts();
+  const [products, collections] = await Promise.all([
+    getFeaturedProducts(),
+    getCollections(),
+  ]);
 
   return (
     <>
       <Hero lang={locale} />
-      <FeaturedGrid lang={locale} products={products} />
+      <FeaturedGrid lang={locale} products={products} collections={collections} />
       <ArtistStatement lang={locale} />
     </>
   );

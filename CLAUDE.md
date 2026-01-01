@@ -35,7 +35,7 @@ src/
 │   │   ├── orders/              # Order management
 │   │   └── dashboard/           # Sales stats
 │   └── [lang]/                  # Localized routes (no/en)
-│       ├── butikk/shop/         # Product shop
+│       ├── shop/                # Product shop
 │       ├── handlekurv/cart/     # Shopping cart
 │       └── kasse/checkout/      # Checkout flow
 ├── components/
@@ -143,7 +143,7 @@ Run migrations in order:
 
 - Default: Norwegian (no)
 - Supported: English (en)
-- Route mapping: `/no/butikk` = `/en/shop`
+- Route: `/no/shop` = `/en/shop`
 
 ## Design System
 

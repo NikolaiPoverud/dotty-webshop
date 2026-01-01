@@ -96,7 +96,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative aspect-[4/5] rounded-lg overflow-hidden bg-muted"
+            className="relative aspect-[4/3] max-h-64 rounded-lg overflow-hidden bg-muted"
           >
             <Image
               src={value}
@@ -119,7 +119,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className={`
-              relative aspect-[4/5] rounded-lg border-2 border-dashed
+              relative aspect-[4/3] max-h-64 rounded-lg border-2 border-dashed
               transition-colors cursor-pointer
               ${isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}
               ${isUploading ? 'pointer-events-none' : ''}

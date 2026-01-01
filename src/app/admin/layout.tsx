@@ -79,7 +79,7 @@ export default function AdminLayout({
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted-foreground/10 transition-colors text-muted-foreground"
           >
             <ExternalLink className="w-5 h-5" />
-            <span>Se butikken</span>
+            <span>Se shop</span>
           </Link>
 
           {/* User Menu */}
