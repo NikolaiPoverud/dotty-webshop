@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw, Plus } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import type { Order } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
@@ -121,9 +122,17 @@ export default function AdminOrdersPage() {
           <h1 className="text-3xl font-bold">Ordrer</h1>
           <p className="text-muted-foreground mt-1">Administrer kundeordrer</p>
         </div>
-        <button onClick={fetchOrders} className="p-2 hover:bg-muted rounded-lg">
-          <RefreshCw className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/orders/new">
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors">
+              <Plus className="w-5 h-5" />
+              Ny ordre
+            </button>
+          </Link>
+          <button onClick={fetchOrders} className="p-2 hover:bg-muted rounded-lg">
+            <RefreshCw className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {error && (
