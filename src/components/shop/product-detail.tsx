@@ -1,14 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
-import type { Locale, Product } from '@/types';
+import type { Locale, Product, GalleryImage } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import { ProductGallery } from './product-gallery';
 
 const text = {
   no: {
@@ -68,6 +68,11 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
     ? sizesArray[0].label
     : '-';
 
+  // Parse gallery images - handle both array and string from JSONB
+  const galleryImages: GalleryImage[] = typeof product.gallery_images === 'string'
+    ? JSON.parse(product.gallery_images)
+    : (product.gallery_images || []);
+
   const handleAddToCart = () => {
     if (!product.is_available) return;
 
@@ -86,24 +91,17 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* Image Section */}
+          {/* Image Gallery Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-            className="relative aspect-[4/5] max-w-md mx-auto lg:max-w-full rounded-lg overflow-hidden bg-muted"
           >
-            {product.image_url ? (
-              <Image
-                src={product.image_url}
-                alt={product.title}
-                fill
-                className="object-cover"
-                priority
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent" />
-            )}
+            <ProductGallery
+              mainImage={product.image_url}
+              galleryImages={galleryImages}
+              title={product.title}
+            />
           </motion.div>
 
           {/* Details Section */}

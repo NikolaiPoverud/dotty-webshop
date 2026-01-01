@@ -7,7 +7,8 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
-import type { ProductSize, Collection } from '@/types';
+import { GalleryUpload } from '@/components/admin/gallery-upload';
+import type { ProductSize, Collection, GalleryImage } from '@/types';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function NewProductPage() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -67,6 +69,7 @@ export default function NewProductPage() {
           is_available: isAvailable,
           is_featured: isFeatured,
           sizes,
+          gallery_images: galleryImages,
         }),
       });
 
@@ -266,8 +269,14 @@ export default function NewProductPage() {
 
             {/* Sizes */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium">Storrelser</label>
+              <label className="block text-sm font-medium">Størrelser</label>
               <SizeInput value={sizes} onChange={setSizes} />
+            </div>
+
+            {/* Gallery Images */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Galleri (flere bilder)</label>
+              <GalleryUpload value={galleryImages} onChange={setGalleryImages} />
             </div>
 
             {/* Toggles */}

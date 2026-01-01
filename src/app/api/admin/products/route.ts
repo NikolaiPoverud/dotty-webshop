@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       is_available,
       is_featured,
       sizes,
+      gallery_images,
     } = body;
 
     // Validate required fields
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
         is_available: is_available ?? true,
         is_featured: is_featured ?? false,
         sizes: sizes || [],
+        gallery_images: gallery_images || [],
         display_order,
       })
       .select()

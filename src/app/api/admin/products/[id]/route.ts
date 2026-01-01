@@ -53,6 +53,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       is_available,
       is_featured,
       sizes,
+      gallery_images,
       display_order,
     } = body;
 
@@ -81,6 +82,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (is_available !== undefined) updateData.is_available = is_available;
     if (is_featured !== undefined) updateData.is_featured = is_featured;
     if (sizes !== undefined) updateData.sizes = sizes;
+    if (gallery_images !== undefined) updateData.gallery_images = gallery_images;
     if (display_order !== undefined) updateData.display_order = display_order;
 
     const { data: product, error } = await supabase

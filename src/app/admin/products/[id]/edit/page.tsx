@@ -7,7 +7,8 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
-import type { Product, ProductSize, Collection } from '@/types';
+import { GalleryUpload } from '@/components/admin/gallery-upload';
+import type { Product, ProductSize, Collection, GalleryImage } from '@/types';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function EditProductPage() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +65,11 @@ export default function EditProductPage() {
         setIsAvailable(product.is_available);
         setIsFeatured(product.is_featured);
         setSizes(product.sizes || []);
+        // Parse gallery_images - handle both array and string from JSONB
+        const gallery = typeof product.gallery_images === 'string'
+          ? JSON.parse(product.gallery_images)
+          : (product.gallery_images || []);
+        setGalleryImages(gallery);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load product');
       } finally {
@@ -96,6 +103,7 @@ export default function EditProductPage() {
           is_available: isAvailable,
           is_featured: isFeatured,
           sizes,
+          gallery_images: galleryImages,
         }),
       });
 
@@ -303,8 +311,14 @@ export default function EditProductPage() {
 
             {/* Sizes */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium">Storrelser</label>
+              <label className="block text-sm font-medium">Størrelser</label>
               <SizeInput value={sizes} onChange={setSizes} />
+            </div>
+
+            {/* Gallery Images */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Galleri (flere bilder)</label>
+              <GalleryUpload value={galleryImages} onChange={setGalleryImages} />
             </div>
 
             {/* Toggles */}

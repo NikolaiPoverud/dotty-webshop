@@ -6,6 +6,11 @@ export interface ProductSize {
   label: string;  // e.g., "60x80 cm"
 }
 
+export interface GalleryImage {
+  url: string;
+  path: string;
+}
+
 export interface Product {
   id: string;
   title: string;
@@ -21,6 +26,7 @@ export interface Product {
   is_featured: boolean;
   display_order: number;
   sizes?: ProductSize[];
+  gallery_images?: GalleryImage[];
   created_at: string;
   updated_at: string;
 }
