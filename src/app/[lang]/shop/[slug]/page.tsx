@@ -7,6 +7,9 @@ import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
 };
@@ -48,20 +51,6 @@ async function getCollectionName(collectionId: string | null): Promise<string | 
   } catch (error) {
     return null;
   }
-}
-
-// Generate static params for all products
-export async function generateStaticParams() {
-  const supabase = await createClient();
-
-  const { data: products } = await supabase
-    .from('products')
-    .select('slug')
-    .eq('is_available', true);
-
-  return (products || []).map((product) => ({
-    slug: product.slug,
-  }));
 }
 
 // Generate metadata for SEO

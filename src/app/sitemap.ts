@@ -1,21 +1,31 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { MetadataRoute } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = await createClient();
+  let products: { slug: string; updated_at: string | null }[] = [];
+  let collections: { slug: string; updated_at: string | null }[] = [];
 
-  // Fetch all available products
-  const { data: products } = await supabase
-    .from('products')
-    .select('slug, updated_at')
-    .eq('is_available', true);
+  try {
+    const supabase = createAdminClient();
 
-  // Fetch all collections
-  const { data: collections } = await supabase
-    .from('collections')
-    .select('slug, updated_at');
+    // Fetch all available products
+    const { data: productsData } = await supabase
+      .from('products')
+      .select('slug, updated_at')
+      .eq('is_available', true);
+
+    // Fetch all collections
+    const { data: collectionsData } = await supabase
+      .from('collections')
+      .select('slug, updated_at');
+
+    products = productsData || [];
+    collections = collectionsData || [];
+  } catch (error) {
+    console.warn('Could not fetch data for sitemap:', error);
+  }
 
   const now = new Date();
 
