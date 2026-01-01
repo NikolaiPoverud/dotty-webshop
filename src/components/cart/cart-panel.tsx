@@ -157,13 +157,13 @@ export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
               )}
             </div>
 
-            {/* Footer */}
+            {/* Footer - always at bottom */}
             {itemCount > 0 && (
-              <div className="p-4 border-t border-border space-y-4">
+              <div className="mt-auto p-4 border-t border-border space-y-3 bg-background">
                 {/* Subtotal */}
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">{t.subtotal}</span>
-                  <span className="text-xl font-bold">{formatPrice(cart.subtotal)}</span>
+                  <span className="text-sm text-muted-foreground">{t.subtotal}</span>
+                  <span className="text-lg font-bold">{formatPrice(cart.subtotal)}</span>
                 </div>
 
                 {/* Checkout Button */}
@@ -173,7 +173,7 @@ export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
                   className="block w-full"
                 >
                   <motion.button
-                    className="w-full py-4 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
+                    className="w-full py-3 bg-primary text-background font-semibold text-sm uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
