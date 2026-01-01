@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
 import type { Locale, Product } from '@/types';
@@ -49,6 +49,11 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
   const { addItem, cart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Check if item is already in cart
   const isInCart = cart.items.some((item) => item.product.id === product.id);
 
@@ -80,13 +85,13 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Image Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-            className="relative aspect-square rounded-lg overflow-hidden bg-muted"
+            className="relative aspect-[4/5] max-w-md mx-auto lg:max-w-full rounded-lg overflow-hidden bg-muted"
           >
             {product.image_url ? (
               <Image
