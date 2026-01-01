@@ -1,5 +1,11 @@
 // Database Types
 
+export interface ProductSize {
+  width: number;  // cm
+  height: number; // cm
+  label: string;  // e.g., "60x80 cm"
+}
+
 export interface Product {
   id: string;
   title: string;
@@ -14,6 +20,7 @@ export interface Product {
   is_available: boolean;
   is_featured: boolean;
   display_order: number;
+  sizes: ProductSize[];
   created_at: string;
   updated_at: string;
 }
