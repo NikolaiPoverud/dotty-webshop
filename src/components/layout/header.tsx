@@ -2,20 +2,35 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Menu, X, Settings } from 'lucide-react';
+import { ShoppingBag, Menu, X, Settings, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import type { Locale } from '@/types';
-import { getAlternateLocale } from '@/lib/i18n/get-dictionary';
+import type { Locale, Collection } from '@/types';
+import { getAlternateLocale, getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { Logo } from '@/components/ui/logo';
 import { useCart } from '@/components/cart/cart-provider';
 import { CartPanel } from '@/components/cart/cart-panel';
 
 const navItems = {
-  no: { cart: 'Handlekurv' },
-  en: { cart: 'Cart' },
+  no: {
+    cart: 'Handlekurv',
+    shop: 'Shop',
+    collections: 'Samlinger',
+    allProducts: 'Alle produkter',
+  },
+  en: {
+    cart: 'Cart',
+    shop: 'Shop',
+    collections: 'Collections',
+    allProducts: 'All products',
+  },
 };
 
-export function Header({ lang }: { lang: Locale }) {
+interface HeaderProps {
+  lang: Locale;
+  collections?: Collection[];
+}
+
+export function Header({ lang, collections = [] }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { itemCount } = useCart();
@@ -100,23 +115,50 @@ export function Header({ lang }: { lang: Locale }) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="sm:hidden absolute top-full left-0 right-0 bg-background border-b border-border"
+          className="sm:hidden absolute top-full left-0 right-0 bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto"
         >
-          <nav className="flex flex-col p-4 gap-4">
+          <nav className="flex flex-col p-4 gap-2">
+            {/* Shop Link */}
             <Link
-              href="/admin/products"
+              href={getLocalizedPath(lang, 'shop')}
               onClick={() => setIsMenuOpen(false)}
-              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-2 flex items-center gap-2 text-primary"
+              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center justify-between"
             >
-              <Settings className="w-5 h-5" />
-              Admin
+              {t.shop}
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </Link>
+
+            {/* Collections Section */}
+            {collections.length > 0 && (
+              <div className="border-t border-border pt-2 mt-2">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground py-2">
+                  {t.collections}
+                </p>
+                <div className="flex flex-col gap-1">
+                  {collections.map((collection) => (
+                    <Link
+                      key={collection.id}
+                      href={`${getLocalizedPath(lang, 'shop')}?collection=${collection.id}`}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-base hover:text-primary transition-colors py-2 pl-2 border-l-2 border-transparent hover:border-primary"
+                    >
+                      {collection.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Divider */}
+            <div className="border-t border-border my-2" />
+
+            {/* Cart */}
             <button
               onClick={() => {
                 setIsMenuOpen(false);
                 setIsCartOpen(true);
               }}
-              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-2 flex items-center gap-2 w-full text-left"
+              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center gap-2 w-full text-left"
             >
               <ShoppingBag className="w-5 h-5" />
               {t.cart}
@@ -126,10 +168,22 @@ export function Header({ lang }: { lang: Locale }) {
                 </span>
               )}
             </button>
+
+            {/* Admin */}
+            <Link
+              href="/admin/products"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center gap-2 text-primary"
+            >
+              <Settings className="w-5 h-5" />
+              Admin
+            </Link>
+
+            {/* Language Switcher */}
             <Link
               href={`/${altLang}`}
               onClick={() => setIsMenuOpen(false)}
-              className="text-sm uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-2"
+              className="text-sm uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-3"
             >
               {altLang === 'en' ? 'English' : 'Norsk'}
             </Link>

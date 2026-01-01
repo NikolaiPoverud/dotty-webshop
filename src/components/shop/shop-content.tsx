@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 import type { Locale, Product, Collection } from '@/types';
 import { ProductCard } from './product-card';
 import { FilterTabs, type FilterOption } from './filter-tabs';
@@ -21,11 +22,25 @@ interface ShopContentProps {
   products: Product[];
   collections: Collection[];
   lang: Locale;
+  initialCollection?: string;
 }
 
-export function ShopContent({ products, collections, lang }: ShopContentProps) {
+export function ShopContent({ products, collections, lang, initialCollection }: ShopContentProps) {
   const t = filterText[lang];
-  const [activeFilter, setActiveFilter] = useState('all');
+  const searchParams = useSearchParams();
+
+  // Get collection from URL or use initialCollection prop
+  const collectionFromUrl = searchParams.get('collection');
+  const defaultFilter = collectionFromUrl || initialCollection || 'all';
+
+  const [activeFilter, setActiveFilter] = useState(defaultFilter);
+
+  // Update filter when URL changes
+  useEffect(() => {
+    if (collectionFromUrl) {
+      setActiveFilter(collectionFromUrl);
+    }
+  }, [collectionFromUrl]);
 
   const filterOptions: FilterOption[] = useMemo(() => {
     const options: FilterOption[] = [{ id: 'all', label: t.all }];

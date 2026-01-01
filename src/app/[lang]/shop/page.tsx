@@ -57,10 +57,13 @@ async function getCollections(): Promise<Collection[]> {
 
 export default async function ShopPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ collection?: string }>;
 }) {
   const { lang } = await params;
+  const { collection: initialCollection } = await searchParams;
   const locale = lang as Locale;
   const t = pageText[locale];
 
@@ -78,7 +81,12 @@ export default async function ShopPage({
         </h1>
 
         {/* Shop Content with Filters */}
-        <ShopContent products={products} collections={collections} lang={locale} />
+        <ShopContent
+          products={products}
+          collections={collections}
+          lang={locale}
+          initialCollection={initialCollection}
+        />
       </div>
     </div>
   );
