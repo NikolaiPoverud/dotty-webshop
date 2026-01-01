@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getResend, emailConfig } from '@/lib/email/resend';
+import { testEmailTemplate } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,22 +18,8 @@ export async function POST(request: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: email,
-      subject: 'Test Email fra Dotty',
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #ec4899; margin-bottom: 20px;">Dotty Test Email</h1>
-          <p style="color: #333; font-size: 16px; line-height: 1.6;">
-            Dette er en test-epost fra Dotty admin panel.
-          </p>
-          <p style="color: #333; font-size: 16px; line-height: 1.6;">
-            Hvis du mottar denne e-posten, fungerer e-postsystemet korrekt!
-          </p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-          <p style="color: #666; font-size: 14px;">
-            Sendt fra ${emailConfig.baseUrl}
-          </p>
-        </div>
-      `,
+      subject: 'Test E-post fra Dotty',
+      html: testEmailTemplate(),
     });
 
     if (error) {
