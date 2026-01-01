@@ -1,54 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Package, Truck, CheckCircle, Clock, Search } from 'lucide-react';
-import { useState } from 'react';
+import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Order } from '@/types';
 import { formatPrice } from '@/lib/utils';
-
-// Placeholder orders - replace with Supabase fetch
-const initialOrders: Partial<Order>[] = [
-  {
-    id: 'DOT-ABC123',
-    customer_name: 'Kari Nordmann',
-    customer_email: 'kari@example.com',
-    customer_phone: '+47 123 45 678',
-    total: 350000,
-    status: 'paid',
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'DOT-DEF456',
-    customer_name: 'Ola Hansen',
-    customer_email: 'ola@example.com',
-    customer_phone: '+47 987 65 432',
-    total: 150000,
-    status: 'shipped',
-    tracking_carrier: 'Posten',
-    tracking_number: 'NO123456789',
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'DOT-GHI789',
-    customer_name: 'Lisa Berg',
-    customer_email: 'lisa@example.com',
-    customer_phone: '+47 555 55 555',
-    total: 450000,
-    status: 'delivered',
-    tracking_carrier: 'Posten',
-    tracking_number: 'NO987654321',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'DOT-JKL012',
-    customer_name: 'Per Olsen',
-    customer_email: 'per@example.com',
-    customer_phone: '+47 444 44 444',
-    total: 200000,
-    status: 'pending',
-    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-  },
-];
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'Venter', color: 'bg-warning/10 text-warning', icon: Clock },
@@ -58,11 +14,32 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState({ carrier: '', number: '' });
+
+  const fetchOrders = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/orders');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setOrders(result.data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const filteredOrders = orders.filter((order) => {
     if (filter !== 'all' && order.status !== filter) return false;
@@ -77,26 +54,42 @@ export default function AdminOrdersPage() {
     return true;
   });
 
-  const handleShip = (orderId: string) => {
+  const handleShip = async (orderId: string) => {
     if (!trackingInput.carrier || !trackingInput.number) {
       alert('Vennligst fyll inn transportør og sporingsnummer');
       return;
     }
 
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === orderId
-          ? {
-              ...o,
-              status: 'shipped' as const,
-              tracking_carrier: trackingInput.carrier,
-              tracking_number: trackingInput.number,
-            }
-          : o
-      )
-    );
-    setSelectedOrder(null);
-    setTrackingInput({ carrier: '', number: '' });
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'shipped',
+          tracking_carrier: trackingInput.carrier,
+          tracking_number: trackingInput.number,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update order');
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                status: 'shipped' as const,
+                tracking_carrier: trackingInput.carrier,
+                tracking_number: trackingInput.number,
+              }
+            : o
+        )
+      );
+      setSelectedOrder(null);
+      setTrackingInput({ carrier: '', number: '' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update');
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -113,12 +106,31 @@ export default function AdminOrdersPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Ordrer</h1>
-        <p className="text-muted-foreground mt-1">Administrer kundeordrer</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Ordrer</h1>
+          <p className="text-muted-foreground mt-1">Administrer kundeordrer</p>
+        </div>
+        <button onClick={fetchOrders} className="p-2 hover:bg-muted rounded-lg">
+          <RefreshCw className="w-5 h-5" />
+        </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -150,122 +162,130 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Orders List */}
-      <div className="space-y-4">
-        {filteredOrders.map((order, index) => {
-          const StatusIcon = statusConfig[order.status!]?.icon || Clock;
+      {filteredOrders.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            {orders.length === 0 ? 'Ingen ordrer ennå.' : 'Ingen ordrer matcher søket.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredOrders.map((order, index) => {
+            const StatusIcon = statusConfig[order.status!]?.icon || Clock;
 
-          return (
-            <motion.div
-              key={order.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-muted rounded-lg p-6"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusConfig[order.status!]?.color}`}
-                  >
-                    <StatusIcon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold font-mono">{order.id}</p>
-                      <span
-                        className={`px-2 py-0.5 text-xs rounded ${statusConfig[order.status!]?.color}`}
-                      >
-                        {statusConfig[order.status!]?.label}
-                      </span>
+            return (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-muted rounded-lg p-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusConfig[order.status!]?.color}`}
+                    >
+                      <StatusIcon className="w-5 h-5" />
                     </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold font-mono">{order.id}</p>
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded ${statusConfig[order.status!]?.color}`}
+                        >
+                          {statusConfig[order.status!]?.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {order.customer_name} · {formatDate(order.created_at!)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <p className="text-xl font-bold">{formatPrice(order.total!)}</p>
+
+                    {order.status === 'paid' && (
+                      <button
+                        onClick={() => setSelectedOrder(order.id!)}
+                        className="px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
+                      >
+                        Merk som sendt
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tracking info for shipped/delivered */}
+                {order.tracking_number && (
+                  <div className="mt-4 pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
-                      {order.customer_name} · {formatDate(order.created_at!)}
+                      <span className="font-medium text-foreground">Sporing:</span>{' '}
+                      {order.tracking_carrier} - {order.tracking_number}
                     </p>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-4">
-                  <p className="text-xl font-bold">{formatPrice(order.total!)}</p>
+                {/* Shipping form */}
+                {selectedOrder === order.id && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-4 pt-4 border-t border-border"
+                  >
+                    <p className="text-sm font-medium mb-3">Legg til sporingsinformasjon</p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        value={trackingInput.carrier}
+                        onChange={(e) =>
+                          setTrackingInput((prev) => ({ ...prev, carrier: e.target.value }))
+                        }
+                        placeholder="Transportør (f.eks. Posten)"
+                        className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <input
+                        type="text"
+                        value={trackingInput.number}
+                        onChange={(e) =>
+                          setTrackingInput((prev) => ({ ...prev, number: e.target.value }))
+                        }
+                        placeholder="Sporingsnummer"
+                        className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <button
+                        onClick={() => handleShip(order.id!)}
+                        className="px-6 py-2 bg-success text-background font-medium rounded-lg hover:bg-success/90 transition-colors"
+                      >
+                        Bekreft sending
+                      </button>
+                      <button
+                        onClick={() => setSelectedOrder(null)}
+                        className="px-4 py-2 bg-muted-foreground/10 rounded-lg hover:bg-muted-foreground/20 transition-colors"
+                      >
+                        Avbryt
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
 
-                  {order.status === 'paid' && (
-                    <button
-                      onClick={() => setSelectedOrder(order.id!)}
-                      className="px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
-                    >
-                      Merk som sendt
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Tracking info for shipped/delivered */}
-              {order.tracking_number && (
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Sporing:</span>{' '}
-                    {order.tracking_carrier} - {order.tracking_number}
-                  </p>
-                </div>
-              )}
-
-              {/* Shipping form */}
-              {selectedOrder === order.id && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-4 pt-4 border-t border-border"
-                >
-                  <p className="text-sm font-medium mb-3">Legg til sporingsinformasjon</p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      value={trackingInput.carrier}
-                      onChange={(e) =>
-                        setTrackingInput((prev) => ({ ...prev, carrier: e.target.value }))
-                      }
-                      placeholder="Transportør (f.eks. Posten)"
-                      className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <input
-                      type="text"
-                      value={trackingInput.number}
-                      onChange={(e) =>
-                        setTrackingInput((prev) => ({ ...prev, number: e.target.value }))
-                      }
-                      placeholder="Sporingsnummer"
-                      className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <button
-                      onClick={() => handleShip(order.id!)}
-                      className="px-6 py-2 bg-success text-background font-medium rounded-lg hover:bg-success/90 transition-colors"
-                    >
-                      Bekreft sending
-                    </button>
-                    <button
-                      onClick={() => setSelectedOrder(null)}
-                      className="px-4 py-2 bg-muted-foreground/10 rounded-lg hover:bg-muted-foreground/20 transition-colors"
-                    >
-                      Avbryt
-                    </button>
+                {/* Customer details */}
+                <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">E-post</p>
+                    <p>{order.customer_email}</p>
                   </div>
-                </motion.div>
-              )}
-
-              {/* Customer details */}
-              <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">E-post</p>
-                  <p>{order.customer_email}</p>
+                  <div>
+                    <p className="text-muted-foreground">Telefon</p>
+                    <p>{order.customer_phone}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Telefon</p>
-                  <p>{order.customer_phone}</p>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

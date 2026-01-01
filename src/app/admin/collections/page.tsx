@@ -1,42 +1,37 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Pencil, Trash2, GripVertical, Loader2, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Collection } from '@/types';
 
-const initialCollections: Collection[] = [
-  {
-    id: '1',
-    name: 'Neon Series',
-    slug: 'neon-series',
-    description: 'Lysfylte verk som fanger byens energi',
-    display_order: 1,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Portraits',
-    slug: 'portraits',
-    description: 'Pop-art portretter med personlighet',
-    display_order: 2,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Abstract',
-    slug: 'abstract',
-    description: 'Abstrakte uttrykk i sterke farger',
-    display_order: 3,
-    created_at: new Date().toISOString(),
-  },
-];
-
 export default function AdminCollectionsPage() {
-  const [collections, setCollections] = useState(initialCollections);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [formData, setFormData] = useState({ name: '', slug: '', description: '' });
+
+  const fetchCollections = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/collections');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setCollections(result.data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCollections();
+  }, [fetchCollections]);
 
   const openNewModal = () => {
     setEditingCollection(null);
@@ -54,34 +49,48 @@ export default function AdminCollectionsPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.slug) return;
+    setIsSaving(true);
 
-    if (editingCollection) {
-      setCollections((prev) =>
-        prev.map((c) =>
-          c.id === editingCollection.id
-            ? { ...c, ...formData }
-            : c
-        )
-      );
-    } else {
-      const newCollection: Collection = {
-        id: Date.now().toString(),
-        name: formData.name,
-        slug: formData.slug,
-        description: formData.description,
-        display_order: collections.length + 1,
-        created_at: new Date().toISOString(),
-      };
-      setCollections((prev) => [...prev, newCollection]);
+    try {
+      const url = editingCollection
+        ? `/api/admin/collections/${editingCollection.id}`
+        : '/api/admin/collections';
+
+      const response = await fetch(url, {
+        method: editingCollection ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          slug: formData.slug,
+          description: formData.description || null,
+          display_order: editingCollection?.display_order || collections.length + 1,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save');
+
+      setIsModalOpen(false);
+      fetchCollections();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setIsSaving(false);
     }
-    setIsModalOpen(false);
   };
 
-  const deleteCollection = (id: string) => {
-    if (confirm('Er du sikker på at du vil slette denne samlingen?')) {
+  const deleteCollection = async (id: string) => {
+    if (!confirm('Er du sikker på at du vil slette denne samlingen?')) return;
+
+    try {
+      const response = await fetch(`/api/admin/collections/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete');
       setCollections((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete');
     }
   };
 
@@ -95,84 +104,111 @@ export default function AdminCollectionsPage() {
       .replace(/^-|-$/g, '');
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Samlinger</h1>
-          <p className="text-muted-foreground mt-1">
-            Organiser kunstverk i samlinger
-          </p>
+          <p className="text-muted-foreground mt-1">Organiser kunstverk i samlinger</p>
         </div>
-        <motion.button
-          onClick={openNewModal}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Plus className="w-5 h-5" />
-          Ny samling
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <button onClick={fetchCollections} className="p-2 hover:bg-muted rounded-lg">
+            <RefreshCw className="w-5 h-5" />
+          </button>
+          <motion.button
+            onClick={openNewModal}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-background font-medium rounded-lg"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Plus className="w-5 h-5" />
+            Ny samling
+          </motion.button>
+        </div>
       </div>
 
-      {/* Collections List */}
-      <div className="bg-muted rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-muted-foreground/10">
-            <tr>
-              <th className="w-12 px-4 py-3"></th>
-              <th className="text-left px-6 py-3 text-sm font-medium">Navn</th>
-              <th className="text-left px-6 py-3 text-sm font-medium">Slug</th>
-              <th className="text-left px-6 py-3 text-sm font-medium">Beskrivelse</th>
-              <th className="text-right px-6 py-3 text-sm font-medium">Handlinger</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {collections.map((collection, index) => (
-              <motion.tr
-                key={collection.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.05 }}
-                className="hover:bg-muted-foreground/5"
-              >
-                <td className="px-4 py-4">
-                  <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                </td>
-                <td className="px-6 py-4 font-medium">{collection.name}</td>
-                <td className="px-6 py-4">
-                  <code className="px-2 py-1 bg-background text-sm rounded">
-                    {collection.slug}
-                  </code>
-                </td>
-                <td className="px-6 py-4 text-muted-foreground truncate max-w-xs">
-                  {collection.description || '—'}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => openEditModal(collection)}
-                      className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground transition-colors"
-                      title="Rediger"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteCollection(collection.id)}
-                      className="p-2 rounded-lg hover:bg-error/10 text-muted-foreground hover:text-error transition-colors"
-                      title="Slett"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {error && (
+        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">
+          {error}
+        </div>
+      )}
 
-      {/* Modal */}
+      {collections.length === 0 && !error ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">Ingen samlinger ennå.</p>
+          <motion.button
+            onClick={openNewModal}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-background font-medium rounded-lg"
+            whileHover={{ scale: 1.02 }}
+          >
+            <Plus className="w-5 h-5" />
+            Opprett din første samling
+          </motion.button>
+        </div>
+      ) : (
+        <div className="bg-muted rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-muted-foreground/10">
+              <tr>
+                <th className="w-12 px-4 py-3"></th>
+                <th className="text-left px-6 py-3 text-sm font-medium">Navn</th>
+                <th className="text-left px-6 py-3 text-sm font-medium">Slug</th>
+                <th className="text-left px-6 py-3 text-sm font-medium">Beskrivelse</th>
+                <th className="text-right px-6 py-3 text-sm font-medium">Handlinger</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {collections.map((collection, index) => (
+                <motion.tr
+                  key={collection.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="hover:bg-muted-foreground/5"
+                >
+                  <td className="px-4 py-4">
+                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                  </td>
+                  <td className="px-6 py-4 font-medium">{collection.name}</td>
+                  <td className="px-6 py-4">
+                    <code className="px-2 py-1 bg-background text-sm rounded">
+                      {collection.slug}
+                    </code>
+                  </td>
+                  <td className="px-6 py-4 text-muted-foreground truncate max-w-xs">
+                    {collection.description || '—'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEditModal(collection)}
+                        className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteCollection(collection.id)}
+                        className="p-2 rounded-lg hover:bg-error/10 text-muted-foreground hover:text-error"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
           <motion.div
@@ -229,15 +265,16 @@ export default function AdminCollectionsPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted-foreground/10 transition-colors"
+                className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted-foreground/10"
               >
                 Avbryt
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
+                disabled={isSaving}
+                className="flex-1 px-4 py-2 bg-primary text-background font-medium rounded-lg disabled:opacity-50"
               >
-                {editingCollection ? 'Lagre' : 'Opprett'}
+                {isSaving ? 'Lagrer...' : editingCollection ? 'Lagre' : 'Opprett'}
               </button>
             </div>
           </motion.div>

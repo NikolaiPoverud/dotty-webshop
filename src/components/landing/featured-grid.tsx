@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Locale, Product } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
@@ -11,16 +12,17 @@ const sectionText = {
     viewAll: 'Se alle',
     original: 'Original',
     print: 'Trykk',
+    empty: 'Kommer snart...',
   },
   en: {
     title: 'Latest works',
     viewAll: 'View all',
     original: 'Original',
     print: 'Print',
+    empty: 'Coming soon...',
   },
 };
 
-// Format price in NOK
 function formatPrice(priceInOre: number): string {
   return new Intl.NumberFormat('nb-NO', {
     style: 'currency',
@@ -30,59 +32,6 @@ function formatPrice(priceInOre: number): string {
   }).format(priceInOre / 100);
 }
 
-// Placeholder products for initial build
-const placeholderProducts: Partial<Product>[] = [
-  {
-    id: '1',
-    title: 'Neon Dreams',
-    slug: 'neon-dreams',
-    price: 350000, // 3500 kr
-    product_type: 'original',
-    is_available: true,
-  },
-  {
-    id: '2',
-    title: 'Pink Explosion',
-    slug: 'pink-explosion',
-    price: 150000, // 1500 kr
-    product_type: 'print',
-    is_available: true,
-  },
-  {
-    id: '3',
-    title: 'Urban Pop',
-    slug: 'urban-pop',
-    price: 450000, // 4500 kr
-    product_type: 'original',
-    is_available: true,
-  },
-  {
-    id: '4',
-    title: 'Dotty Portrait',
-    slug: 'dotty-portrait',
-    price: 200000, // 2000 kr
-    product_type: 'print',
-    is_available: true,
-  },
-  {
-    id: '5',
-    title: 'Color Storm',
-    slug: 'color-storm',
-    price: 550000, // 5500 kr
-    product_type: 'original',
-    is_available: true,
-  },
-  {
-    id: '6',
-    title: 'Pop Vibes',
-    slug: 'pop-vibes',
-    price: 180000, // 1800 kr
-    product_type: 'print',
-    is_available: true,
-  },
-];
-
-// Random gradient for placeholder
 const gradients = [
   'from-primary to-accent',
   'from-accent to-accent-2',
@@ -94,12 +43,11 @@ const gradients = [
 
 interface FeaturedGridProps {
   lang: Locale;
-  products?: Product[];
+  products: Product[];
 }
 
 export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
   const t = sectionText[lang];
-  const displayProducts = products || placeholderProducts;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -115,6 +63,24 @@ export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 },
   };
+
+  if (products.length === 0) {
+    return (
+      <section className="py-20 sm:py-32 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2
+            className="text-3xl sm:text-4xl font-bold mb-12"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+          >
+            {t.title}
+          </motion.h2>
+          <p className="text-muted-foreground text-center py-12">{t.empty}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 sm:py-32 relative">
@@ -151,7 +117,7 @@ export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
           whileInView="visible"
           viewport={{ once: true, margin: '-100px' }}
         >
-          {displayProducts.slice(0, 6).map((product, index) => (
+          {products.slice(0, 6).map((product, index) => (
             <motion.div key={product.id} variants={itemVariants}>
               <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
                 <motion.article
@@ -161,10 +127,18 @@ export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
                 >
                   {/* Image Container */}
                   <div className="relative aspect-[4/5] overflow-hidden">
-                    {/* Placeholder gradient - replace with actual image */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]}`}
-                    />
+                    {product.image_url ? (
+                      <Image
+                        src={product.image_url}
+                        alt={product.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]}`}
+                      />
+                    )}
 
                     {/* Hover Overlay */}
                     <motion.div
@@ -195,7 +169,7 @@ export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
                       {product.title}
                     </h3>
                     <p className="text-muted-foreground mt-1">
-                      {formatPrice(product.price!)}
+                      {formatPrice(product.price)}
                     </p>
                   </div>
 

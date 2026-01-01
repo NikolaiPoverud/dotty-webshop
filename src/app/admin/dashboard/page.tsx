@@ -1,70 +1,20 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, ShoppingCart, Package, Users } from 'lucide-react';
+import { TrendingUp, ShoppingCart, Package, Users, Loader2, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import { formatPrice } from '@/lib/utils';
+import type { Order } from '@/types';
 
-// Placeholder stats - replace with real data from Supabase
-const stats = [
-  {
-    label: 'Salg denne måneden',
-    value: 4250000, // 42,500 kr
-    format: 'currency',
-    icon: TrendingUp,
-    change: '+12%',
-  },
-  {
-    label: 'Ordrer denne måneden',
-    value: 8,
-    format: 'number',
-    icon: ShoppingCart,
-    change: '+3',
-  },
-  {
-    label: 'Produkter',
-    value: 24,
-    format: 'number',
-    icon: Package,
-    change: '6 tilgjengelig',
-  },
-  {
-    label: 'Nyhetsbrev-abonnenter',
-    value: 156,
-    format: 'number',
-    icon: Users,
-    change: '+28 denne måneden',
-  },
-];
-
-const recentOrders = [
-  {
-    id: 'DOT-ABC123',
-    customer: 'Kari Nordmann',
-    total: 350000,
-    status: 'paid',
-    date: '2 timer siden',
-  },
-  {
-    id: 'DOT-DEF456',
-    customer: 'Ola Hansen',
-    total: 150000,
-    status: 'shipped',
-    date: '1 dag siden',
-  },
-  {
-    id: 'DOT-GHI789',
-    customer: 'Lisa Berg',
-    total: 450000,
-    status: 'delivered',
-    date: '3 dager siden',
-  },
-];
-
-const topProducts = [
-  { title: 'Neon Dreams', sold: 3, revenue: 1050000 },
-  { title: 'Pink Explosion', sold: 5, revenue: 750000 },
-  { title: 'Urban Pop', sold: 2, revenue: 900000 },
-];
+interface DashboardStats {
+  salesThisMonth: number;
+  orderCountThisMonth: number;
+  totalProducts: number;
+  availableProducts: number;
+  totalSubscribers: number;
+  subscribersThisMonth: number;
+  recentOrders: Order[];
+}
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -81,16 +31,103 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/stats');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setStats(result.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+
+    if (diff < 60 * 60 * 1000) {
+      return `${Math.round(diff / (60 * 1000))} min siden`;
+    } else if (diff < 24 * 60 * 60 * 1000) {
+      return `${Math.round(diff / (60 * 60 * 1000))} timer siden`;
+    } else {
+      return `${Math.round(diff / (24 * 60 * 60 * 1000))} dager siden`;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  const statCards = stats ? [
+    {
+      label: 'Salg denne måneden',
+      value: stats.salesThisMonth,
+      format: 'currency' as const,
+      icon: TrendingUp,
+      change: `${stats.orderCountThisMonth} ordrer`,
+    },
+    {
+      label: 'Ordrer denne måneden',
+      value: stats.orderCountThisMonth,
+      format: 'number' as const,
+      icon: ShoppingCart,
+      change: '',
+    },
+    {
+      label: 'Produkter',
+      value: stats.totalProducts,
+      format: 'number' as const,
+      icon: Package,
+      change: `${stats.availableProducts} tilgjengelig`,
+    },
+    {
+      label: 'Nyhetsbrev-abonnenter',
+      value: stats.totalSubscribers,
+      format: 'number' as const,
+      icon: Users,
+      change: stats.subscribersThisMonth > 0 ? `+${stats.subscribersThisMonth} denne måneden` : '',
+    },
+  ] : [];
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Oversikt over butikken din</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Oversikt over butikken din</p>
+        </div>
+        <button onClick={fetchStats} className="p-2 hover:bg-muted rounded-lg">
+          <RefreshCw className="w-5 h-5" />
+        </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">
+          {error}
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <motion.div
@@ -104,7 +141,9 @@ export default function AdminDashboardPage() {
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
-                <span className="text-xs text-success">{stat.change}</span>
+                {stat.change && (
+                  <span className="text-xs text-muted-foreground">{stat.change}</span>
+                )}
               </div>
               <p className="text-2xl font-bold">
                 {stat.format === 'currency'
@@ -117,69 +156,42 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-muted rounded-lg p-6"
-        >
-          <h2 className="text-xl font-bold mb-4">Nylige ordrer</h2>
+      {/* Recent Orders */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-muted rounded-lg p-6"
+      >
+        <h2 className="text-xl font-bold mb-4">Nylige ordrer</h2>
+        {stats?.recentOrders && stats.recentOrders.length > 0 ? (
           <div className="space-y-4">
-            {recentOrders.map((order) => (
+            {stats.recentOrders.map((order) => (
               <div
                 key={order.id}
                 className="flex items-center justify-between py-3 border-b border-border last:border-0"
               >
                 <div>
-                  <p className="font-medium">{order.customer}</p>
+                  <p className="font-medium">{order.customer_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {order.id} · {order.date}
+                    {order.id} · {formatDate(order.created_at!)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">{formatPrice(order.total)}</p>
+                  <p className="font-medium">{formatPrice(order.total!)}</p>
                   <span
-                    className={`inline-block px-2 py-0.5 text-xs rounded ${statusColors[order.status]}`}
+                    className={`inline-block px-2 py-0.5 text-xs rounded ${statusColors[order.status!] || ''}`}
                   >
-                    {statusLabels[order.status]}
+                    {statusLabels[order.status!] || order.status}
                   </span>
                 </div>
               </div>
             ))}
           </div>
-        </motion.div>
-
-        {/* Top Products */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-muted rounded-lg p-6"
-        >
-          <h2 className="text-xl font-bold mb-4">Toppprodukter</h2>
-          <div className="space-y-4">
-            {topProducts.map((product, index) => (
-              <div
-                key={product.title}
-                className="flex items-center gap-4 py-3 border-b border-border last:border-0"
-              >
-                <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
-                  {index + 1}
-                </span>
-                <div className="flex-1">
-                  <p className="font-medium">{product.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {product.sold} solgt
-                  </p>
-                </div>
-                <p className="font-medium">{formatPrice(product.revenue)}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+        ) : (
+          <p className="text-muted-foreground">Ingen ordrer ennå.</p>
+        )}
+      </motion.div>
     </div>
   );
 }
