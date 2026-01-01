@@ -139,7 +139,7 @@ export function FeaturedGrid({ lang, products, showFilters = true }: FeaturedGri
           layout
         >
           <AnimatePresence mode="popLayout">
-            {filteredProducts.slice(0, 6).map((product, index) => (
+            {filteredProducts.slice(0, 3).map((product, index) => (
               <motion.div
                 key={product.id}
                 layout

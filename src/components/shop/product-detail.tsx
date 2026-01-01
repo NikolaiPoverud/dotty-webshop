@@ -80,10 +80,9 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image Section */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            layoutId={`product-image-${product.id}`}
             className="relative aspect-square rounded-lg overflow-hidden bg-muted"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
             {product.image_url ? (
               <Image

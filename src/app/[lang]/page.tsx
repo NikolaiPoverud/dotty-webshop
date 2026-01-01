@@ -13,7 +13,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
       .eq('is_available', true)
       .order('is_featured', { ascending: false })
       .order('display_order', { ascending: true })
-      .limit(6);
+      .limit(12);
 
     if (error) {
       console.error('Failed to fetch featured products:', error);

@@ -54,7 +54,10 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >
         {/* Image Container */}
-        <div className="relative aspect-[4/5] overflow-hidden">
+        <motion.div
+          className="relative aspect-[4/5] overflow-hidden"
+          layoutId={`product-image-${product.id}`}
+        >
           {product.image_url ? (
             <Image
               src={product.image_url}
@@ -99,17 +102,7 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
             </div>
           )}
 
-          {/* Quick View on Hover */}
-          {!isSold && (
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span className="px-6 py-3 bg-foreground text-background font-medium uppercase tracking-wider text-sm">
-                {t.view}
-              </span>
-            </motion.div>
-          )}
-        </div>
+        </motion.div>
 
         {/* Product Info */}
         <div className="p-4">
