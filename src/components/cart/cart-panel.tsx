@@ -39,8 +39,16 @@ interface CartPanelProps {
 export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
   const { cart, itemCount, updateQuantity, removeItem } = useCart();
   const t = text[lang];
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render on server
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -188,6 +196,7 @@ export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
