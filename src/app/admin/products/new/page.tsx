@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
-import type { ProductSize } from '@/types';
+import type { ProductSize, Collection } from '@/types';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [collections, setCollections] = useState<Collection[]>([]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -22,9 +23,25 @@ export default function NewProductPage() {
   const [imagePath, setImagePath] = useState('');
   const [productType, setProductType] = useState<'original' | 'print'>('original');
   const [stockQuantity, setStockQuantity] = useState('');
+  const [collectionId, setCollectionId] = useState<string>('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const response = await fetch('/api/admin/collections');
+        const result = await response.json();
+        if (response.ok) {
+          setCollections(result.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch collections:', err);
+      }
+    };
+    fetchCollections();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +63,7 @@ export default function NewProductPage() {
           image_path: imagePath,
           product_type: productType,
           stock_quantity: productType === 'print' ? parseInt(stockQuantity, 10) || 0 : null,
+          collection_id: collectionId || null,
           is_available: isAvailable,
           is_featured: isFeatured,
           sizes,
@@ -201,6 +219,26 @@ export default function NewProductPage() {
                   <span>Trykk</span>
                 </label>
               </div>
+            </div>
+
+            {/* Collection */}
+            <div className="space-y-2">
+              <label htmlFor="collection" className="block text-sm font-medium">
+                Samling
+              </label>
+              <select
+                id="collection"
+                value={collectionId}
+                onChange={(e) => setCollectionId(e.target.value)}
+                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="">Ingen samling</option>
+                {collections.map((collection) => (
+                  <option key={collection.id} value={collection.id}>
+                    {collection.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Stock Quantity (only for prints) */}

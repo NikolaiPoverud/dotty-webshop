@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
-import type { Product, ProductSize } from '@/types';
+import type { Product, ProductSize, Collection } from '@/types';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function EditProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [collections, setCollections] = useState<Collection[]>([]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -26,21 +27,31 @@ export default function EditProductPage() {
   const [imagePath, setImagePath] = useState('');
   const [productType, setProductType] = useState<'original' | 'print'>('original');
   const [stockQuantity, setStockQuantity] = useState('');
+  const [collectionId, setCollectionId] = useState<string>('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/admin/products/${productId}`);
-        const result = await response.json();
+        // Fetch collections and product in parallel
+        const [collectionsRes, productRes] = await Promise.all([
+          fetch('/api/admin/collections'),
+          fetch(`/api/admin/products/${productId}`),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to fetch product');
+        const collectionsResult = await collectionsRes.json();
+        if (collectionsRes.ok) {
+          setCollections(collectionsResult.data || []);
         }
 
-        const product: Product = result.data;
+        const productResult = await productRes.json();
+        if (!productRes.ok) {
+          throw new Error(productResult.error || 'Failed to fetch product');
+        }
+
+        const product: Product = productResult.data;
         setTitle(product.title);
         setDescription(product.description || '');
         setPrice(String(product.price / 100)); // Convert from ore to NOK
@@ -48,6 +59,7 @@ export default function EditProductPage() {
         setImagePath(product.image_path || '');
         setProductType(product.product_type);
         setStockQuantity(product.stock_quantity?.toString() || '');
+        setCollectionId(product.collection_id || '');
         setIsAvailable(product.is_available);
         setIsFeatured(product.is_featured);
         setSizes(product.sizes || []);
@@ -58,7 +70,7 @@ export default function EditProductPage() {
       }
     };
 
-    fetchProduct();
+    fetchData();
   }, [productId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +92,7 @@ export default function EditProductPage() {
           image_path: imagePath,
           product_type: productType,
           stock_quantity: productType === 'print' ? parseInt(stockQuantity, 10) || 0 : null,
+          collection_id: collectionId || null,
           is_available: isAvailable,
           is_featured: isFeatured,
           sizes,
@@ -243,6 +256,26 @@ export default function EditProductPage() {
                   <span>Trykk</span>
                 </label>
               </div>
+            </div>
+
+            {/* Collection */}
+            <div className="space-y-2">
+              <label htmlFor="collection" className="block text-sm font-medium">
+                Samling
+              </label>
+              <select
+                id="collection"
+                value={collectionId}
+                onChange={(e) => setCollectionId(e.target.value)}
+                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="">Ingen samling</option>
+                {collections.map((collection) => (
+                  <option key={collection.id} value={collection.id}>
+                    {collection.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Stock Quantity (only for prints) */}
