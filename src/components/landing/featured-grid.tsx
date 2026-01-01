@@ -1,10 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState, useMemo } from 'react';
 import type { Locale, Product } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 
 const sectionText = {
   no: {
@@ -13,6 +15,9 @@ const sectionText = {
     original: 'Original',
     print: 'Trykk',
     empty: 'Kommer snart...',
+    all: 'Alle',
+    originals: 'Originaler',
+    prints: 'Trykk',
   },
   en: {
     title: 'Latest works',
@@ -20,6 +25,9 @@ const sectionText = {
     original: 'Original',
     print: 'Print',
     empty: 'Coming soon...',
+    all: 'All',
+    originals: 'Originals',
+    prints: 'Prints',
   },
 };
 
@@ -44,25 +52,23 @@ const gradients = [
 interface FeaturedGridProps {
   lang: Locale;
   products: Product[];
+  showFilters?: boolean;
 }
 
-export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
+export function FeaturedGrid({ lang, products, showFilters = true }: FeaturedGridProps) {
   const t = sectionText[lang];
+  const [activeFilter, setActiveFilter] = useState('all');
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  const filterOptions: FilterOption[] = [
+    { id: 'all', label: t.all },
+    { id: 'original', label: t.originals },
+    { id: 'print', label: t.prints },
+  ];
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 },
-  };
+  const filteredProducts = useMemo(() => {
+    if (activeFilter === 'all') return products;
+    return products.filter(p => p.product_type === activeFilter);
+  }, [products, activeFilter]);
 
   if (products.length === 0) {
     return (
@@ -86,7 +92,7 @@ export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
     <section className="py-20 sm:py-32 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-8">
           <motion.h2
             className="text-3xl sm:text-4xl font-bold"
             initial={{ opacity: 0, x: -20 }}
@@ -109,84 +115,123 @@ export function FeaturedGrid({ lang, products }: FeaturedGridProps) {
           </motion.div>
         </div>
 
+        {/* Filter Tabs - Centered */}
+        {showFilters && (
+          <motion.div
+            className="mb-12"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <FilterTabs
+              options={filterOptions}
+              activeId={activeFilter}
+              onChange={setActiveFilter}
+              centered
+            />
+          </motion.div>
+        )}
+
         {/* Product Grid */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
+          layout
         >
-          {products.slice(0, 6).map((product, index) => (
-            <motion.div key={product.id} variants={itemVariants}>
-              <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
-                <motion.article
-                  className="group relative bg-muted rounded-lg overflow-hidden"
-                  whileHover={{ y: -8 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                  {/* Image Container */}
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    {product.image_url ? (
-                      <Image
-                        src={product.image_url}
-                        alt={product.title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]}`}
-                      />
-                    )}
+          <AnimatePresence mode="popLayout">
+            {filteredProducts.slice(0, 6).map((product, index) => (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{
+                  opacity: { duration: 0.2 },
+                  scale: { duration: 0.2 },
+                  layout: { type: 'spring', stiffness: 300, damping: 30 }
+                }}
+              >
+                <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
+                  <motion.article
+                    className="group relative bg-muted rounded-lg overflow-hidden"
+                    whileHover={{ y: -8 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  >
+                    {/* Image Container */}
+                    <div className="relative aspect-[4/5] overflow-hidden">
+                      {product.image_url ? (
+                        <Image
+                          src={product.image_url}
+                          alt={product.title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]}`}
+                        />
+                      )}
 
-                    {/* Hover Overlay */}
-                    <motion.div
-                      className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    />
+                      {/* Hover Overlay */}
+                      <motion.div
+                        className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      />
 
-                    {/* Product Type Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
-                        {product.product_type === 'original' ? t.original : t.print}
-                      </span>
+                      {/* Product Type Badge */}
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
+                          {product.product_type === 'original' ? t.original : t.print}
+                        </span>
+                      </div>
+
+                      {/* Quick View on Hover */}
+                      <motion.div
+                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        initial={false}
+                      >
+                        <span className="px-6 py-3 bg-foreground text-background font-medium uppercase tracking-wider text-sm">
+                          {lang === 'no' ? 'Se mer' : 'View'}
+                        </span>
+                      </motion.div>
                     </div>
 
-                    {/* Quick View on Hover */}
+                    {/* Product Info */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                        {product.title}
+                      </h3>
+                      <p className="text-muted-foreground mt-1">
+                        {formatPrice(product.price)}
+                      </p>
+                    </div>
+
+                    {/* Glow Effect */}
                     <motion.div
-                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      initial={false}
-                    >
-                      <span className="px-6 py-3 bg-foreground text-background font-medium uppercase tracking-wider text-sm">
-                        {lang === 'no' ? 'Se mer' : 'View'}
-                      </span>
-                    </motion.div>
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                      {product.title}
-                    </h3>
-                    <p className="text-muted-foreground mt-1">
-                      {formatPrice(product.price)}
-                    </p>
-                  </div>
-
-                  {/* Glow Effect */}
-                  <motion.div
-                    className="absolute inset-0 rounded-lg pointer-events-none"
-                    initial={{ boxShadow: 'none' }}
-                    whileHover={{
-                      boxShadow: '0 0 30px rgba(236, 72, 153, 0.3)',
-                    }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.article>
-              </Link>
-            </motion.div>
-          ))}
+                      className="absolute inset-0 rounded-lg pointer-events-none"
+                      initial={{ boxShadow: 'none' }}
+                      whileHover={{
+                        boxShadow: '0 0 30px rgba(236, 72, 153, 0.3)',
+                      }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </motion.article>
+                </Link>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </motion.div>
+
+        {/* Empty state for filtered results */}
+        {filteredProducts.length === 0 && (
+          <motion.p
+            className="text-muted-foreground text-center py-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {t.empty}
+          </motion.p>
+        )}
       </div>
     </section>
   );

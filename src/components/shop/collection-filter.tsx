@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Locale, Collection } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
@@ -22,6 +22,7 @@ interface CollectionFilterProps {
   lang: Locale;
   currentSlug?: string;
   showSold?: boolean;
+  onFilterChange?: (collectionId: string | null) => void;
 }
 
 export function CollectionFilter({
@@ -29,58 +30,86 @@ export function CollectionFilter({
   lang,
   currentSlug,
   showSold = false,
+  onFilterChange,
 }: CollectionFilterProps) {
   const t = text[lang];
+  const router = useRouter();
   const shopPath = getLocalizedPath(lang, 'shop');
+  const soldPath = getLocalizedPath(lang, 'sold');
+
+  // Build options array
+  const options = [
+    { id: 'all', label: t.all, href: shopPath },
+    ...collections.map(c => ({
+      id: c.slug,
+      label: c.name,
+      href: `${shopPath}?collection=${c.slug}`,
+    })),
+    { id: 'sold', label: t.sold, href: soldPath },
+  ];
+
+  // Determine active option
+  const activeId = showSold ? 'sold' : (currentSlug || 'all');
+
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    const activeIndex = options.findIndex(opt => opt.id === activeId);
+    const activeTab = tabsRef.current[activeIndex];
+
+    if (activeTab) {
+      setIndicatorStyle({
+        left: activeTab.offsetLeft,
+        width: activeTab.offsetWidth,
+      });
+    }
+  }, [activeId, options]);
+
+  const handleClick = (option: typeof options[0]) => {
+    // If we have a callback, use instant client-side filtering
+    if (onFilterChange) {
+      onFilterChange(option.id === 'all' ? null : option.id);
+    } else {
+      // Otherwise, navigate to the URL
+      router.push(option.href);
+    }
+  };
 
   return (
-    <div className="flex flex-wrap gap-3 mb-8">
-      {/* All Works */}
-      <Link href={shopPath}>
-        <motion.button
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-            !currentSlug && !showSold
-              ? 'bg-primary text-background'
-              : 'bg-muted hover:bg-muted/80'
-          }`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {t.all}
-        </motion.button>
-      </Link>
+    <div className="flex justify-center mb-10">
+      <div className="relative inline-flex items-center gap-1 p-1.5 bg-muted rounded-full overflow-x-auto max-w-full">
+        {/* Animated Background Indicator */}
+        <motion.div
+          className="absolute h-[calc(100%-12px)] bg-primary rounded-full"
+          initial={false}
+          animate={{
+            left: indicatorStyle.left,
+            width: indicatorStyle.width,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 30,
+          }}
+        />
 
-      {/* Collections */}
-      {collections.map((collection) => (
-        <Link key={collection.id} href={`${shopPath}?collection=${collection.slug}`}>
-          <motion.button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentSlug === collection.slug
-                ? 'bg-primary text-background'
-                : 'bg-muted hover:bg-muted/80'
+        {/* Tab Buttons */}
+        {options.map((option, index) => (
+          <button
+            key={option.id}
+            ref={(el) => { tabsRef.current[index] = el; }}
+            onClick={() => handleClick(option)}
+            className={`relative z-10 px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-200 ${
+              activeId === option.id
+                ? 'text-background'
+                : 'text-foreground/70 hover:text-foreground'
             }`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
-            {collection.name}
-          </motion.button>
-        </Link>
-      ))}
-
-      {/* Sold Gallery */}
-      <Link href={getLocalizedPath(lang, 'sold')}>
-        <motion.button
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-            showSold
-              ? 'bg-primary text-background'
-              : 'bg-muted hover:bg-muted/80'
-          }`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {t.sold}
-        </motion.button>
-      </Link>
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
