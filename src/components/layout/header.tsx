@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { ShoppingBag, Menu, X, Settings } from 'lucide-react';
 import { useState } from 'react';
 import type { Locale } from '@/types';
 import { getLocalizedPath, getAlternateLocale } from '@/lib/i18n/get-dictionary';
@@ -33,7 +33,22 @@ export function Header({ lang }: { lang: Locale }) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden sm:flex items-center gap-8">
+          <nav className="hidden sm:flex items-center gap-6">
+            {/* Admin Button (Dev) */}
+            <Link
+              href="/admin/products"
+              className="relative group"
+            >
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-full hover:bg-primary/10 transition-colors"
+                title="Admin Panel"
+              >
+                <Settings className="w-5 h-5 text-primary" />
+              </motion.div>
+            </Link>
+
             <Link
               href={getLocalizedPath(lang, 'cart')}
               className="relative group"
@@ -46,6 +61,7 @@ export function Header({ lang }: { lang: Locale }) {
                 <ShoppingBag className="w-5 h-5" />
               </motion.div>
             </Link>
+
             {/* Language Switcher */}
             <Link
               href={`/${altLang}`}
@@ -74,6 +90,14 @@ export function Header({ lang }: { lang: Locale }) {
           className="sm:hidden absolute top-full left-0 right-0 bg-background border-b border-border"
         >
           <nav className="flex flex-col p-4 gap-4">
+            <Link
+              href="/admin/products"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-2 flex items-center gap-2 text-primary"
+            >
+              <Settings className="w-5 h-5" />
+              Admin
+            </Link>
             <Link
               href={getLocalizedPath(lang, 'cart')}
               onClick={() => setIsMenuOpen(false)}
