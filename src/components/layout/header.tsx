@@ -9,8 +9,8 @@ import { getLocalizedPath, getAlternateLocale } from '@/lib/i18n/get-dictionary'
 import { Logo } from '@/components/ui/logo';
 
 const navItems = {
-  no: { shop: 'Butikk', cart: 'Handlekurv' },
-  en: { shop: 'Shop', cart: 'Cart' },
+  no: { cart: 'Handlekurv' },
+  en: { cart: 'Cart' },
 };
 
 export function Header({ lang }: { lang: Locale }) {
@@ -34,12 +34,6 @@ export function Header({ lang }: { lang: Locale }) {
 
           {/* Desktop Navigation */}
           <nav className="hidden sm:flex items-center gap-8">
-            <Link
-              href={getLocalizedPath(lang, 'shop')}
-              className="text-sm uppercase tracking-widest hover:text-primary transition-colors"
-            >
-              {t.shop}
-            </Link>
             <Link
               href={getLocalizedPath(lang, 'cart')}
               className="relative group"
@@ -80,13 +74,6 @@ export function Header({ lang }: { lang: Locale }) {
           className="sm:hidden absolute top-full left-0 right-0 bg-background border-b border-border"
         >
           <nav className="flex flex-col p-4 gap-4">
-            <Link
-              href={getLocalizedPath(lang, 'shop')}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-2"
-            >
-              {t.shop}
-            </Link>
             <Link
               href={getLocalizedPath(lang, 'cart')}
               onClick={() => setIsMenuOpen(false)}
