@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendOrderEmails } from '@/lib/email/send';
 
 export async function GET() {
   try {
@@ -75,6 +76,19 @@ export async function POST(request: NextRequest) {
       console.error('Database error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Send order emails (confirmation to customer, alert to artist)
+    // Run in background - don't block response
+    sendOrderEmails(order).then((result) => {
+      if (!result.confirmation.success) {
+        console.error('Failed to send order confirmation email:', result.confirmation.error);
+      }
+      if (!result.alert.success) {
+        console.error('Failed to send new order alert email:', result.alert.error);
+      }
+    }).catch((err) => {
+      console.error('Email sending failed:', err);
+    });
 
     return NextResponse.json({ data: order }, { status: 201 });
   } catch (error) {
