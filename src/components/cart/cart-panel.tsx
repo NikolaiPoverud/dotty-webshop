@@ -58,7 +58,7 @@ export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background border-l border-border z-50 flex flex-col"
+            className="fixed right-0 top-0 bottom-0 h-full w-full max-w-md bg-background border-l border-border z-50 flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border">
@@ -80,7 +80,7 @@ export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 min-h-0">
               {itemCount === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <ShoppingBag className="w-16 h-16 text-muted-foreground mb-4" />
@@ -157,9 +157,9 @@ export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
               )}
             </div>
 
-            {/* Footer - always at bottom */}
+            {/* Footer - pinned at bottom */}
             {itemCount > 0 && (
-              <div className="mt-auto p-4 border-t border-border space-y-3 bg-background">
+              <div className="shrink-0 p-4 border-t border-border space-y-3 bg-background">
                 {/* Subtotal */}
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">{t.subtotal}</span>
