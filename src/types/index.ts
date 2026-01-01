@@ -20,7 +20,7 @@ export interface Product {
   is_available: boolean;
   is_featured: boolean;
   display_order: number;
-  sizes: ProductSize[];
+  sizes?: ProductSize[];
   created_at: string;
   updated_at: string;
 }

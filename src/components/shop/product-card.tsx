@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Ruler } from 'lucide-react';
 import type { Locale, Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
@@ -13,12 +14,14 @@ const text = {
     print: 'Trykk',
     sold: 'Solgt',
     view: 'Se mer',
+    sizes: 'Storrelser',
   },
   en: {
     original: 'Original',
     print: 'Print',
     sold: 'Sold',
     view: 'View',
+    sizes: 'Sizes',
   },
 };
 
@@ -116,6 +119,15 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
           <p className={`mt-1 ${isSold ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
             {formatPrice(product.price)}
           </p>
+          {/* Display sizes if available */}
+          {product.sizes && product.sizes.length > 0 && (
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Ruler className="w-3.5 h-3.5" />
+              <span>
+                {product.sizes.map((s) => s.label).join(', ')}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Glow Effect */}

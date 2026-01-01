@@ -19,13 +19,6 @@ const heroText = {
   },
 };
 
-// Placeholder artwork - in production these come from DB
-const placeholderArtwork = [
-  { id: 1, color: 'from-primary to-accent' },
-  { id: 2, color: 'from-accent to-accent-2' },
-  { id: 3, color: 'from-accent-2 to-primary' },
-];
-
 export function Hero({ lang }: { lang: Locale }) {
   const t = heroText[lang];
 
@@ -114,43 +107,49 @@ export function Hero({ lang }: { lang: Locale }) {
             </motion.div>
           </motion.div>
 
-          {/* Artwork Showcase */}
+          {/* Artist Image */}
           <motion.div
-            className="relative h-[400px] sm:h-[500px] lg:h-[600px]"
+            className="relative flex items-center justify-center"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
           >
-            {/* Stacked Artwork Cards */}
-            {placeholderArtwork.map((art, index) => (
-              <motion.div
-                key={art.id}
-                className={`absolute w-64 h-80 sm:w-72 sm:h-96 rounded-lg bg-gradient-to-br ${art.color} glow-pink`}
-                style={{
-                  top: `${index * 8}%`,
-                  left: `${index * 12}%`,
-                  zIndex: placeholderArtwork.length - index,
-                }}
-                initial={{ opacity: 0, y: 50, rotate: -5 + index * 5 }}
-                animate={{ opacity: 1, y: 0, rotate: -5 + index * 5 }}
-                transition={{
-                  duration: 0.6,
-                  delay: 0.5 + index * 0.15,
-                  ease: 'easeOut',
-                }}
-                whileHover={{
-                  y: -10,
-                  rotate: 0,
-                  scale: 1.02,
-                  zIndex: 10,
-                }}
-              >
-                {/* Placeholder for actual artwork images */}
-                <div className="absolute inset-0 flex items-center justify-center text-background/50 text-sm font-medium">
-                  Artwork {art.id}
-                </div>
-              </motion.div>
-            ))}
+            <motion.div
+              className="relative w-80 h-96 sm:w-96 sm:h-[480px] lg:w-[420px] lg:h-[520px] rounded-2xl overflow-hidden glow-pink"
+              initial={{ opacity: 0, y: 30, rotate: -3 }}
+              animate={{ opacity: 1, y: 0, rotate: -3 }}
+              transition={{ duration: 0.6, delay: 0.5, ease: 'easeOut' }}
+              whileHover={{ rotate: 0, scale: 1.02 }}
+            >
+              {/* Artist photo placeholder - replace src with actual image */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-accent-2">
+                <Image
+                  src="/artist.jpg"
+                  alt="Dotty - Pop-art artist"
+                  fill
+                  className="object-cover"
+                  priority
+                  onError={(e) => {
+                    // Hide image on error, show gradient placeholder
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+              {/* Decorative border */}
+              <div className="absolute inset-0 border-4 border-background/20 rounded-2xl pointer-events-none" />
+            </motion.div>
+
+            {/* Decorative elements */}
+            <motion.div
+              className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent rounded-full blur-xl opacity-60"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute -top-4 -left-4 w-20 h-20 bg-primary rounded-full blur-xl opacity-60"
+              animate={{ scale: [1.2, 1, 1.2] }}
+              transition={{ duration: 4, repeat: Infinity, delay: 2 }}
+            />
           </motion.div>
         </div>
       </div>
