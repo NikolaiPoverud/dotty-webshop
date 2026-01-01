@@ -35,15 +35,29 @@ export function NewsletterForm({ lang }: { lang: Locale }) {
 
     setStatus('loading');
 
-    // TODO: Implement actual newsletter subscription
-    // For now, simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    setStatus('success');
-    setEmail('');
+      if (!response.ok) {
+        throw new Error('Failed to subscribe');
+      }
 
-    // Reset after 3 seconds
-    setTimeout(() => setStatus('idle'), 3000);
+      setStatus('success');
+      setEmail('');
+
+      // Reset after 3 seconds
+      setTimeout(() => setStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      setStatus('error');
+
+      // Reset after 3 seconds
+      setTimeout(() => setStatus('idle'), 3000);
+    }
   };
 
   return (
