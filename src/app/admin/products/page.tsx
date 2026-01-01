@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Star, Eye, EyeOff, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, Loader2, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -57,24 +57,6 @@ export default function AdminProductsPage() {
       }
     } catch (err) {
       console.error('Failed to toggle featured:', err);
-    }
-  };
-
-  const toggleAvailable = async (id: string, currentValue: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_available: !currentValue }),
-      });
-
-      if (response.ok) {
-        setProducts((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, is_available: !currentValue } : p))
-        );
-      }
-    } catch (err) {
-      console.error('Failed to toggle availability:', err);
     }
   };
 
@@ -241,17 +223,6 @@ export default function AdminProductsPage() {
                         title={product.is_featured ? 'Fjern fra fremhevet' : 'Fremhev'}
                       >
                         <Star className={`w-4 h-4 ${product.is_featured ? 'fill-current' : ''}`} />
-                      </button>
-                      <button
-                        onClick={() => toggleAvailable(product.id, product.is_available)}
-                        className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground transition-colors"
-                        title={product.is_available ? 'Merk som solgt' : 'Merk som tilgjengelig'}
-                      >
-                        {product.is_available ? (
-                          <Eye className="w-4 h-4" />
-                        ) : (
-                          <EyeOff className="w-4 h-4" />
-                        )}
                       </button>
                       <Link
                         href={`/admin/products/${product.id}/edit`}
