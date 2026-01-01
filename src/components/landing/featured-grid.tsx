@@ -59,16 +59,13 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
   const filterOptions: FilterOption[] = useMemo(() => {
     const options: FilterOption[] = [{ id: 'all', label: t.all }];
 
-    // Add collections that have products
+    // Add all collections
     collections.forEach((collection) => {
-      const hasProducts = products.some(p => p.collection_id === collection.id);
-      if (hasProducts) {
-        options.push({ id: collection.id, label: collection.name });
-      }
+      options.push({ id: collection.id, label: collection.name });
     });
 
     return options;
-  }, [collections, products, t.all]);
+  }, [collections, t.all]);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === 'all') return products;
