@@ -9,6 +9,7 @@ E-commerce application for selling original pop-art artworks and prints.
 - **Styling**: Tailwind CSS 4
 - **Animation**: Framer Motion
 - **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth (email/password)
 - **Storage**: Supabase Storage (artwork bucket)
 - **Payments**: Stripe (Vipps placeholder)
 - **Email**: Resend API (placeholder)
@@ -22,8 +23,12 @@ src/
 │   │   ├── admin/
 │   │   │   ├── products/        # Product CRUD API
 │   │   │   └── upload/          # Image upload API
+│   │   ├── auth/
+│   │   │   ├── callback/        # OAuth callback handler
+│   │   │   └── logout/          # Logout endpoint
 │   │   └── products/            # Public products API
-│   ├── admin/                   # Admin dashboard (no auth yet)
+│   ├── admin/
+│   │   ├── login/               # Admin login page
 │   │   ├── products/            # Product management
 │   │   │   ├── new/             # Create product
 │   │   │   └── [id]/edit/       # Edit product
@@ -34,10 +39,11 @@ src/
 │       ├── handlekurv/cart/     # Shopping cart
 │       └── kasse/checkout/      # Checkout flow
 ├── components/
-│   ├── admin/                   # Admin components
+│   ├── admin/
 │   │   ├── image-upload.tsx     # Drag-drop image upload
-│   │   └── size-input.tsx       # Product size input
-│   ├── shop/                    # Shop components
+│   │   ├── size-input.tsx       # Product size input
+│   │   └── user-menu.tsx        # User info & logout
+│   ├── shop/
 │   │   ├── product-card.tsx     # Product display card
 │   │   └── product-grid.tsx     # Animated product grid
 │   └── cart/                    # Cart components
@@ -45,11 +51,34 @@ src/
 │   ├── supabase/
 │   │   ├── client.ts            # Browser client
 │   │   ├── server.ts            # Server client (SSR)
-│   │   └── admin.ts             # Admin client (service role)
+│   │   ├── admin.ts             # Admin client (service role)
+│   │   └── auth.ts              # Auth utilities
 │   ├── i18n/                    # Translations (no/en)
 │   └── utils.ts                 # formatPrice, slugify, cn
 ├── types/index.ts               # All TypeScript interfaces
-└── middleware.ts                # i18n routing
+└── middleware.ts                # Auth + i18n routing
+```
+
+## Authentication
+
+Admin routes are protected via Supabase Auth:
+
+- **Login**: `/admin/login` - Email/password authentication
+- **Protected**: All `/admin/*` routes (except login)
+- **Middleware**: Checks auth token, redirects to login if missing
+
+### Creating Admin Users
+
+Create users in Supabase Dashboard:
+1. Go to Authentication > Users
+2. Click "Add user"
+3. Enter email and password
+4. User can now log in at `/admin/login`
+
+### Auth Flow
+```
+/admin/* -> Middleware checks auth -> Redirect to /admin/login if not authenticated
+                                   -> Allow access if authenticated
 ```
 
 ## Database Schema
@@ -81,7 +110,11 @@ npm run lint     # ESLint
 
 ## API Routes
 
-### Admin (requires service role)
+### Auth
+- `GET /api/auth/callback` - OAuth code exchange
+- `POST /api/auth/logout` - Sign out user
+
+### Admin (requires authentication)
 - `GET/POST /api/admin/products` - List/create products
 - `GET/PUT/DELETE /api/admin/products/[id]` - Single product ops
 - `POST/DELETE /api/admin/upload` - Image upload/delete
@@ -120,19 +153,20 @@ Run migrations in order:
 
 ## Current Features
 
-- Product management with image upload
-- Size management (width x height in cm)
-- Featured products on homepage
-- Collection-based filtering
-- Shopping cart with localStorage
-- Checkout flow (Stripe ready)
-- i18n routing (Norwegian/English)
+- **Authentication**: Supabase Auth for admin area
+- **Product Management**: CRUD with image upload
+- **Size Management**: Width x height in cm
+- **Featured Products**: Homepage highlights
+- **Collection Filtering**: Group products
+- **Shopping Cart**: localStorage persistence
+- **Checkout Flow**: Stripe ready
+- **i18n**: Norwegian/English routing
 
 ## Pending Implementation
 
-- Admin authentication gate
 - Stripe webhook handler
 - Vipps payment integration
 - Email notifications (Resend)
 - Order confirmation emails
 - Product detail pages (full implementation)
+- Password reset flow

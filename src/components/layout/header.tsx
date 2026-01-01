@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useState } from 'react';
@@ -23,14 +24,19 @@ export function Header({ lang }: { lang: Locale }) {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href={`/${lang}`} className="relative group">
-            <motion.span
-              className="text-2xl sm:text-3xl font-bold tracking-tight"
+            <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             >
-              <span className="text-primary">Dotty</span>
-              <span className="text-foreground">.</span>
-            </motion.span>
+              <Image
+                src="/logo.png"
+                alt="Dotty. artwork"
+                width={120}
+                height={60}
+                className="h-10 sm:h-12 w-auto"
+                priority
+              />
+            </motion.div>
           </Link>
 
           {/* Desktop Navigation */}

@@ -8,9 +8,10 @@ import {
   ShoppingCart,
   Tag,
   FolderOpen,
-  LogOut
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UserMenu } from '@/components/admin/user-menu';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,6 +27,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  // Don't show sidebar on login page
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -65,14 +71,21 @@ export default function AdminLayout({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-3">
+          {/* View Shop Link */}
           <Link
             href="/no"
+            target="_blank"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted-foreground/10 transition-colors text-muted-foreground"
           >
-            <LogOut className="w-5 h-5" />
-            <span>Tilbake til butikk</span>
+            <ExternalLink className="w-5 h-5" />
+            <span>Se butikken</span>
           </Link>
+
+          {/* User Menu */}
+          <div className="pt-3 border-t border-border">
+            <UserMenu />
+          </div>
         </div>
       </aside>
 
