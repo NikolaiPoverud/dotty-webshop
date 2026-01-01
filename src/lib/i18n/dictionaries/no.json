@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "shop": "Butikk",
+    "cart": "Handlekurv",
+    "about": "Om kunstneren"
+  },
+  "hero": {
+    "title": "Pop-art med personlighet",
+    "subtitle": "Unike kunstverk som bringer energi og farge til ditt hjem",
+    "cta": "Utforsk butikken"
+  },
+  "shop": {
+    "title": "Butikk",
+    "allCollections": "Alle verk",
+    "addToCart": "Legg i handlekurv",
+    "soldOut": "Utsolgt",
+    "sold": "Solgt",
+    "original": "Original",
+    "print": "Trykk",
+    "requestSimilar": "Interessert i lignende verk?"
+  },
+  "cart": {
+    "title": "Handlekurv",
+    "empty": "Handlekurven din er tom",
+    "continueShopping": "Fortsett å handle",
+    "checkout": "Gå til kassen",
+    "remove": "Fjern",
+    "subtotal": "Delsum",
+    "total": "Totalt",
+    "reservationWarning": "Varer reservert i begrenset tid",
+    "itemSoldOut": "Dette verket er dessverre ikke lenger tilgjengelig"
+  },
+  "checkout": {
+    "title": "Kasse",
+    "shipping": "Leveringsadresse",
+    "payment": "Betaling",
+    "discountCode": "Rabattkode",
+    "apply": "Bruk",
+    "invalidCode": "Ugyldig rabattkode",
+    "payWithCard": "Betal med kort",
+    "payWithVipps": "Betal med Vipps",
+    "processing": "Behandler..."
+  },
+  "success": {
+    "title": "Takk for din bestilling!",
+    "message": "Vi har mottatt din ordre og sender deg en bekreftelse på e-post.",
+    "orderNumber": "Ordrenummer",
+    "emailSent": "Bekreftelse sendt til"
+  },
+  "newsletter": {
+    "title": "Hold deg oppdatert",
+    "placeholder": "Din e-postadresse",
+    "subscribe": "Abonner",
+    "success": "Takk for at du abonnerer!"
+  },
+  "footer": {
+    "privacy": "Personvern",
+    "terms": "Vilkår",
+    "copyright": "Alle rettigheter reservert"
+  },
+  "errors": {
+    "itemSold": "Oops! Noen var raskere enn deg - dette verket er solgt!",
+    "paymentFailed": "Hmm, noe gikk galt med betalingen. Prøv igjen?",
+    "cartExpired": "Tiden gikk! Varene dine er ikke lenger reservert.",
+    "generic": "Noe gikk galt. Vennligst prøv igjen."
+  },
+  "form": {
+    "name": "Navn",
+    "email": "E-post",
+    "phone": "Telefon",
+    "address": "Adresse",
+    "addressLine2": "Adresse linje 2 (valgfritt)",
+    "city": "By",
+    "postalCode": "Postnummer",
+    "country": "Land"
+  },
+  "artist": {
+    "title": "Om Dotty.",
+    "statement": "Pop-art som utfordrer det vanlige og feirer det uventede."
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "shop": "Shop",
+    "cart": "Cart",
+    "about": "About the artist"
+  },
+  "hero": {
+    "title": "Pop-art with personality",
+    "subtitle": "Unique artworks that bring energy and color to your home",
+    "cta": "Explore the shop"
+  },
+  "shop": {
+    "title": "Shop",
+    "allCollections": "All works",
+    "addToCart": "Add to cart",
+    "soldOut": "Sold out",
+    "sold": "Sold",
+    "original": "Original",
+    "print": "Print",
+    "requestSimilar": "Interested in similar work?"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "continueShopping": "Continue shopping",
+    "checkout": "Proceed to checkout",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "reservationWarning": "Items reserved for limited time",
+    "itemSoldOut": "This artwork is unfortunately no longer available"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shipping": "Shipping address",
+    "payment": "Payment",
+    "discountCode": "Discount code",
+    "apply": "Apply",
+    "invalidCode": "Invalid discount code",
+    "payWithCard": "Pay with card",
+    "payWithVipps": "Pay with Vipps",
+    "processing": "Processing..."
+  },
+  "success": {
+    "title": "Thank you for your order!",
+    "message": "We have received your order and will send you a confirmation by email.",
+    "orderNumber": "Order number",
+    "emailSent": "Confirmation sent to"
+  },
+  "newsletter": {
+    "title": "Stay updated",
+    "placeholder": "Your email address",
+    "subscribe": "Subscribe",
+    "success": "Thank you for subscribing!"
+  },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "All rights reserved"
+  },
+  "errors": {
+    "itemSold": "Oops! Someone was faster - this artwork has been sold!",
+    "paymentFailed": "Hmm, something went wrong with the payment. Try again?",
+    "cartExpired": "Time's up! Your items are no longer reserved.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "addressLine2": "Address line 2 (optional)",
+    "city": "City",
+    "postalCode": "Postal code",
+    "country": "Country"
+  },
+  "artist": {
+    "title": "About Dotty.",
+    "statement": "Pop-art that challenges the ordinary and celebrates the unexpected."
+  }
+}
