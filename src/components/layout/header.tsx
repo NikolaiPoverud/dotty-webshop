@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import type { Locale } from '@/types';
 import { getLocalizedPath, getAlternateLocale } from '@/lib/i18n/get-dictionary';
+import { Logo } from '@/components/ui/logo';
 
 const navItems = {
   no: { shop: 'Butikk', cart: 'Handlekurv' },
@@ -28,14 +28,7 @@ export function Header({ lang }: { lang: Locale }) {
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             >
-              <Image
-                src="/logo.png"
-                alt="Dotty. artwork"
-                width={120}
-                height={60}
-                className="h-10 sm:h-12 w-auto"
-                priority
-              />
+              <Logo size="md" className="h-10 sm:h-12" />
             </motion.div>
           </Link>
 

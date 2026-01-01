@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Instagram } from 'lucide-react';
 import type { Locale } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
+import { Logo } from '@/components/ui/logo';
 
 const footerText = {
   no: {
@@ -35,13 +35,7 @@ export function Footer({ lang }: { lang: Locale }) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-border">
           {/* Logo */}
           <Link href={`/${lang}`}>
-            <Image
-              src="/logo.png"
-              alt="Dotty. artwork"
-              width={100}
-              height={50}
-              className="h-8 w-auto"
-            />
+            <Logo size="sm" className="h-8" />
           </Link>
 
           {/* Social + Links */}
