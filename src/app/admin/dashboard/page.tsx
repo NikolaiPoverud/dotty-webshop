@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, ShoppingCart, Package, Users, Loader2, RefreshCw } from 'lucide-react';
+import { TrendingUp, ShoppingCart, Package, Users, Loader2, RefreshCw, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
@@ -35,6 +35,11 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Test email state
+  const [testEmail, setTestEmail] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
+
   const fetchStats = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -53,6 +58,37 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  const sendTestEmail = async () => {
+    if (!testEmail) return;
+
+    setEmailSending(true);
+    setEmailResult(null);
+
+    try {
+      const response = await fetch('/api/admin/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: testEmail }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send email');
+      }
+
+      setEmailResult({ success: true, message: 'E-post sendt!' });
+      setTestEmail('');
+    } catch (err) {
+      setEmailResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'Kunne ikke sende e-post'
+      });
+    } finally {
+      setEmailSending(false);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -190,6 +226,59 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <p className="text-muted-foreground">Ingen ordrer ennå.</p>
+        )}
+      </motion.div>
+
+      {/* Test Email Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-muted rounded-lg p-6"
+      >
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Mail className="w-5 h-5" />
+          Test E-post
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Send en test e-post for å verifisere at e-postsystemet fungerer.
+        </p>
+
+        <div className="flex gap-3">
+          <input
+            type="email"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            placeholder="din@epost.no"
+            className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <button
+            onClick={sendTestEmail}
+            disabled={emailSending || !testEmail}
+            className="px-6 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {emailSending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Mail className="w-4 h-4" />
+            )}
+            Send
+          </button>
+        </div>
+
+        {emailResult && (
+          <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${
+            emailResult.success
+              ? 'bg-success/10 text-success'
+              : 'bg-destructive/10 text-destructive'
+          }`}>
+            {emailResult.success ? (
+              <CheckCircle className="w-4 h-4" />
+            ) : (
+              <AlertCircle className="w-4 h-4" />
+            )}
+            {emailResult.message}
+          </div>
         )}
       </motion.div>
     </div>
