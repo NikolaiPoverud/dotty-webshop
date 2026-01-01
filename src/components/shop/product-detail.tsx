@@ -55,9 +55,12 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
   // Extract year from created_at
   const year = new Date(product.created_at).getFullYear();
 
-  // Format dimensions
-  const dimensionsText = product.sizes && product.sizes.length > 0
-    ? product.sizes[0].label
+  // Format dimensions - handle both array and string from JSONB
+  const sizesArray = typeof product.sizes === 'string'
+    ? JSON.parse(product.sizes)
+    : product.sizes;
+  const dimensionsText = sizesArray && sizesArray.length > 0
+    ? sizesArray[0].label
     : '-';
 
   const handleAddToCart = () => {
