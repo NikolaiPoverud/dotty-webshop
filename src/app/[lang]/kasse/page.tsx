@@ -309,7 +309,7 @@ export default function CheckoutPage({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <div className="bg-muted rounded-lg p-6 sticky top-24">
+            <div className="bg-muted rounded-lg p-6">
               <h2 className="text-xl font-bold mb-6">{t.orderSummary}</h2>
 
               {/* Items */}
