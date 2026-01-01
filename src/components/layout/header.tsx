@@ -5,8 +5,10 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Menu, X, Settings } from 'lucide-react';
 import { useState } from 'react';
 import type { Locale } from '@/types';
-import { getLocalizedPath, getAlternateLocale } from '@/lib/i18n/get-dictionary';
+import { getAlternateLocale } from '@/lib/i18n/get-dictionary';
 import { Logo } from '@/components/ui/logo';
+import { useCart } from '@/components/cart/cart-provider';
+import { CartPanel } from '@/components/cart/cart-panel';
 
 const navItems = {
   no: { cart: 'Handlekurv' },
@@ -15,6 +17,8 @@ const navItems = {
 
 export function Header({ lang }: { lang: Locale }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { itemCount } = useCart();
   const altLang = getAlternateLocale(lang);
   const t = navItems[lang];
 
@@ -49,8 +53,8 @@ export function Header({ lang }: { lang: Locale }) {
               </motion.div>
             </Link>
 
-            <Link
-              href={getLocalizedPath(lang, 'cart')}
+            <button
+              onClick={() => setIsCartOpen(true)}
               className="relative group"
             >
               <motion.div
@@ -59,8 +63,17 @@ export function Header({ lang }: { lang: Locale }) {
                 className="p-2 rounded-full hover:bg-muted transition-colors"
               >
                 <ShoppingBag className="w-5 h-5" />
+                {itemCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-background text-xs font-bold rounded-full flex items-center justify-center"
+                  >
+                    {itemCount > 9 ? '9+' : itemCount}
+                  </motion.span>
+                )}
               </motion.div>
-            </Link>
+            </button>
 
             {/* Language Switcher */}
             <Link
@@ -98,14 +111,21 @@ export function Header({ lang }: { lang: Locale }) {
               <Settings className="w-5 h-5" />
               Admin
             </Link>
-            <Link
-              href={getLocalizedPath(lang, 'cart')}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-2 flex items-center gap-2"
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsCartOpen(true);
+              }}
+              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-2 flex items-center gap-2 w-full text-left"
             >
               <ShoppingBag className="w-5 h-5" />
               {t.cart}
-            </Link>
+              {itemCount > 0 && (
+                <span className="ml-auto bg-primary text-background text-xs font-bold px-2 py-0.5 rounded-full">
+                  {itemCount}
+                </span>
+              )}
+            </button>
             <Link
               href={`/${altLang}`}
               onClick={() => setIsMenuOpen(false)}
@@ -116,6 +136,13 @@ export function Header({ lang }: { lang: Locale }) {
           </nav>
         </motion.div>
       )}
+
+      {/* Cart Panel */}
+      <CartPanel
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        lang={lang}
+      />
     </header>
   );
 }

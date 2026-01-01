@@ -54,10 +54,7 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >
         {/* Image Container */}
-        <motion.div
-          className="relative aspect-[4/5] overflow-hidden"
-          layoutId={`product-image-${product.id}`}
-        >
+        <div className="relative aspect-[4/5] overflow-hidden">
           {product.image_url ? (
             <Image
               src={product.image_url}
@@ -101,8 +98,7 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
               </span>
             </div>
           )}
-
-        </motion.div>
+        </div>
 
         {/* Product Info */}
         <div className="p-4">

@@ -80,9 +80,10 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image Section */}
           <motion.div
-            layoutId={`product-image-${product.id}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
             className="relative aspect-square rounded-lg overflow-hidden bg-muted"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
             {product.image_url ? (
               <Image
@@ -99,9 +100,9 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
 
           {/* Details Section */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
             className="flex flex-col"
           >
             {/* Collection Name */}
