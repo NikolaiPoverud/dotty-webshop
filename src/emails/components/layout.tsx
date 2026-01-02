@@ -23,21 +23,26 @@ export function EmailLayout({ preview, children }: EmailLayoutProps) {
           theme: {
             extend: {
               colors: {
-                background: '#0f0f14',
+                // Dotty Brand Colors - Matching Website
+                background: '#131316',
                 card: '#1a1a1f',
-                border: '#2a2a30',
-                primary: '#FF1493',
-                'primary-dark': '#cc1078',
-                foreground: '#ffffff',
-                muted: '#a3a3a8',
+                border: '#3f3f46',
+                primary: '#FE206A',
+                'primary-dark': '#E01A5E',
+                'primary-light': '#FF4D8A',
+                foreground: '#fafafa',
+                muted: '#27272a',
+                'muted-foreground': '#a1a1aa',
                 success: '#22c55e',
+                error: '#ef4444',
+                accent: '#a855f7',
               },
             },
           },
         }}
       >
         <Body className="bg-background font-sans">
-          <Container className="mx-auto max-w-[600px] px-6 py-10">
+          <Container className="mx-auto max-w-[600px] px-4 py-10">
             {children}
           </Container>
         </Body>

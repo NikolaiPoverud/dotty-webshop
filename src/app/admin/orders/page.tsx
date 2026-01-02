@@ -93,6 +93,26 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleDelivered = async (orderId: string) => {
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'delivered' }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update order');
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, status: 'delivered' as const } : o
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update');
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -223,6 +243,14 @@ export default function AdminOrdersPage() {
                         Merk som sendt
                       </button>
                     )}
+                    {order.status === 'shipped' && (
+                      <button
+                        onClick={() => handleDelivered(order.id!)}
+                        className="px-4 py-2 bg-success text-white font-medium rounded-lg hover:bg-success/90 transition-colors"
+                      >
+                        Merk som levert
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -265,7 +293,7 @@ export default function AdminOrdersPage() {
                       />
                       <button
                         onClick={() => handleShip(order.id!)}
-                        className="px-6 py-2 bg-success text-background font-medium rounded-lg hover:bg-success/90 transition-colors"
+                        className="px-6 py-2 bg-success text-white font-medium rounded-lg hover:bg-success/90 transition-colors"
                       >
                         Bekreft sending
                       </button>

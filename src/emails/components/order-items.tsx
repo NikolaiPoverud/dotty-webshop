@@ -12,7 +12,7 @@ function formatPrice(priceInOre: number): string {
 
 export function OrderItems({ items }: OrderItemsProps) {
   return (
-    <Section className="rounded-lg bg-card p-4">
+    <Section className="rounded-xl bg-card p-4">
       {items.map((item, index) => (
         <Row key={item.product_id} className={index > 0 ? 'mt-4 border-t border-border pt-4' : ''}>
           <Column className="w-20">
@@ -22,18 +22,18 @@ export function OrderItems({ items }: OrderItemsProps) {
                 alt={item.title}
                 width={80}
                 height={80}
-                className="rounded border border-border"
+                className="rounded-lg border border-border"
               />
             ) : (
-              <div className="h-20 w-20 rounded border border-border bg-background" />
+              <div className="h-20 w-20 rounded-lg border border-border bg-muted" />
             )}
           </Column>
           <Column className="pl-4">
-            <Text className="m-0 font-medium text-foreground">{item.title}</Text>
-            <Text className="m-0 mt-1 text-sm text-muted">
+            <Text className="m-0 font-semibold text-foreground">{item.title}</Text>
+            <Text className="m-0 mt-1 text-sm text-muted-foreground">
               Antall: {item.quantity}
             </Text>
-            <Text className="m-0 mt-1 font-medium text-foreground">
+            <Text className="m-0 mt-1 font-semibold text-primary">
               {formatPrice(item.price * item.quantity)}
             </Text>
           </Column>
