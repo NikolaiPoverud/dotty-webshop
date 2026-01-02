@@ -5,16 +5,21 @@ import { Instagram } from 'lucide-react';
 import type { Locale } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
+import { resetCookieConsent } from '@/components/gdpr/cookie-consent';
 
 const footerText = {
   no: {
     privacy: 'Personvern',
     terms: 'Vilkår',
+    cookies: 'Informasjonskapsler',
+    myData: 'Mine data',
     copyright: 'Alle rettigheter reservert',
   },
   en: {
     privacy: 'Privacy',
     terms: 'Terms',
+    cookies: 'Cookies',
+    myData: 'My Data',
     copyright: 'All rights reserved',
   },
 };
@@ -39,7 +44,7 @@ export function Footer({ lang }: { lang: Locale }) {
           </Link>
 
           {/* Social + Links */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <a
               href="https://instagram.com/dottyartwork"
               target="_blank"
@@ -60,6 +65,21 @@ export function Footer({ lang }: { lang: Locale }) {
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {t.terms}
+            </Link>
+            <button
+              onClick={() => {
+                resetCookieConsent();
+                window.location.reload();
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t.cookies}
+            </button>
+            <Link
+              href={`/${lang}/my-data`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t.myData}
             </Link>
           </div>
 

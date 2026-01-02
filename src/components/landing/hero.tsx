@@ -49,7 +49,7 @@ export function Hero({ lang }: { lang: Locale }) {
 
         {/* Subtitle */}
         <motion.p
-          className="mt-8 sm:mt-10 text-lg sm:text-xl lg:text-2xl text-neutral-400 max-w-3xl mx-auto leading-relaxed font-normal"
+          className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-400 max-w-3xl mx-auto leading-relaxed font-normal"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}

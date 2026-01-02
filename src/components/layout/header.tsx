@@ -86,7 +86,7 @@ export function Header({ lang, collections = [] }: HeaderProps) {
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             >
-              <Logo size="md" className="h-10 sm:h-12" />
+              <Logo size="lg" className="h-12 sm:h-14" />
             </motion.div>
           </button>
 
