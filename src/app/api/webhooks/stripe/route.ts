@@ -108,6 +108,30 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     console.log('Order created successfully:', order.id);
 
+    // Decrement discount code uses_remaining if a code was used
+    if (metadata.discount_code) {
+      const { error: discountError } = await supabase.rpc('decrement_discount_uses', {
+        discount_code: metadata.discount_code,
+      });
+
+      if (discountError) {
+        // Fallback: manually decrement if RPC doesn't exist
+        const { data: discountData } = await supabase
+          .from('discount_codes')
+          .select('uses_remaining')
+          .ilike('code', metadata.discount_code)
+          .single();
+
+        if (discountData && discountData.uses_remaining !== null) {
+          await supabase
+            .from('discount_codes')
+            .update({ uses_remaining: Math.max(0, discountData.uses_remaining - 1) })
+            .ilike('code', metadata.discount_code);
+        }
+        console.log(`Discount code "${metadata.discount_code}" usage decremented`);
+      }
+    }
+
     // Send confirmation emails (customer + artist)
     try {
       const emailResults = await sendOrderEmails(order as Order);

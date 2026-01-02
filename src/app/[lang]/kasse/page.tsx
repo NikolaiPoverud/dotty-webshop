@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState, use } from 'react';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { useState, use, useEffect, Suspense } from 'react';
+import { CreditCard, Loader2, AlertCircle, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import type { Locale } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/utils';
@@ -34,6 +35,12 @@ const text = {
     orderSummary: 'Ordresammendrag',
     includingVat: 'inkl. MVA',
     emptyCart: 'Handlekurven er tom',
+    paymentCanceled: 'Betalingen ble avbrutt',
+    paymentCanceledDesc: 'Du kan prøve igjen når du er klar.',
+    paymentFailed: 'Betalingen mislyktes',
+    paymentFailedDesc: 'Kortet ble avvist eller det oppstod en feil. Vennligst prøv igjen.',
+    genericError: 'Noe gikk galt. Vennligst prøv igjen.',
+    fillAllFields: 'Vennligst fyll ut alle påkrevde felt',
   },
   en: {
     title: 'Checkout',
@@ -60,21 +67,25 @@ const text = {
     orderSummary: 'Order Summary',
     includingVat: 'incl. VAT',
     emptyCart: 'Your cart is empty',
+    paymentCanceled: 'Payment was canceled',
+    paymentCanceledDesc: 'You can try again when you are ready.',
+    paymentFailed: 'Payment failed',
+    paymentFailedDesc: 'Your card was declined or an error occurred. Please try again.',
+    genericError: 'Something went wrong. Please try again.',
+    fillAllFields: 'Please fill in all required fields',
   },
 };
 
-export default function CheckoutPage({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}) {
-  const { lang } = use(params);
-  const locale = lang as Locale;
-  const t = text[locale];
+function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }) {
+  const searchParams = useSearchParams();
   const { cart, itemCount, applyDiscount } = useCart();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState('');
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState('');
+  const [discountSuccess, setDiscountSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -85,6 +96,13 @@ export default function CheckoutPage({
     postalCode: '',
     country: 'Norge',
   });
+
+  // Check for canceled payment on mount
+  useEffect(() => {
+    if (searchParams.get('canceled') === 'true') {
+      setError(t.paymentCanceled);
+    }
+  }, [searchParams, t.paymentCanceled]);
 
   if (itemCount === 0) {
     return (
@@ -99,19 +117,49 @@ export default function CheckoutPage({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleApplyDiscount = () => {
-    // TODO: Validate discount code against Supabase
-    // For now, placeholder
-    if (discountInput.toLowerCase() === 'test20') {
-      applyDiscount('TEST20', cart.subtotal * 0.2);
+  const handleApplyDiscount = async () => {
+    if (!discountInput.trim()) return;
+
+    setDiscountLoading(true);
+    setDiscountError('');
+    setDiscountSuccess('');
+
+    try {
+      const response = await fetch('/api/discounts/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: discountInput.trim(),
+          subtotal: cart.subtotal,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.valid) {
+        setDiscountError(result.error || (locale === 'no' ? 'Ugyldig rabattkode' : 'Invalid discount code'));
+        return;
+      }
+
+      applyDiscount(result.code, result.calculated_discount);
+      setDiscountSuccess(locale === 'no' ? 'Rabattkode aktivert!' : 'Discount applied!');
+      setDiscountInput('');
+    } catch (error) {
+      console.error('Discount validation error:', error);
+      setDiscountError(locale === 'no' ? 'Kunne ikke validere rabattkode' : 'Failed to validate discount code');
+    } finally {
+      setDiscountLoading(false);
     }
   };
 
   const handleCheckout = async (provider: 'stripe' | 'vipps') => {
+    // Clear any previous errors
+    setError(null);
+
     // Validate form
     if (!formData.name || !formData.email || !formData.phone ||
         !formData.address || !formData.city || !formData.postalCode) {
-      alert(locale === 'no' ? 'Vennligst fyll ut alle påkrevde felt' : 'Please fill in all required fields');
+      setError(t.fillAllFields);
       return;
     }
 
@@ -159,11 +207,11 @@ export default function CheckoutPage({
         }
       } else {
         // Vipps - placeholder for now
-        alert(locale === 'no' ? 'Vipps-betaling kommer snart!' : 'Vipps payment coming soon!');
+        setError(locale === 'no' ? 'Vipps-betaling kommer snart!' : 'Vipps payment coming soon!');
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert(locale === 'no' ? 'Noe gikk galt. Vennligst prøv igjen.' : 'Something went wrong. Please try again.');
+    } catch (err) {
+      console.error('Checkout error:', err);
+      setError(t.genericError);
     } finally {
       setIsLoading(false);
     }
@@ -175,6 +223,29 @@ export default function CheckoutPage({
         <h1 className="text-4xl sm:text-5xl font-bold mb-8">
           <span className="gradient-text">{t.title}</span>
         </h1>
+
+        {/* Error Banner */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 bg-error/10 border border-error/20 rounded-lg flex items-start gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium text-error">{error}</p>
+              {error === t.paymentCanceled && (
+                <p className="text-sm text-muted-foreground mt-1">{t.paymentCanceledDesc}</p>
+              )}
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </motion.div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Shipping Form */}
@@ -290,17 +361,31 @@ export default function CheckoutPage({
                 <input
                   type="text"
                   value={discountInput}
-                  onChange={(e) => setDiscountInput(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  onChange={(e) => {
+                    setDiscountInput(e.target.value);
+                    setDiscountError('');
+                    setDiscountSuccess('');
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleApplyDiscount()}
+                  disabled={discountLoading || !!cart.discountCode}
+                  placeholder={cart.discountCode ? cart.discountCode : ''}
+                  className="flex-1 px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                 />
                 <button
                   type="button"
                   onClick={handleApplyDiscount}
-                  className="px-6 py-3 bg-muted hover:bg-muted/80 font-medium rounded-lg transition-colors"
+                  disabled={discountLoading || !discountInput.trim() || !!cart.discountCode}
+                  className="px-6 py-3 bg-muted hover:bg-muted/80 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t.apply}
+                  {discountLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t.apply}
                 </button>
               </div>
+              {discountError && (
+                <p className="mt-2 text-sm text-error">{discountError}</p>
+              )}
+              {discountSuccess && (
+                <p className="mt-2 text-sm text-success">{discountSuccess}</p>
+              )}
             </div>
           </motion.div>
 
@@ -385,5 +470,25 @@ export default function CheckoutPage({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = use(params);
+  const locale = lang as Locale;
+  const t = text[locale];
+
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <CheckoutContent locale={locale} t={t} />
+    </Suspense>
   );
 }
