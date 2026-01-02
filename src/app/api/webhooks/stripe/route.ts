@@ -199,21 +199,48 @@ async function handleCheckoutCompletedFallback(
 
   console.log('Order created (fallback):', order.id);
 
-  // Decrement discount code
+  // Decrement discount code uses
   if (metadata.discount_code) {
     const normalizedCode = metadata.discount_code.toUpperCase();
-    await supabase
+
+    // First get current uses_remaining
+    const { data: discountData } = await supabase
       .from('discount_codes')
-      .update({ uses_remaining: supabase.rpc('greatest', { a: 0, b: 'uses_remaining - 1' }) })
-      .eq('code', normalizedCode);
+      .select('uses_remaining')
+      .eq('code', normalizedCode)
+      .single();
+
+    if (discountData && discountData.uses_remaining !== null && discountData.uses_remaining > 0) {
+      const { error: updateError } = await supabase
+        .from('discount_codes')
+        .update({ uses_remaining: Math.max(0, discountData.uses_remaining - 1) })
+        .eq('code', normalizedCode);
+
+      if (updateError) {
+        console.warn(`Failed to decrement discount code ${normalizedCode}:`, updateError.message);
+      }
+    }
   }
 
-  // Update inventory
+  // Update inventory with proper error handling
   for (const item of items) {
-    await supabase.rpc('decrement_product_stock', {
+    const { data: stockResult, error: stockError } = await supabase.rpc('decrement_product_stock', {
       p_product_id: item.product_id,
       p_quantity: item.quantity,
     });
+
+    if (stockError) {
+      console.error(`Failed to decrement stock for product ${item.product_id}:`, stockError.message);
+    } else if (stockResult && stockResult.length > 0) {
+      const result = stockResult[0];
+      if (result.success) {
+        console.log(`Stock updated for product ${item.product_id}: type=${result.product_type}, new_stock=${result.new_stock}`);
+      } else {
+        console.error(`Stock decrement failed for product ${item.product_id}: ${result.error_message}`);
+      }
+    } else {
+      console.warn(`No result from decrement_product_stock for product ${item.product_id}`);
+    }
   }
 
   // Send emails

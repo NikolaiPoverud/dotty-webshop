@@ -181,39 +181,33 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-20 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back to Shop Navigation */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-          className="mb-8"
+          className="mb-4"
         >
           <Link
             href={getLocalizedPath(lang, 'shop')}
-            className="group inline-flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors duration-300"
+            className="group inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-300"
           >
             <motion.span
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-muted group-hover:bg-primary/20 transition-colors duration-300"
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-muted group-hover:bg-primary/20 transition-colors duration-300"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <motion.span
-                initial={{ x: 0 }}
-                whileHover={{ x: -3 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              >
-                <ArrowLeft className="w-5 h-5 group-hover:text-primary transition-colors duration-300" />
-              </motion.span>
+              <ArrowLeft className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
             </motion.span>
-            <span className="text-sm font-medium uppercase tracking-wider group-hover:text-primary transition-colors duration-300">
+            <span className="text-xs font-medium uppercase tracking-wider group-hover:text-primary transition-colors duration-300">
               {t.backToShop}
             </span>
           </Link>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Image Gallery Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -237,39 +231,39 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
           >
             {/* Collection Name */}
             {collectionName && (
-              <p className="text-primary font-medium mb-4">
+              <p className="text-primary font-medium mb-2">
                 {collectionName}
               </p>
             )}
 
             {/* Product Title */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3">
               {product.title}
             </h1>
 
             {/* Price */}
-            <p className="text-3xl sm:text-4xl font-bold mb-12">
+            <p className="text-2xl sm:text-3xl font-bold mb-6">
               {formatPrice(product.price)}
             </p>
 
             {/* Specifications */}
-            <div className="space-y-6 mb-12">
+            <div className="space-y-3 mb-6">
               {/* Dimensions */}
-              <div className="flex justify-between items-center pb-6 border-b border-border">
-                <span className="text-muted-foreground">{t.dimensions}</span>
-                <span className="font-medium">{dimensionsText}</span>
+              <div className="flex justify-between items-center pb-3 border-b border-border">
+                <span className="text-muted-foreground text-sm">{t.dimensions}</span>
+                <span className="font-medium text-sm">{dimensionsText}</span>
               </div>
 
               {/* Year */}
-              <div className="flex justify-between items-center pb-6 border-b border-border">
-                <span className="text-muted-foreground">{t.year}</span>
-                <span className="font-medium">{year}</span>
+              <div className="flex justify-between items-center pb-3 border-b border-border">
+                <span className="text-muted-foreground text-sm">{t.year}</span>
+                <span className="font-medium text-sm">{year}</span>
               </div>
 
               {/* Availability */}
-              <div className="flex justify-between items-center pb-6 border-b border-border">
-                <span className="text-muted-foreground">{t.availability}</span>
-                <span className={`font-medium ${isSold ? 'text-error' : ''}`}>
+              <div className="flex justify-between items-center pb-3 border-b border-border">
+                <span className="text-muted-foreground text-sm">{t.availability}</span>
+                <span className={`font-medium text-sm ${isSold ? 'text-error' : ''}`}>
                   {isSold ? t.soldOut : t.available}
                 </span>
               </div>
@@ -278,7 +272,7 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
 
             {/* Description */}
             {product.description && (
-              <p className="text-muted-foreground mb-12 leading-relaxed whitespace-pre-wrap">
+              <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-wrap text-sm">
                 {product.description}
               </p>
             )}
@@ -286,13 +280,13 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
             {/* Purchase / Inquiry Section */}
             {product.requires_inquiry ? (
               // Inquiry-only product - show email form
-              <div className="space-y-4">
-                <div className="p-4 bg-muted/50 rounded-lg border border-border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mail className="w-5 h-5 text-primary" />
-                    <span className="font-semibold">{t.inquiryOnly}</span>
+              <div className="space-y-3">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-sm">{t.inquiryOnly}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t.inquiryDescription}
                   </p>
                 </div>
@@ -301,32 +295,32 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="w-full py-6 bg-success text-background font-semibold text-lg uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
                   >
-                    <Check className="w-6 h-6" />
+                    <Check className="w-5 h-5" />
                     {t.inquirySent}
                   </motion.div>
                 ) : (
-                  <form onSubmit={handleInquirySubmit} className="space-y-3">
+                  <form onSubmit={handleInquirySubmit} className="space-y-2">
                     <input
                       type="email"
                       value={inquiryEmail}
                       onChange={(e) => setInquiryEmail(e.target.value)}
                       placeholder={t.emailPlaceholder}
                       required
-                      className="w-full px-6 py-4 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg"
+                      className="w-full px-5 py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                     <motion.button
                       type="submit"
                       disabled={inquiryStatus === 'sending' || !inquiryEmail}
-                      className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       {inquiryStatus === 'sending' ? (
-                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        <Send className="w-5 h-5" />
+                        <Send className="w-4 h-4" />
                       )}
                       {inquiryStatus === 'error' ? t.inquiryError : t.sendInquiry}
                     </motion.button>
@@ -335,18 +329,18 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
               </div>
             ) : isAdded || isInCart ? (
               // Item added to cart
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="w-full py-6 bg-success text-background font-semibold text-lg uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
                 >
-                  <Check className="w-6 h-6" />
+                  <Check className="w-5 h-5" />
                   {t.addedToCart}
                 </motion.div>
                 <motion.button
                   onClick={handleViewCart}
-                  className="w-full py-4 bg-muted text-foreground font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-muted/80"
+                  className="w-full py-3 bg-muted text-foreground font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-muted/80"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -355,13 +349,13 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
               </div>
             ) : isSold ? (
               // Sold out - show contact artist form
-              <div className="space-y-4">
-                <div className="p-4 bg-muted/50 rounded-lg border border-border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mail className="w-5 h-5 text-primary" />
-                    <span className="font-semibold">{t.soldOutInterest}</span>
+              <div className="space-y-3">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-sm">{t.soldOutInterest}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t.soldOutDescription}
                   </p>
                 </div>
@@ -370,32 +364,32 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="w-full py-6 bg-success text-background font-semibold text-lg uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
                   >
-                    <Check className="w-6 h-6" />
+                    <Check className="w-5 h-5" />
                     {t.inquirySent}
                   </motion.div>
                 ) : (
-                  <form onSubmit={handleSoldOutInquiry} className="space-y-3">
+                  <form onSubmit={handleSoldOutInquiry} className="space-y-2">
                     <input
                       type="email"
                       value={inquiryEmail}
                       onChange={(e) => setInquiryEmail(e.target.value)}
                       placeholder={t.emailPlaceholder}
                       required
-                      className="w-full px-6 py-4 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg"
+                      className="w-full px-5 py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                     <motion.button
                       type="submit"
                       disabled={inquiryStatus === 'sending' || !inquiryEmail}
-                      className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       {inquiryStatus === 'sending' ? (
-                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        <Send className="w-5 h-5" />
+                        <Send className="w-4 h-4" />
                       )}
                       {inquiryStatus === 'error' ? t.inquiryError : t.contactArtist}
                     </motion.button>
@@ -406,7 +400,7 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
               // Normal add to cart button
               <motion.button
                 onClick={handleAddToCart}
-                className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
+                className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
