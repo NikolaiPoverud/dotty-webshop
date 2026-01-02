@@ -43,7 +43,8 @@ const gradients = [
 
 export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
   const t = text[lang];
-  const isSold = !product.is_available;
+  // Item is sold if not available OR stock is 0
+  const isSold = !product.is_available || product.stock_quantity === 0;
   const gradient = gradients[index % gradients.length];
 
   return (

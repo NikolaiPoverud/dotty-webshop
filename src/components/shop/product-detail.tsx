@@ -57,6 +57,9 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
   // Check if item is already in cart
   const isInCart = cart.items.some((item) => item.product.id === product.id);
 
+  // Item is sold if not available OR stock is 0
+  const isSold = !product.is_available || product.stock_quantity === 0;
+
   // Extract year from created_at
   const year = new Date(product.created_at).getFullYear();
 
@@ -74,7 +77,7 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
     : (product.gallery_images || []);
 
   const handleAddToCart = () => {
-    if (!product.is_available) return;
+    if (isSold) return;
 
     addItem(product, 1);
     setIsAdded(true);
@@ -145,8 +148,8 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
               {/* Availability */}
               <div className="flex justify-between items-center pb-6 border-b border-border">
                 <span className="text-muted-foreground">{t.availability}</span>
-                <span className="font-medium">
-                  {product.is_available ? t.available : t.soldOut}
+                <span className={`font-medium ${isSold ? 'text-error' : ''}`}>
+                  {isSold ? t.soldOut : t.available}
                 </span>
               </div>
             </div>
@@ -182,11 +185,11 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
               <motion.button
                 onClick={handleAddToCart}
                 className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: product.is_available ? 1.02 : 1 }}
-                whileTap={{ scale: product.is_available ? 0.98 : 1 }}
-                disabled={!product.is_available}
+                whileHover={{ scale: isSold ? 1 : 1.02 }}
+                whileTap={{ scale: isSold ? 1 : 0.98 }}
+                disabled={isSold}
               >
-                {product.is_available ? t.addToCart : t.soldOut}
+                {isSold ? t.soldOut : t.addToCart}
               </motion.button>
             )}
           </motion.div>
