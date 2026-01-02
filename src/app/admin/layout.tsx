@@ -11,6 +11,8 @@ import {
   ExternalLink,
   MessageSquareQuote,
   Mail,
+  Shield,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
@@ -23,6 +25,8 @@ const navItems = [
   { href: '/admin/contact', label: 'Meldinger', icon: Mail },
   { href: '/admin/discounts', label: 'Rabattkoder', icon: Tag },
   { href: '/admin/testimonials', label: 'Tilbakemeldinger', icon: MessageSquareQuote },
+  { href: '/admin/gdpr', label: 'GDPR', icon: Shield },
+  { href: '/admin/audit-log', label: 'Revisjonslogg', icon: FileText },
 ];
 
 export default function AdminLayout({

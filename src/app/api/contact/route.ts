@@ -6,10 +6,10 @@ import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-lim
 // Rate limit: 5 requests per minute per IP
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 
-// Create a public Supabase client for anonymous submissions
+// Use service role to bypass RLS for contact submissions
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(request: Request) {
