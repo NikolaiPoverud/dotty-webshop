@@ -35,6 +35,7 @@ const text = {
 
 interface OrderInfo {
   id: string;
+  order_number: string | null;
   email: string;
   total: number;
 }
@@ -78,10 +79,8 @@ function SuccessContent({ locale, t }: { locale: Locale; t: typeof text['no'] })
     }
   }, [clearCart, sessionId]);
 
-  // Generate order number from session or timestamp
-  const orderNumber = orderInfo?.id
-    ? orderInfo.id.slice(0, 8).toUpperCase()
-    : 'DOT-' + Date.now().toString(36).toUpperCase();
+  // Use order_number from API (DOT-1, DOT-2, etc.)
+  const orderNumber = orderInfo?.order_number || 'Behandles...';
 
   return (
     <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">

@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
     const cancelUrl = `${origin}${cancelPath}?canceled=true`;
 
     // Create Stripe checkout session
+    // Prefill customer info so they don't have to enter it twice
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -112,8 +113,19 @@ export async function POST(request: NextRequest) {
       cancel_url: cancelUrl,
       metadata: orderMetadata,
       locale: locale === 'no' ? 'nb' : 'en',
-      shipping_address_collection: {
-        allowed_countries: ['NO', 'SE', 'DK', 'FI'],
+      // Pass shipping info directly instead of asking again
+      payment_intent_data: {
+        shipping: {
+          name: customer_name,
+          phone: customer_phone,
+          address: {
+            line1: shipping_address.line1,
+            line2: shipping_address.line2 || undefined,
+            city: shipping_address.city,
+            postal_code: shipping_address.postal_code,
+            country: shipping_address.country === 'Norge' ? 'NO' : shipping_address.country,
+          },
+        },
       },
       // Apply discount as coupon if exists
       discounts: discount_amount > 0 ? [{

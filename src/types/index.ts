@@ -82,6 +82,7 @@ export type CollectionCard = Pick<Collection, 'id' | 'name' | 'slug' | 'descript
 
 export interface Order {
   id: string;
+  order_number: string; // Human-readable order number (DOT-1, DOT-2, etc.)
   customer_email: string;
   customer_name: string;
   customer_phone: string;
@@ -161,7 +162,7 @@ export interface NewsletterSubscriber {
 // Cart Types
 // ARCH-007: Optimized product data for cart storage (reduces localStorage size)
 export type CartProduct = Pick<Product,
-  'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' | 'stock_quantity' | 'is_available' | 'requires_inquiry'
+  'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' | 'stock_quantity' | 'is_available' | 'requires_inquiry' | 'shipping_cost'
 >;
 
 export interface CartItem {
@@ -176,6 +177,7 @@ export interface Cart {
   subtotal: number;
   discountCode?: string;
   discountAmount: number;
+  shippingCost: number; // Calculated from product shipping costs
   artistLevy: number; // 5% kunsteravgift for items over 2500 NOK
   total: number;
 }

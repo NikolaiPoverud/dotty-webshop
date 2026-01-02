@@ -17,7 +17,7 @@ export async function sendOrderConfirmation(order: Order): Promise<{ success: bo
     const { error } = await getResend().emails.send({
       from: emailConfig.from,
       to: order.customer_email,
-      subject: `Ordrebekreftelse #${order.id} – Dotty.`,
+      subject: `Ordrebekreftelse ${order.order_number} – Dotty.`,
       react: OrderConfirmationEmail({ order }),
     });
 
@@ -42,7 +42,7 @@ export async function sendNewOrderAlert(order: Order): Promise<{ success: boolea
     const { error } = await getResend().emails.send({
       from: emailConfig.from,
       to: emailConfig.artistEmail,
-      subject: `Ny ordre #${order.id} – ${formatPrice(order.total)}`,
+      subject: `Ny ordre ${order.order_number} – ${formatPrice(order.total)}`,
       react: NewOrderAlertEmail({ order }),
     });
 
@@ -67,7 +67,7 @@ export async function sendShippingNotification(order: Order): Promise<{ success:
     const { error } = await getResend().emails.send({
       from: emailConfig.from,
       to: order.customer_email,
-      subject: `Pakken din er på vei! – Ordre #${order.id}`,
+      subject: `Pakken din er på vei! – Ordre ${order.order_number}`,
       react: ShippingNotificationEmail({ order }),
     });
 
@@ -92,7 +92,7 @@ export async function sendDeliveryConfirmation(order: Order): Promise<{ success:
     const { error } = await getResend().emails.send({
       from: emailConfig.from,
       to: order.customer_email,
-      subject: `Pakken din er levert! – Ordre #${order.id}`,
+      subject: `Pakken din er levert! – Ordre ${order.order_number}`,
       react: DeliveryConfirmationEmail({ order }),
     });
 

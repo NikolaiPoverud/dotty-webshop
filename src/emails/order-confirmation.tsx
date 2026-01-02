@@ -27,7 +27,7 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
   const shippingCost = order.shipping_cost || 14900;
 
   return (
-    <EmailLayout preview={`Ordrebekreftelse #${order.id}`}>
+    <EmailLayout preview={`Ordrebekreftelse ${order.order_number}`}>
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
         <EmailHeader subtitle="Ordrebekreftelse" />
 
@@ -40,7 +40,7 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
             Takk for din bestilling!
           </Heading>
           <Text className="mt-2 text-muted-foreground">
-            Ordrenummer: <span className="font-mono font-bold text-primary">#{order.id}</span>
+            Ordrenummer: <span className="font-mono font-bold text-primary">{order.order_number}</span>
           </Text>
           <Text className="m-0 text-sm text-muted-foreground">
             Dato: {formatDate(order.created_at)}

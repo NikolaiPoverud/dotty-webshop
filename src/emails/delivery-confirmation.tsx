@@ -11,7 +11,7 @@ interface DeliveryConfirmationEmailProps {
 
 export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailProps) {
   return (
-    <EmailLayout preview={`Pakken din er levert! - Ordre #${order.id}`}>
+    <EmailLayout preview={`Pakken din er levert! - Ordre ${order.order_number}`}>
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
         <EmailHeader subtitle="Levert" />
 
@@ -24,7 +24,7 @@ export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailPr
             Pakken din er levert!
           </Heading>
           <Text className="mt-2 text-muted-foreground">
-            Ordrenummer: <span className="font-mono font-bold text-foreground">#{order.id}</span>
+            Ordrenummer: <span className="font-mono font-bold text-foreground">{order.order_number}</span>
           </Text>
         </Section>
 

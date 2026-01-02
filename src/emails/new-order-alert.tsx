@@ -27,7 +27,7 @@ function formatDateTime(dateString: string): string {
 
 export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
   return (
-    <EmailLayout preview={`Ny ordre #${order.id} - ${formatPrice(order.total)}`}>
+    <EmailLayout preview={`Ny ordre ${order.order_number} - ${formatPrice(order.total)}`}>
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
         {/* Header with Alert Badge */}
         <Section className="bg-muted px-8 py-8">
@@ -56,7 +56,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
             Ny bestilling mottatt
           </Heading>
           <Text className="mt-2 text-sm text-muted-foreground">
-            Ordrenummer: <span className="font-mono font-bold text-foreground">#{order.id}</span>
+            Ordrenummer: <span className="font-mono font-bold text-foreground">{order.order_number}</span>
           </Text>
           <Text className="m-0 text-sm text-muted-foreground">
             {formatDateTime(order.created_at)}

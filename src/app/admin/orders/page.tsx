@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw, Plus, XCircle } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -15,7 +16,20 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   cancelled: { label: 'Kansellert', color: 'bg-error/10 text-error', icon: XCircle },
 };
 
+// Wrapper with Suspense for useSearchParams
 export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    }>
+      <AdminOrdersContent />
+    </Suspense>
+  );
+}
+
+function AdminOrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +37,21 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState({ carrier: '', number: '' });
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get('highlight');
+
+  // Scroll to highlighted order
+  useEffect(() => {
+    if (highlightId && !isLoading) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`order-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId, isLoading]);
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -50,7 +79,7 @@ export default function AdminOrdersPage() {
       return (
         order.customer_name?.toLowerCase().includes(searchLower) ||
         order.customer_email?.toLowerCase().includes(searchLower) ||
-        order.id?.toLowerCase().includes(searchLower)
+        order.order_number?.toLowerCase().includes(searchLower)
       );
     }
     return true;
@@ -224,14 +253,24 @@ export default function AdminOrdersPage() {
         <div className="space-y-4">
           {filteredOrders.map((order, index) => {
             const StatusIcon = statusConfig[order.status!]?.icon || Clock;
+            const isHighlighted = order.id === highlightId;
 
             return (
               <motion.div
                 key={order.id}
+                id={`order-${order.id}`}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  boxShadow: isHighlighted
+                    ? ['0 0 40px rgba(254, 32, 106, 0.5)', '0 0 20px rgba(254, 32, 106, 0.3)']
+                    : 'none'
+                }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-muted rounded-lg p-6"
+                className={`bg-muted rounded-lg p-6 ${
+                  isHighlighted ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
+                }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -242,7 +281,7 @@ export default function AdminOrdersPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-bold font-mono">{order.id}</p>
+                        <p className="font-bold font-mono text-primary">{order.order_number}</p>
                         <span
                           className={`px-2 py-0.5 text-xs rounded ${statusConfig[order.status!]?.color}`}
                         >

@@ -211,6 +211,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
             },
             discount_code: cart.discountCode,
             discount_amount: cart.discountAmount,
+            shipping_cost: cart.shippingCost,
             artist_levy: cart.artistLevy,
             locale,
             privacy_accepted: true,
@@ -494,10 +495,17 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
                   </div>
                 )}
 
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{t.shipping_cost}</span>
-                  <span className="text-sm">{t.shipping_note}</span>
-                </div>
+                {cart.shippingCost > 0 ? (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t.shipping_cost}</span>
+                    <span>+{formatPrice(cart.shippingCost)}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-success">
+                    <span>{t.shipping_cost}</span>
+                    <span>{locale === 'no' ? 'Gratis' : 'Free'}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
                   <span>{t.total}</span>

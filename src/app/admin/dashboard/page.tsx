@@ -228,7 +228,11 @@ export default function AdminDashboardPage() {
                 className="flex items-center justify-between py-3 px-3 -mx-3 rounded-lg hover:bg-background/50 transition-colors cursor-pointer"
               >
                 <div>
-                  <p className="font-medium">{order.customer_name}</p>
+                  <p className="font-medium">
+                    <span className="text-primary font-mono">{order.order_number}</span>
+                    <span className="text-muted-foreground mx-2">·</span>
+                    {order.customer_name}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {formatDate(order.created_at!)}
                   </p>

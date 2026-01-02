@@ -122,7 +122,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                   layout: { type: 'spring', stiffness: 300, damping: 30 }
                 }}
               >
-                <Link href={`${getLocalizedPath(lang, 'shop')}?highlight=${product.id}`}>
+                <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
                   <motion.article
                     className="group relative bg-muted rounded-lg overflow-hidden"
                     whileHover={{ y: -8 }}

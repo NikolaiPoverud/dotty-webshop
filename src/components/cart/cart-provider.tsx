@@ -27,6 +27,7 @@ function toCartProduct(product: Product): CartProduct {
     stock_quantity: product.stock_quantity,
     is_available: product.is_available,
     requires_inquiry: product.requires_inquiry,
+    shipping_cost: product.shipping_cost,
   };
 }
 
@@ -35,13 +36,21 @@ const initialCart: Cart = {
   items: [],
   subtotal: 0,
   discountAmount: 0,
+  shippingCost: 0,
   artistLevy: 0,
   total: 0,
 };
 
-// Calculate totals including artist levy (kunsteravgift)
-function calculateTotals(items: CartItem[], discountAmount: number): { subtotal: number; artistLevy: number; total: number } {
+// Calculate totals including shipping and artist levy (kunsteravgift)
+function calculateTotals(items: CartItem[], discountAmount: number): { subtotal: number; shippingCost: number; artistLevy: number; total: number } {
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+  // Calculate shipping cost (highest shipping cost among items, or sum - depends on business logic)
+  // Using highest cost approach: customer pays shipping for the most expensive item
+  const shippingCost = items.reduce((max, item) => {
+    const cost = item.product.shipping_cost ?? 0;
+    return cost > max ? cost : max;
+  }, 0);
 
   // Calculate artist levy (5% for items over 2500 NOK)
   const levyItems = items.map(item => ({
@@ -52,9 +61,9 @@ function calculateTotals(items: CartItem[], discountAmount: number): { subtotal:
   }));
   const { totalLevy: artistLevy } = calculateArtistLevy(levyItems);
 
-  // Total = subtotal + artistLevy - discount
-  const total = Math.max(0, subtotal + artistLevy - discountAmount);
-  return { subtotal, artistLevy, total };
+  // Total = subtotal + shipping + artistLevy - discount
+  const total = Math.max(0, subtotal + shippingCost + artistLevy - discountAmount);
+  return { subtotal, shippingCost, artistLevy, total };
 }
 
 // Cart reducer
@@ -79,40 +88,40 @@ function cartReducer(state: Cart, action: CartAction): Cart {
         newItems = [...state.items, { product: cartProduct, quantity, reservationId, expiresAt }];
       }
 
-      const { subtotal, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, artistLevy, total };
+      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
+      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
     }
 
     case 'REMOVE_ITEM': {
       const newItems = state.items.filter((item) => item.product.id !== action.payload.productId);
-      const { subtotal, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, artistLevy, total };
+      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
+      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
     }
 
     case 'UPDATE_QUANTITY': {
       const { productId, quantity } = action.payload;
       if (quantity <= 0) {
         const newItems = state.items.filter((item) => item.product.id !== productId);
-        const { subtotal, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-        return { ...state, items: newItems, subtotal, artistLevy, total };
+        const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
+        return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
       }
 
       const newItems = state.items.map((item) =>
         item.product.id === productId ? { ...item, quantity } : item
       );
-      const { subtotal, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, artistLevy, total };
+      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
+      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
     }
 
     case 'APPLY_DISCOUNT': {
       const { code, amount } = action.payload;
-      const { subtotal, artistLevy, total } = calculateTotals(state.items, amount);
-      return { ...state, discountCode: code, discountAmount: amount, subtotal, artistLevy, total };
+      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(state.items, amount);
+      return { ...state, discountCode: code, discountAmount: amount, subtotal, shippingCost, artistLevy, total };
     }
 
     case 'CLEAR_DISCOUNT': {
-      const { subtotal, artistLevy, total } = calculateTotals(state.items, 0);
-      return { ...state, discountCode: undefined, discountAmount: 0, subtotal, artistLevy, total };
+      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(state.items, 0);
+      return { ...state, discountCode: undefined, discountAmount: 0, subtotal, shippingCost, artistLevy, total };
     }
 
     case 'CLEAR_CART':
@@ -130,8 +139,8 @@ function cartReducer(state: Cart, action: CartAction): Cart {
 
       if (newItems.length === state.items.length) return state;
 
-      const { subtotal, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, artistLevy, total };
+      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
+      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
     }
 
     default:

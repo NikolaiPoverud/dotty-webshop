@@ -37,7 +37,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
     : null;
 
   return (
-    <EmailLayout preview={`Pakken din er pa vei! - Ordre #${order.id}`}>
+    <EmailLayout preview={`Pakken din er pa vei! - Ordre ${order.order_number}`}>
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
         <EmailHeader subtitle="Forsendelsesbekreftelse" />
 
@@ -50,7 +50,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
             Ordren din er pa vei!
           </Heading>
           <Text className="mt-2 text-muted-foreground">
-            Ordrenummer: <span className="font-mono font-bold text-foreground">#{order.id}</span>
+            Ordrenummer: <span className="font-mono font-bold text-foreground">{order.order_number}</span>
           </Text>
         </Section>
 
