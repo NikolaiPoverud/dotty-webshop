@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Star, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -46,24 +46,6 @@ export default function AdminProductsPage() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
-
-  const toggleFeatured = async (id: string, currentValue: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_featured: !currentValue }),
-      });
-
-      if (response.ok) {
-        setProducts((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, is_featured: !currentValue } : p))
-        );
-      }
-    } catch (err) {
-      console.error('Failed to toggle featured:', err);
-    }
-  };
 
   const deleteProduct = async (id: string) => {
     if (!confirm('Er du sikker pa at du vil slette dette produktet?')) return;
@@ -218,17 +200,6 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => toggleFeatured(product.id, product.is_featured)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          product.is_featured
-                            ? 'bg-accent-3/10 text-accent-3'
-                            : 'hover:bg-muted-foreground/10 text-muted-foreground'
-                        }`}
-                        title={product.is_featured ? 'Fjern fra fremhevet' : 'Fremhev'}
-                      >
-                        <Star className={`w-4 h-4 ${product.is_featured ? 'fill-current' : ''}`} />
-                      </button>
                       <Link
                         href={`/admin/products/${product.id}/edit`}
                         className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground transition-colors"
