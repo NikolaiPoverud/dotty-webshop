@@ -11,6 +11,28 @@ export interface GalleryImage {
   path: string;
 }
 
+// Shipping size categories with descriptions
+export type ShippingSize = 'small' | 'medium' | 'large' | 'oversized';
+
+export const SHIPPING_SIZE_INFO: Record<ShippingSize, { label: string; description: string }> = {
+  small: {
+    label: 'Liten',
+    description: 'Trykk opptil A4 (21x30 cm) - Passer i standard postkasse',
+  },
+  medium: {
+    label: 'Medium',
+    description: 'Trykk opptil A2 (42x60 cm) - Sendes i rør eller flat eske',
+  },
+  large: {
+    label: 'Stor',
+    description: 'Trykk/originaler opptil 100 cm - Krever spesialhåndtering',
+  },
+  oversized: {
+    label: 'Ekstra stor',
+    description: 'Større verk - Krever spesialtransport eller henting',
+  },
+};
+
 export interface Product {
   id: string;
   title: string;
@@ -26,6 +48,8 @@ export interface Product {
   is_available: boolean;
   is_featured: boolean;
   display_order: number;
+  shipping_cost: number | null; // NOK øre. NULL = use collection cost, 0 = free
+  shipping_size: ShippingSize | null; // Size category for shipping
   sizes?: ProductSize[];
   gallery_images?: GalleryImage[];
   created_at: string;

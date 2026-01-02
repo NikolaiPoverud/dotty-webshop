@@ -8,7 +8,8 @@ import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
 import { GalleryUpload } from '@/components/admin/gallery-upload';
-import type { ProductSize, Collection, GalleryImage } from '@/types';
+import type { ProductSize, Collection, GalleryImage, ShippingSize } from '@/types';
+import { SHIPPING_SIZE_INFO } from '@/types';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -29,6 +30,8 @@ export default function NewProductPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [shippingCost, setShippingCost] = useState('');
+  const [shippingSize, setShippingSize] = useState<ShippingSize | ''>('');
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -54,6 +57,9 @@ export default function NewProductPage() {
       // Convert price from NOK to ore (multiply by 100)
       const priceInOre = Math.round(parseFloat(price) * 100);
 
+      // Convert shipping cost from NOK to ore if set
+      const shippingCostInOre = shippingCost ? Math.round(parseFloat(shippingCost) * 100) : null;
+
       const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,6 +76,8 @@ export default function NewProductPage() {
           is_featured: isFeatured,
           sizes,
           gallery_images: galleryImages,
+          shipping_cost: shippingCostInOre,
+          shipping_size: shippingSize || null,
         }),
       });
 
@@ -242,6 +250,51 @@ export default function NewProductPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Shipping Size */}
+            <div className="space-y-2">
+              <label htmlFor="shippingSize" className="block text-sm font-medium">
+                Fraktstørrelse
+              </label>
+              <select
+                id="shippingSize"
+                value={shippingSize}
+                onChange={(e) => setShippingSize(e.target.value as ShippingSize | '')}
+                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="">Velg størrelse...</option>
+                {(Object.keys(SHIPPING_SIZE_INFO) as ShippingSize[]).map((size) => (
+                  <option key={size} value={size}>
+                    {SHIPPING_SIZE_INFO[size].label} - {SHIPPING_SIZE_INFO[size].description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Shipping Cost */}
+            <div className="space-y-2">
+              <label htmlFor="shippingCost" className="block text-sm font-medium">
+                Fraktkostnad (NOK)
+              </label>
+              <div className="relative">
+                <input
+                  id="shippingCost"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={shippingCost}
+                  onChange={(e) => setShippingCost(e.target.value)}
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
+                  placeholder="0"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  kr
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                La stå tom for å bruke samlingens fraktpris. Sett til 0 for gratis frakt.
+              </p>
             </div>
 
             {/* Stock Quantity */}

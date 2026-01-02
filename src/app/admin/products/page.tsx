@@ -27,10 +27,15 @@ export default function AdminProductsPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Du må være logget inn for å se produkter');
+        }
         throw new Error(result.error || 'Failed to fetch products');
       }
 
-      setProducts(result.data || []);
+      // Handle both paginated and non-paginated responses
+      const productsData = Array.isArray(result) ? result : (result.data || []);
+      setProducts(productsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -139,8 +144,8 @@ export default function AdminProductsPage() {
           </Link>
         </div>
       ) : (
-        <div className="bg-muted rounded-lg overflow-hidden">
-          <table className="w-full">
+        <div className="bg-muted rounded-lg overflow-x-auto">
+          <table className="w-full min-w-[800px]">
             <thead className="bg-muted-foreground/10">
               <tr>
                 <th className="text-left px-6 py-3 text-sm font-medium">Bilde</th>
@@ -149,7 +154,7 @@ export default function AdminProductsPage() {
                 <th className="text-left px-6 py-3 text-sm font-medium">Pris</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Lager</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Status</th>
-                <th className="text-right px-6 py-3 text-sm font-medium">Handlinger</th>
+                <th className="text-right px-6 py-3 text-sm font-medium w-32">Handlinger</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

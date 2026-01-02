@@ -74,10 +74,18 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo - Left */}
+          {/* Logo - Left: scroll to top on homepage, navigate home otherwise */}
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => {
+              const isHomePage = pathname === `/${lang}` || pathname === '/';
+              if (isHomePage) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                window.location.href = `/${lang}`;
+              }
+            }}
             className="relative group flex-shrink-0"
+            aria-label="Go to homepage"
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
