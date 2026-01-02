@@ -10,8 +10,8 @@ import { OrganizationJsonLd } from '@/components/seo';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
-// Disable caching to always fetch fresh data
-export const dynamic = 'force-dynamic';
+// Revalidate every 60 seconds for fresh data with caching benefits
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ lang: string }>;

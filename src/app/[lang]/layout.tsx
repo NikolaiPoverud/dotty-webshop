@@ -6,8 +6,8 @@ import { CookieConsent } from '@/components/gdpr/cookie-consent';
 import { PasswordGate } from '@/components/auth/password-gate';
 import { createClient } from '@/lib/supabase/server';
 
-// Disable caching to always fetch fresh collections for header
-export const dynamic = 'force-dynamic';
+// Revalidate every 5 minutes - collections change infrequently
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));

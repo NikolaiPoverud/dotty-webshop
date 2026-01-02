@@ -7,8 +7,8 @@ import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
-// Force dynamic rendering - no static generation
-export const dynamic = 'force-dynamic';
+// Revalidate every 60 seconds - balances freshness with caching
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;

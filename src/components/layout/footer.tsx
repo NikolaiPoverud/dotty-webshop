@@ -60,8 +60,8 @@ export function Footer({ lang }: { lang: Locale }) {
 
         {/* Footer Links */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-border">
-          {/* Logo */}
-          <Link href={`/${lang}`}>
+          {/* Logo - links to admin (hidden access) */}
+          <Link href="/admin/products" title="Admin">
             <Logo size="sm" className="h-8" />
           </Link>
 

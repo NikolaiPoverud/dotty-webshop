@@ -5,6 +5,9 @@ import {
   orderConfirmationTemplate,
   shippingNotificationTemplate,
   newsletterConfirmationTemplate,
+  gdprVerificationTemplate,
+  gdprDataExportTemplate,
+  gdprDeletionConfirmationTemplate,
 } from '@/lib/email/templates';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
@@ -37,13 +40,33 @@ const sampleShippingData = {
   carrier: 'Posten',
 };
 
-export type EmailType = 'test' | 'order-confirmation' | 'shipping-notification' | 'newsletter-confirmation';
+const sampleDataExport = {
+  ordersCount: 3,
+  isSubscribed: true,
+  contactCount: 2,
+  cookieConsentsCount: 1,
+  requestsCount: 1,
+};
+
+export type EmailType =
+  | 'test'
+  | 'order-confirmation'
+  | 'shipping-notification'
+  | 'newsletter-confirmation'
+  | 'gdpr-export-request'
+  | 'gdpr-delete-request'
+  | 'gdpr-data-export'
+  | 'gdpr-deletion-confirmation';
 
 const emailTypes: Record<EmailType, { label: string; subject: string }> = {
   'test': { label: 'Test E-post', subject: 'Test E-post fra Dotty' },
   'order-confirmation': { label: 'Ordrebekreftelse', subject: 'Ordrebekreftelse #TEST-12345' },
   'shipping-notification': { label: 'Sendingsvarsel', subject: 'Din ordre #TEST-12345 er sendt!' },
   'newsletter-confirmation': { label: 'Nyhetsbrev-bekreftelse', subject: 'Bekreft nyhetsbrev-abonnement' },
+  'gdpr-export-request': { label: 'GDPR Eksport-forespørsel', subject: 'Bekreft dataforespørsel | Confirm data export request' },
+  'gdpr-delete-request': { label: 'GDPR Sletting-forespørsel', subject: 'Bekreft sletting av data | Confirm data deletion request' },
+  'gdpr-data-export': { label: 'GDPR Dataeksport', subject: 'Din dataeksport | Your data export - Dotty' },
+  'gdpr-deletion-confirmation': { label: 'GDPR Sletting bekreftet', subject: 'Dine data er slettet | Your data has been deleted - Dotty' },
 };
 
 function getEmailTemplate(type: EmailType): string {
@@ -55,7 +78,15 @@ function getEmailTemplate(type: EmailType): string {
     case 'shipping-notification':
       return shippingNotificationTemplate(sampleShippingData);
     case 'newsletter-confirmation':
-      return newsletterConfirmationTemplate('https://dotty.no/newsletter/confirm?token=test123');
+      return newsletterConfirmationTemplate('https://dotty.no/api/newsletter/confirm?token=test123');
+    case 'gdpr-export-request':
+      return gdprVerificationTemplate('https://dotty.no/api/gdpr/verify-request?token=test123', 'export');
+    case 'gdpr-delete-request':
+      return gdprVerificationTemplate('https://dotty.no/api/gdpr/verify-request?token=test123', 'delete');
+    case 'gdpr-data-export':
+      return gdprDataExportTemplate(sampleDataExport, emailConfig.artistEmail);
+    case 'gdpr-deletion-confirmation':
+      return gdprDeletionConfirmationTemplate();
     default:
       return testEmailTemplate();
   }

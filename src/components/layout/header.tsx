@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Menu, X, Settings, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Menu, X, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Locale, Collection } from '@/types';
 import { getAlternateLocale, getLocalizedPath } from '@/lib/i18n/get-dictionary';
@@ -149,21 +149,6 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
 
           {/* Right Actions - Desktop */}
           <div className="hidden sm:flex items-center gap-4">
-            {/* Admin Button (Dev) */}
-            <Link
-              href="/admin/products"
-              className="relative group"
-            >
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-full hover:bg-primary/10 transition-colors"
-                title="Admin Panel"
-              >
-                <Settings className="w-5 h-5 text-primary" />
-              </motion.div>
-            </Link>
-
             <button
               onClick={() => setIsCartOpen(true)}
               className="relative group"
@@ -307,16 +292,6 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
                 </span>
               )}
             </button>
-
-            {/* Admin */}
-            <Link
-              href="/admin/products"
-              onClick={() => setIsMenuOpen(false)}
-              className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center gap-2 text-primary"
-            >
-              <Settings className="w-5 h-5" />
-              {t.admin || 'Admin'}
-            </Link>
 
             {/* Language Switcher */}
             <a
