@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, GripVertical, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Loader2, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Collection } from '@/types';
 
@@ -104,6 +104,38 @@ export default function AdminCollectionsPage() {
       .replace(/^-|-$/g, '');
   };
 
+  const moveCollection = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= collections.length) return;
+
+    // Swap in local state first for instant feedback
+    const newCollections = [...collections];
+    [newCollections[index], newCollections[newIndex]] = [newCollections[newIndex], newCollections[index]];
+    setCollections(newCollections);
+
+    // Update display_order for both collections
+    try {
+      const updates = [
+        { id: newCollections[index].id, display_order: index + 1 },
+        { id: newCollections[newIndex].id, display_order: newIndex + 1 },
+      ];
+
+      await Promise.all(
+        updates.map((update) =>
+          fetch(`/api/admin/collections/${update.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ display_order: update.display_order }),
+          })
+        )
+      );
+    } catch (err) {
+      // Revert on error
+      setError('Kunne ikke endre rekkefølge');
+      fetchCollections();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -158,7 +190,7 @@ export default function AdminCollectionsPage() {
           <table className="w-full">
             <thead className="bg-muted-foreground/10">
               <tr>
-                <th className="w-12 px-4 py-3"></th>
+                <th className="w-16 px-4 py-3 text-left text-sm font-medium">Rekkef.</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Navn</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Slug</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Beskrivelse</th>
@@ -175,7 +207,24 @@ export default function AdminCollectionsPage() {
                   className="hover:bg-muted-foreground/5"
                 >
                   <td className="px-4 py-4">
-                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveCollection(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Flytt opp"
+                      >
+                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => moveCollection(index, 'down')}
+                        disabled={index === collections.length - 1}
+                        className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Flytt ned"
+                      >
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </div>
                   </td>
                   <td className="px-6 py-4 font-medium">{collection.name}</td>
                   <td className="px-6 py-4">

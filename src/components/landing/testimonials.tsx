@@ -58,14 +58,14 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-[#f5f0e8]">
+    <section className="py-16 sm:py-24 bg-muted/30">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center">
           {/* Previous Button */}
           {testimonials.length > 1 && (
             <button
               onClick={goToPrev}
-              className="absolute left-0 sm:-left-12 z-10 p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+              className="absolute left-0 sm:-left-12 z-10 p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="w-8 h-8" />
@@ -86,19 +86,19 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
                 className="flex flex-col items-center"
               >
                 {/* Source Icon */}
-                <div className="text-neutral-500 mb-6">
+                <div className="text-primary mb-6">
                   {icon}
                 </div>
 
                 {/* Feedback Text */}
-                <p className="text-xl sm:text-2xl lg:text-3xl text-neutral-800 font-medium mb-6 leading-relaxed">
-                  {current.feedback}
+                <p className="text-xl sm:text-2xl lg:text-3xl text-foreground font-medium mb-6 leading-relaxed">
+                  "{current.feedback}"
                 </p>
 
                 {/* Name and Source */}
                 <div className="text-center">
-                  <p className="font-semibold text-neutral-700">{current.name}</p>
-                  <p className="text-sm text-neutral-500">{current.source}</p>
+                  <p className="font-semibold text-foreground">{current.name}</p>
+                  <p className="text-sm text-muted-foreground">{current.source}</p>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -108,7 +108,7 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
           {testimonials.length > 1 && (
             <button
               onClick={goToNext}
-              className="absolute right-0 sm:-right-12 z-10 p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+              className="absolute right-0 sm:-right-12 z-10 p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Next testimonial"
             >
               <ChevronRight className="w-8 h-8" />
@@ -128,8 +128,8 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
                 }}
                 className={`w-2.5 h-2.5 rounded-full transition-colors ${
                   index === currentIndex
-                    ? 'bg-neutral-800'
-                    : 'bg-neutral-300 hover:bg-neutral-400'
+                    ? 'bg-primary'
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
