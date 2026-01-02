@@ -21,9 +21,6 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
 
   return (
     <section id="about" className="py-20 sm:py-32 relative overflow-hidden scroll-mt-20">
-      {/* Background accent */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Artist Image Placeholder */}
@@ -34,11 +31,8 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Decorative frame */}
-            <div className="absolute inset-0 border-4 border-primary translate-x-4 translate-y-4" />
-
             {/* Main image container */}
-            <div className="relative bg-gradient-to-br from-muted to-muted/50 w-full h-full">
+            <div className="relative bg-muted w-full h-full">
               {/* Placeholder - replace with actual artist photo */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
@@ -50,19 +44,6 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
               {/* Halftone overlay */}
               <div className="absolute inset-0 halftone-pattern opacity-50" />
             </div>
-
-            {/* Floating accent */}
-            <motion.div
-              className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary rounded-full opacity-20"
-              animate={{
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
           </motion.div>
 
           {/* Text Content */}

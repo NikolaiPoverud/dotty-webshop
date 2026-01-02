@@ -6,10 +6,10 @@
   --background: #0a0a0a;
   --foreground: #fafafa;
 
-  /* Primary - Hot Pink */
-  --primary: #ec4899;
-  --primary-light: #f472b6;
-  --primary-dark: #db2777;
+  /* Primary - Dotty Pink */
+  --primary: #FE206A;
+  --primary-light: #FF4D8A;
+  --primary-dark: #E01A5E;
 
   /* Accents - Pop-Art Energy */
   --accent: #a855f7;
@@ -62,15 +62,15 @@ html {
 
 /* Pop-Art Glow Effect */
 .glow-pink {
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3),
-              0 0 40px rgba(236, 72, 153, 0.2),
-              0 0 60px rgba(236, 72, 153, 0.1);
+  box-shadow: 0 0 20px rgba(254, 32, 106, 0.3),
+              0 0 40px rgba(254, 32, 106, 0.2),
+              0 0 60px rgba(254, 32, 106, 0.1);
 }
 
 .glow-pink-hover:hover {
-  box-shadow: 0 0 30px rgba(236, 72, 153, 0.4),
-              0 0 60px rgba(236, 72, 153, 0.3),
-              0 0 90px rgba(236, 72, 153, 0.2);
+  box-shadow: 0 0 30px rgba(254, 32, 106, 0.4),
+              0 0 60px rgba(254, 32, 106, 0.3),
+              0 0 90px rgba(254, 32, 106, 0.2);
 }
 
 /* Halftone Pattern Background */
@@ -91,12 +91,9 @@ html {
   box-shadow: 6px 6px 0 var(--foreground);
 }
 
-/* Gradient Text */
+/* Dotty Pink Text */
 .gradient-text {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--primary);
 }
 
 /* Focus styles */

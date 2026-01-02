@@ -36,14 +36,6 @@ function formatPrice(priceInOre: number): string {
   }).format(priceInOre / 100);
 }
 
-const gradients = [
-  'from-primary to-accent',
-  'from-accent to-accent-2',
-  'from-accent-2 to-accent-3',
-  'from-accent-3 to-primary',
-  'from-primary-light to-accent',
-  'from-accent to-primary-dark',
-];
 
 interface FeaturedGridProps {
   lang: Locale;
@@ -170,9 +162,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
-                        <div
-                          className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]}`}
-                        />
+                        <div className="absolute inset-0 bg-primary" />
                       )}
 
                       {/* Hover Overlay */}
@@ -213,7 +203,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                       className="absolute inset-0 rounded-lg pointer-events-none"
                       initial={{ boxShadow: 'none' }}
                       whileHover={{
-                        boxShadow: '0 0 30px rgba(236, 72, 153, 0.3)',
+                        boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
                       }}
                       transition={{ duration: 0.3 }}
                     />

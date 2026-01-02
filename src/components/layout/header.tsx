@@ -77,8 +77,8 @@ export function Header({ lang, collections = [] }: HeaderProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo */}
-          <Link href={`/${lang}`} className="relative group">
+          {/* Logo - Left */}
+          <Link href={`/${lang}`} className="relative group flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
@@ -87,9 +87,8 @@ export function Header({ lang, collections = [] }: HeaderProps) {
             </motion.div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden sm:flex items-center gap-8">
-            {/* Main Nav Links */}
+          {/* Center Navigation - Desktop */}
+          <nav className="hidden sm:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
             <button
               onClick={() => {
                 document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
@@ -100,21 +99,16 @@ export function Header({ lang, collections = [] }: HeaderProps) {
             </button>
             <button
               onClick={() => {
-                document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
-            >
-              {t.about}
-            </button>
-            <button
-              onClick={() => {
                 document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
             >
               {t.contact}
             </button>
+          </nav>
 
+          {/* Right Actions - Desktop */}
+          <div className="hidden sm:flex items-center gap-4">
             {/* Admin Button (Dev) */}
             <Link
               href="/admin/products"
@@ -159,7 +153,7 @@ export function Header({ lang, collections = [] }: HeaderProps) {
             >
               {altLang.toUpperCase()}
             </a>
-          </nav>
+          </div>
 
           {/* Mobile Menu Button */}
           <button

@@ -18,7 +18,7 @@ export function Hero({ lang }: { lang: Locale }) {
   const t = heroText[lang];
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-neutral-900 via-neutral-900 to-background">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-neutral-900">
       {/* Subtle texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
 
