@@ -31,6 +31,10 @@ const text = {
     sendInquiry: 'Send forespørsel',
     inquirySent: 'Takk! Vi tar kontakt snart.',
     inquiryError: 'Noe gikk galt. Prøv igjen.',
+    // Sold out inquiry
+    soldOutInterest: 'Interessert?',
+    soldOutDescription: 'Dette verket er solgt, men jeg kan lage lignende. Legg igjen din e-post!',
+    contactArtist: 'Kontakt kunstner',
   },
   en: {
     backToShop: 'Back to shop',
@@ -51,6 +55,10 @@ const text = {
     sendInquiry: 'Send inquiry',
     inquirySent: 'Thank you! We will be in touch soon.',
     inquiryError: 'Something went wrong. Please try again.',
+    // Sold out inquiry
+    soldOutInterest: 'Interested?',
+    soldOutDescription: 'This artwork is sold, but I can create something similar. Leave your email!',
+    contactArtist: 'Contact artist',
   },
 };
 
@@ -138,6 +146,36 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
     } catch {
       setInquiryStatus('error');
       // Reset error after 3 seconds to allow retry
+      setTimeout(() => setInquiryStatus('idle'), 3000);
+    }
+  };
+
+  const handleSoldOutInquiry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inquiryEmail || inquiryStatus === 'sending') return;
+
+    setInquiryStatus('sending');
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inquiryEmail,
+          name: '',
+          message: `Interest in sold artwork: ${product.title} (${product.id}) - Customer wants similar work`,
+          type: 'sold_out_inquiry',
+          product_id: product.id,
+          product_title: product.title,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send inquiry');
+      }
+
+      setInquiryStatus('sent');
+    } catch {
+      setInquiryStatus('error');
       setTimeout(() => setInquiryStatus('idle'), 3000);
     }
   };
@@ -315,16 +353,64 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
                   {t.viewCart}
                 </motion.button>
               </div>
+            ) : isSold ? (
+              // Sold out - show contact artist form
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{t.soldOutInterest}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t.soldOutDescription}
+                  </p>
+                </div>
+
+                {inquiryStatus === 'sent' ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full py-6 bg-success text-background font-semibold text-lg uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-6 h-6" />
+                    {t.inquirySent}
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleSoldOutInquiry} className="space-y-3">
+                    <input
+                      type="email"
+                      value={inquiryEmail}
+                      onChange={(e) => setInquiryEmail(e.target.value)}
+                      placeholder={t.emailPlaceholder}
+                      required
+                      className="w-full px-6 py-4 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg"
+                    />
+                    <motion.button
+                      type="submit"
+                      disabled={inquiryStatus === 'sending' || !inquiryEmail}
+                      className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {inquiryStatus === 'sending' ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
+                      {inquiryStatus === 'error' ? t.inquiryError : t.contactArtist}
+                    </motion.button>
+                  </form>
+                )}
+              </div>
             ) : (
               // Normal add to cart button
               <motion.button
                 onClick={handleAddToCart}
-                className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: isSold ? 1 : 1.02 }}
-                whileTap={{ scale: isSold ? 1 : 0.98 }}
-                disabled={isSold}
+                className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {isSold ? t.soldOut : t.addToCart}
+                {t.addToCart}
               </motion.button>
             )}
           </motion.div>

@@ -37,6 +37,7 @@ export default function EditProductPage() {
   const [shippingCost, setShippingCost] = useState('');
   const [shippingSize, setShippingSize] = useState<ShippingSize | ''>('');
   const [requiresInquiry, setRequiresInquiry] = useState(false);
+  const [year, setYear] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,6 +79,7 @@ export default function EditProductPage() {
         setShippingCost(product.shipping_cost ? String(product.shipping_cost / 100) : '');
         setShippingSize(product.shipping_size || '');
         setRequiresInquiry(product.requires_inquiry || false);
+        setYear(product.year ? String(product.year) : '');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load product');
       } finally {
@@ -116,6 +118,7 @@ export default function EditProductPage() {
           shipping_cost: shippingCostInOre,
           shipping_size: shippingSize || null,
           requires_inquiry: requiresInquiry,
+          year: year ? parseInt(year, 10) : null,
         }),
       });
 
@@ -226,26 +229,46 @@ export default function EditProductPage() {
               />
             </div>
 
-            {/* Price */}
-            <div className="space-y-2">
-              <label htmlFor="price" className="block text-sm font-medium">
-                Pris (NOK inkl. MVA) *
-              </label>
-              <div className="relative">
+            {/* Price & Year Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Price */}
+              <div className="space-y-2">
+                <label htmlFor="price" className="block text-sm font-medium">
+                  Pris (NOK inkl. MVA) *
+                </label>
+                <div className="relative">
+                  <input
+                    id="price"
+                    type="number"
+                    required
+                    min="0"
+                    step="1"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
+                    placeholder="0"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    kr
+                  </span>
+                </div>
+              </div>
+
+              {/* Year */}
+              <div className="space-y-2">
+                <label htmlFor="year" className="block text-sm font-medium">
+                  År
+                </label>
                 <input
-                  id="price"
+                  id="year"
                   type="number"
-                  required
-                  min="0"
-                  step="1"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
-                  placeholder="0"
+                  min="1900"
+                  max={new Date().getFullYear()}
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder={new Date().getFullYear().toString()}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  kr
-                </span>
               </div>
             </div>
 

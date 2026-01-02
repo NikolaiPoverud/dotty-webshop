@@ -51,6 +51,7 @@ export interface Product {
   shipping_cost: number | null; // NOK øre. NULL = use collection cost, 0 = free
   shipping_size: ShippingSize | null; // Size category for shipping
   requires_inquiry: boolean; // If true, cannot add to cart - must contact seller
+  year: number | null; // Year the artwork was created
   sizes?: ProductSize[];
   gallery_images?: GalleryImage[];
   created_at: string;

@@ -27,11 +27,15 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, email, message } = body;
+    const { name, email, message, type, product_id, product_title } = body;
 
-    // Validate required fields
-    if (!name || !email || !message) {
-      return errors.badRequest('Name, email, and message are required');
+    // Validate required fields - name is optional for product inquiries
+    const isProductInquiry = type === 'product_inquiry' || type === 'sold_out_inquiry';
+    if (!email || !message) {
+      return errors.badRequest('Email and message are required');
+    }
+    if (!isProductInquiry && !name) {
+      return errors.badRequest('Name is required');
     }
 
     // Basic email validation
@@ -44,9 +48,12 @@ export async function POST(request: Request) {
     const { data, error: dbError } = await supabase
       .from('contact_submissions')
       .insert({
-        name: name.trim(),
+        name: name ? name.trim() : (isProductInquiry ? 'Product Inquiry' : ''),
         email: email.trim().toLowerCase(),
         message: message.trim(),
+        type: type || 'contact',
+        product_id: product_id || null,
+        product_title: product_title || null,
       })
       .select()
       .single();
@@ -59,16 +66,27 @@ export async function POST(request: Request) {
     // Send email notification to artist
     try {
       const resend = getResend();
+      const subjectPrefix = type === 'sold_out_inquiry' ? 'Interesse for solgt verk' :
+                           type === 'product_inquiry' ? 'Forespørsel om verk' : 'Ny melding';
+      const displayName = name || email;
+
       await resend.emails.send({
         from: emailConfig.from,
         to: emailConfig.artistEmail,
-        subject: `Ny melding fra ${name}`,
+        subject: product_title ? `${subjectPrefix}: ${product_title}` : `${subjectPrefix} fra ${displayName}`,
         html: `
           <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #FE206A; margin-bottom: 24px;">Ny kontaktmelding</h2>
+            <h2 style="color: #FE206A; margin-bottom: 24px;">${subjectPrefix}</h2>
+
+            ${product_title ? `
+            <div style="background: #FE206A; color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p style="margin: 0; font-size: 14px; opacity: 0.9;">Gjelder kunstverket:</p>
+              <p style="margin: 8px 0 0 0; font-size: 18px; font-weight: bold;">${product_title}</p>
+            </div>
+            ` : ''}
 
             <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <p style="margin: 0 0 8px 0;"><strong>Fra:</strong> ${name}</p>
+              ${name ? `<p style="margin: 0 0 8px 0;"><strong>Fra:</strong> ${name}</p>` : ''}
               <p style="margin: 0 0 8px 0;"><strong>E-post:</strong> <a href="mailto:${email}">${email}</a></p>
               <p style="margin: 0;"><strong>Mottatt:</strong> ${new Date().toLocaleString('nb-NO', { dateStyle: 'full', timeStyle: 'short' })}</p>
             </div>
