@@ -5,12 +5,12 @@ import type { Locale } from '@/types';
 
 const heroText = {
   no: {
-    title: 'Pop Art med Attitude',
-    subtitle: 'Kraftfull pop art som fusjonerer gatekultur med klassisk skjønnhet. Fargesterk, uredd, uforglemmelig.',
+    title: 'Dotty.',
+    subtitle: 'Et kunstunivers med sterke farger og en leken strek. Uten filter. Begrensede prints og originale verk.',
   },
   en: {
-    title: 'Pop Art with Attitude',
-    subtitle: 'Powerful pop art fusing street culture with classic beauty. Bold, fearless, unforgettable.',
+    title: 'Dotty.',
+    subtitle: 'An art universe with bold colors and a playful stroke. Unfiltered. Limited prints and original works.',
   },
 };
 
