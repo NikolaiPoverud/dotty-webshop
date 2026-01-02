@@ -102,3 +102,10 @@ html {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* Shake animation for password gate */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}

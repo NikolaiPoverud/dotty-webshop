@@ -3,6 +3,7 @@ import { locales } from '@/lib/i18n/get-dictionary';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CookieConsent } from '@/components/gdpr/cookie-consent';
+import { PasswordGate } from '@/components/auth/password-gate';
 import { createClient } from '@/lib/supabase/server';
 
 // Disable caching to always fetch fresh collections for header
@@ -44,11 +45,13 @@ export default async function LangLayout({
   const collections = await getCollections();
 
   return (
-    <div className="min-h-screen flex flex-col" lang={locale}>
-      <Header lang={locale} collections={collections} />
-      <main className="flex-1">{children}</main>
-      <Footer lang={locale} />
-      <CookieConsent lang={locale} />
-    </div>
+    <PasswordGate>
+      <div className="min-h-screen flex flex-col" lang={locale}>
+        <Header lang={locale} collections={collections} />
+        <main className="flex-1">{children}</main>
+        <Footer lang={locale} />
+        <CookieConsent lang={locale} />
+      </div>
+    </PasswordGate>
   );
 }
