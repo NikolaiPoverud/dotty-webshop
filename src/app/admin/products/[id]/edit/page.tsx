@@ -296,7 +296,14 @@ export default function EditProductPage() {
                 type="number"
                 min="0"
                 value={stockQuantity}
-                onChange={(e) => setStockQuantity(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setStockQuantity(val);
+                  // Auto-set unavailable when stock is 0
+                  if (parseInt(val, 10) === 0) {
+                    setIsAvailable(false);
+                  }
+                }}
                 className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 placeholder="1"
               />

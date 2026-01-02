@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendShippingNotification, sendDeliveryConfirmation } from '@/lib/email/send';
 import type { Order } from '@/types';
+import { logAudit, getIpFromRequest } from '@/lib/audit';
 
 export async function PUT(
   request: Request,
@@ -59,6 +60,21 @@ export async function PUT(
         });
       }
     }
+
+    // Log audit
+    await logAudit({
+      action: 'order_update',
+      entity_type: 'order',
+      entity_id: id,
+      actor_type: 'admin',
+      details: {
+        previous_status: previousStatus,
+        new_status: updatedOrder.status,
+        customer_email: updatedOrder.customer_email,
+        changes: Object.keys(body),
+      },
+      ip_address: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ data });
   } catch (error) {

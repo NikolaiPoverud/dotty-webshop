@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getResend, emailConfig } from '@/lib/email/resend';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
+
+// Rate limit: 5 requests per minute per IP
+const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 
 // Create a public Supabase client for anonymous submissions
 const supabase = createClient(
@@ -9,6 +13,20 @@ const supabase = createClient(
 );
 
 export async function POST(request: Request) {
+  // Check rate limit
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`contact:${clientIp}`, RATE_LIMIT_CONFIG);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: getRateLimitHeaders(rateLimitResult),
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const { name, email, message } = body;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify } from '@/lib/utils';
+import { logAudit, getIpFromRequest } from '@/lib/audit';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -99,6 +100,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Log audit
+    await logAudit({
+      action: 'product_update',
+      entity_type: 'product',
+      entity_id: id,
+      actor_type: 'admin',
+      details: { title: product.title, changes: Object.keys(updateData) },
+      ip_address: getIpFromRequest(request),
+    });
+
     return NextResponse.json({ data: product });
   } catch (error) {
     return NextResponse.json(
@@ -135,6 +146,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Log audit
+    await logAudit({
+      action: 'product_delete',
+      entity_type: 'product',
+      entity_id: id,
+      actor_type: 'admin',
+      details: { image_path: product?.image_path },
+      ip_address: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,9 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getResend, emailConfig } from '@/lib/email/resend';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
+
+// Rate limit: 5 requests per minute per IP
+const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 
 // POST /api/newsletter - Subscribe to newsletter (double opt-in)
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`newsletter:${clientIp}`, RATE_LIMIT_CONFIG);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: getRateLimitHeaders(rateLimitResult),
+      }
+    );
+  }
+
   try {
     const { email } = await request.json();
 

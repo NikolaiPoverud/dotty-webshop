@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify } from '@/lib/utils';
+import { logAudit, getIpFromRequest } from '@/lib/audit';
 
 // GET /api/admin/products - List all products
 export async function GET() {
@@ -103,6 +104,16 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Log audit
+    await logAudit({
+      action: 'product_create',
+      entity_type: 'product',
+      entity_id: product.id,
+      actor_type: 'admin',
+      details: { title: product.title, price: product.price, product_type: product.product_type },
+      ip_address: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ data: product }, { status: 201 });
   } catch (error) {

@@ -37,6 +37,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Log audit
+    await logAudit({
+      action: 'contact_mark_read',
+      entity_type: 'contact_submission',
+      entity_id: id,
+      actor_type: 'admin',
+      details: { is_read, email: data?.email },
+      ip_address: getIpFromRequest(request),
+    });
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error:', error);
@@ -54,6 +64,13 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     const supabase = createAdminClient();
 
+    // First get the submission for audit logging
+    const { data: submission } = await supabase
+      .from('contact_submissions')
+      .select('email, name')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase
       .from('contact_submissions')
       .delete()
@@ -63,6 +80,16 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       console.error('Error deleting contact submission:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Log audit
+    await logAudit({
+      action: 'contact_delete',
+      entity_type: 'contact_submission',
+      entity_id: id,
+      actor_type: 'admin',
+      details: { email: submission?.email, name: submission?.name },
+      ip_address: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
