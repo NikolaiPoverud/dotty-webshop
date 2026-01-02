@@ -16,6 +16,7 @@ export interface Product {
   title: string;
   description: string | null;
   slug: string;
+  sku: string | null; // Stock Keeping Unit for inventory management
   price: number; // NOK øre, includes MVA
   image_url: string;
   image_path: string;

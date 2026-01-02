@@ -49,18 +49,20 @@ function cartReducer(state: Cart, action: CartAction): Cart {
     case 'ADD_ITEM': {
       const { product, quantity = 1, reservationId, expiresAt } = action.payload;
       const existingIndex = state.items.findIndex((item) => item.product.id === product.id);
+      // ARCH-007: Store only essential product fields
+      const cartProduct = toCartProduct(product);
 
       let newItems: CartItem[];
       if (existingIndex > -1) {
         // Update existing item
         newItems = state.items.map((item, index) =>
           index === existingIndex
-            ? { ...item, quantity: item.quantity + quantity, reservationId, expiresAt }
+            ? { ...item, product: cartProduct, quantity: item.quantity + quantity, reservationId, expiresAt }
             : item
         );
       } else {
         // Add new item
-        newItems = [...state.items, { product, quantity, reservationId, expiresAt }];
+        newItems = [...state.items, { product: cartProduct, quantity, reservationId, expiresAt }];
       }
 
       const { subtotal, total } = calculateTotals(newItems, state.discountAmount);

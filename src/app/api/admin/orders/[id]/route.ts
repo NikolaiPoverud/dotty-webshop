@@ -65,12 +65,13 @@ export async function PUT(
       }
     }
 
-    // Log audit
+    // Log audit with user ID
     await logAudit({
       action: 'order_update',
       entity_type: 'order',
       entity_id: id,
       actor_type: 'admin',
+      actor_id: auth.user.id,
       details: {
         previous_status: previousStatus,
         new_status: updatedOrder.status,

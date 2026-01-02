@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
 
 // Use service role to bypass RLS
 const supabase = createClient(
@@ -18,8 +17,8 @@ export async function POST(request: Request) {
     const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Generate or use existing session ID
-    const sessionId = uuidv4();
+    // Generate session ID using native crypto
+    const sessionId = crypto.randomUUID();
 
     // Store consent in database
     const { error } = await supabase.from('cookie_consents').insert({

@@ -41,12 +41,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Log audit
+    // Log audit with user ID
     await logAudit({
       action: 'contact_mark_read',
       entity_type: 'contact_submission',
       entity_id: id,
       actor_type: 'admin',
+      actor_id: auth.user.id,
       details: { is_read, email: data?.email },
       ip_address: getIpFromRequest(request),
     });
@@ -89,12 +90,13 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Log audit
+    // Log audit with user ID
     await logAudit({
       action: 'contact_delete',
       entity_type: 'contact_submission',
       entity_id: id,
       actor_type: 'admin',
+      actor_id: auth.user.id,
       details: { email: submission?.email, name: submission?.name },
       ip_address: getIpFromRequest(request),
     });

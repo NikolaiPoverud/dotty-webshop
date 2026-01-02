@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { slugify } from '@/lib/utils';
+import { slugify, generateRandomSuffix } from '@/lib/utils';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
@@ -100,7 +100,8 @@ export async function POST(request: NextRequest) {
       .eq('slug', slug)
       .single();
 
-    const finalSlug = existing ? `${slug}-${Date.now()}` : slug;
+    // SEC-016: Use random suffix instead of predictable timestamp
+    const finalSlug = existing ? `${slug}-${generateRandomSuffix()}` : slug;
 
     // Get max display_order
     const { data: maxOrder } = await supabase
@@ -137,12 +138,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Log audit
+    // Log audit with user ID
     await logAudit({
       action: 'product_create',
       entity_type: 'product',
       entity_id: product.id,
       actor_type: 'admin',
+      actor_id: auth.user.id,
       details: { title: product.title, price: product.price, product_type: product.product_type },
       ip_address: getIpFromRequest(request),
     });

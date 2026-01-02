@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { slugify } from '@/lib/utils';
+import { slugify, generateRandomSuffix } from '@/lib/utils';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
@@ -78,7 +78,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         .eq('slug', newSlug)
         .neq('id', id)
         .single();
-      updateData.slug = existing ? `${newSlug}-${Date.now()}` : newSlug;
+      // SEC-016: Use random suffix instead of predictable timestamp
+      updateData.slug = existing ? `${newSlug}-${generateRandomSuffix()}` : newSlug;
     }
     if (description !== undefined) updateData.description = description;
     if (price !== undefined) updateData.price = Math.round(price);
@@ -107,12 +108,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Log audit
+    // Log audit with user ID
     await logAudit({
       action: 'product_update',
       entity_type: 'product',
       entity_id: id,
       actor_type: 'admin',
+      actor_id: auth.user.id,
       details: { title: product.title, changes: Object.keys(updateData) },
       ip_address: getIpFromRequest(request),
     });
@@ -157,12 +159,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Log audit
+    // Log audit with user ID
     await logAudit({
       action: 'product_delete',
       entity_type: 'product',
       entity_id: id,
       actor_type: 'admin',
+      actor_id: auth.user.id,
       details: { image_path: product?.image_path },
       ip_address: getIpFromRequest(request),
     });

@@ -91,11 +91,19 @@ export async function GET(request: Request) {
 async function processExportRequest(supabase: ReturnType<typeof createAdminClient>, dataRequest: { id: string; email: string }) {
   const email = dataRequest.email;
 
-  // Collect all data for this email
-  const [ordersResult, newsletterResult, contactResult] = await Promise.all([
+  // SEC-017: Collect ALL personal data for this email (complete GDPR coverage)
+  const [
+    ordersResult,
+    newsletterResult,
+    contactResult,
+    cookieConsentsResult,
+    dataRequestsResult,
+  ] = await Promise.all([
     supabase.from('orders').select('*').eq('customer_email', email),
     supabase.from('newsletter_subscribers').select('*').eq('email', email),
     supabase.from('contact_submissions').select('*').eq('email', email),
+    supabase.from('cookie_consents').select('*').eq('email', email),
+    supabase.from('data_requests').select('id, request_type, status, created_at, completed_at').eq('email', email),
   ]);
 
   const exportData = {
@@ -104,6 +112,8 @@ async function processExportRequest(supabase: ReturnType<typeof createAdminClien
     orders: ordersResult.data || [],
     newsletter_subscription: newsletterResult.data?.[0] || null,
     contact_submissions: contactResult.data || [],
+    cookie_consents: cookieConsentsResult.data || [],
+    data_request_history: dataRequestsResult.data || [],
   };
 
   // Store result in the request
@@ -139,6 +149,12 @@ async function processExportRequest(supabase: ReturnType<typeof createAdminClien
 
             <h3 style="color: #fafafa;">Kontaktmeldinger</h3>
             <p style="color: #a1a1aa;">Antall meldinger: ${exportData.contact_submissions.length}</p>
+
+            <h3 style="color: #fafafa;">Informasjonskapsler (cookies)</h3>
+            <p style="color: #a1a1aa;">Samtykker registrert: ${exportData.cookie_consents.length}</p>
+
+            <h3 style="color: #fafafa;">GDPR-forespørsler</h3>
+            <p style="color: #a1a1aa;">Tidligere forespørsler: ${exportData.data_request_history.length}</p>
           </div>
 
           <p style="color: #a1a1aa; line-height: 1.6;">
@@ -172,6 +188,38 @@ async function processExportRequest(supabase: ReturnType<typeof createAdminClien
 
 async function processDeleteRequest(supabase: ReturnType<typeof createAdminClient>, dataRequest: { id: string; email: string }) {
   const email = dataRequest.email;
+
+  // SEC-018: Create pre-deletion backup for compliance and potential restoration
+  const [
+    ordersResult,
+    newsletterResult,
+    contactResult,
+    cookieConsentsResult,
+  ] = await Promise.all([
+    supabase.from('orders').select('*').eq('customer_email', email),
+    supabase.from('newsletter_subscribers').select('*').eq('email', email),
+    supabase.from('contact_submissions').select('*').eq('email', email),
+    supabase.from('cookie_consents').select('*').eq('email', email),
+  ]);
+
+  const backupData = {
+    backup_date: new Date().toISOString(),
+    email: email,
+    reason: 'GDPR deletion request',
+    orders: ordersResult.data || [],
+    newsletter_subscription: newsletterResult.data?.[0] || null,
+    contact_submissions: contactResult.data || [],
+    cookie_consents: cookieConsentsResult.data || [],
+  };
+
+  // Store backup in audit log (retained per legal requirements)
+  await supabase.from('audit_log').insert({
+    action: 'gdpr_pre_deletion_backup',
+    entity_type: 'data_request',
+    entity_id: dataRequest.id,
+    actor_type: 'system',
+    details: backupData,
+  });
 
   // Delete newsletter subscription
   await supabase.from('newsletter_subscribers').delete().eq('email', email);
