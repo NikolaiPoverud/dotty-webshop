@@ -278,7 +278,7 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
 
             {/* Description */}
             {product.description && (
-              <p className="text-muted-foreground mb-12 leading-relaxed">
+              <p className="text-muted-foreground mb-12 leading-relaxed whitespace-pre-wrap">
                 {product.description}
               </p>
             )}
