@@ -78,33 +78,35 @@ export function Header({ lang, collections = [] }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo - Left */}
-          <Link href={`/${lang}`} className="relative group flex-shrink-0">
+          <a href={`https://dotty.no/${lang}`} className="relative group flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             >
               <Logo size="md" className="h-10 sm:h-12" />
             </motion.div>
-          </Link>
+          </a>
 
           {/* Center Navigation - Desktop */}
           <nav className="hidden sm:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-            <button
-              onClick={() => {
-                document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+            <Link
+              href={`/${lang}#art`}
               className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
             >
               {t.art}
-            </button>
-            <button
-              onClick={() => {
-                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+            </Link>
+            <Link
+              href={`/${lang}#about`}
+              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+            >
+              {t.about}
+            </Link>
+            <Link
+              href={`/${lang}#contact`}
               className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
             >
               {t.contact}
-            </button>
+            </Link>
           </nav>
 
           {/* Right Actions - Desktop */}
@@ -175,33 +177,27 @@ export function Header({ lang, collections = [] }: HeaderProps) {
         >
           <nav className="flex flex-col p-4 gap-2">
             {/* Main Nav Links */}
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+            <Link
+              href={`/${lang}#art`}
+              onClick={() => setIsMenuOpen(false)}
               className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
             >
               {t.art}
-            </button>
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+            </Link>
+            <Link
+              href={`/${lang}#about`}
+              onClick={() => setIsMenuOpen(false)}
               className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
             >
               {t.about}
-            </button>
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+            </Link>
+            <Link
+              href={`/${lang}#contact`}
+              onClick={() => setIsMenuOpen(false)}
               className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
             >
               {t.contact}
-            </button>
+            </Link>
 
             {/* Divider */}
             <div className="border-t border-border my-2" />

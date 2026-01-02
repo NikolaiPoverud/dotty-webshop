@@ -29,6 +29,14 @@ function getPathnameLocale(pathname: string): Locale | null {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const hostname = request.headers.get('host') || '';
+
+  // Redirect Vercel preview URLs to main domain
+  if (hostname.includes('vercel.app') && !pathname.startsWith('/api')) {
+    const url = new URL(`https://dotty.no${pathname}`);
+    url.search = request.nextUrl.search;
+    return NextResponse.redirect(url, 308);
+  }
 
   // Skip public paths entirely
   if (publicPaths.some(path => pathname.startsWith(path))) {
