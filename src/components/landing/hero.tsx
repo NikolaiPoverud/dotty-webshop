@@ -2,14 +2,13 @@
 
 import { motion } from 'framer-motion';
 import type { Locale } from '@/types';
+import { Logo } from '@/components/ui/logo';
 
 const heroText = {
   no: {
-    title: 'Dotty.',
     subtitle: 'Et kunstunivers med sterke farger og en leken strek. Uten filter. Begrensede prints og originale verk.',
   },
   en: {
-    title: 'Dotty.',
     subtitle: 'An art universe with bold colors and a playful stroke. Unfiltered. Limited prints and original works.',
   },
 };
@@ -39,24 +38,18 @@ export function Hero({ lang }: { lang: Locale }) {
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Main Title - italic serif for artsy feel */}
-        <motion.h1
-          className="text-5xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold text-white italic"
-          style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-          }}
+        {/* Logo */}
+        <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          {t.title}
-        </motion.h1>
+          <Logo size="hero" className="mx-auto" />
+        </motion.div>
 
         {/* Subtitle */}
         <motion.p
-          className="mt-8 sm:mt-10 text-lg sm:text-xl lg:text-2xl text-neutral-400 max-w-3xl mx-auto leading-relaxed italic"
+          className="mt-8 sm:mt-10 text-lg sm:text-xl lg:text-2xl text-neutral-400 max-w-3xl mx-auto leading-relaxed font-normal"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}

@@ -5,13 +5,14 @@ import { useState } from 'react';
 
 interface LogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'hero';
 }
 
 const sizes = {
   sm: { width: 80, height: 40, textClass: 'text-lg' },
   md: { width: 120, height: 60, textClass: 'text-2xl' },
   lg: { width: 160, height: 80, textClass: 'text-3xl' },
+  hero: { width: 600, height: 200, textClass: 'text-7xl sm:text-8xl lg:text-9xl' },
 };
 
 export function Logo({ className = '', size = 'md' }: LogoProps) {
@@ -31,11 +32,11 @@ export function Logo({ className = '', size = 'md' }: LogoProps) {
   return (
     <Image
       src="/logo.png"
-      alt="Dotty. artwork"
+      alt="Dotty."
       width={width}
       height={height}
       className={`h-auto w-auto ${className}`}
-      style={{ maxHeight: height * 0.7 }}
+      style={{ maxHeight: size === 'hero' ? undefined : height * 0.7 }}
       onError={() => setImageError(true)}
       priority
     />

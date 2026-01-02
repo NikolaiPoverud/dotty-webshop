@@ -10,6 +10,7 @@ import {
   FolderOpen,
   ExternalLink,
   MessageSquareQuote,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/admin/products', label: 'Produkter', icon: Package },
   { href: '/admin/collections', label: 'Samlinger', icon: FolderOpen },
   { href: '/admin/orders', label: 'Ordrer', icon: ShoppingCart },
+  { href: '/admin/contact', label: 'Meldinger', icon: Mail },
   { href: '/admin/discounts', label: 'Rabattkoder', icon: Tag },
   { href: '/admin/testimonials', label: 'Tilbakemeldinger', icon: MessageSquareQuote },
 ];

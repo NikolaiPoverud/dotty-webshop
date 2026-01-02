@@ -52,10 +52,15 @@ export function ContactSection({ lang }: { lang: Locale }) {
     setFormState('loading');
 
     try {
-      // For now, open mailto with the message
-      const subject = encodeURIComponent(`Melding fra ${formData.name}`);
-      const body = encodeURIComponent(`Fra: ${formData.name}\nE-post: ${formData.email}\n\n${formData.message}`);
-      window.location.href = `mailto:hei@dotty.no?subject=${subject}&body=${body}`;
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
 
       setFormState('success');
       setFormData({ name: '', email: '', message: '' });

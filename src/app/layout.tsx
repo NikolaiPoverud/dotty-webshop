@@ -1,25 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import { Geologica } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/cart-provider";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-heading",
+const geologica = Geologica({
+  variable: "--font-geologica",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-});
-
-const inter = Inter({
-  variable: "--font-body",
-  subsets: ["latin"],
 });
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#ec4899',
+  themeColor: '#FE206A',
 };
 
 export const metadata: Metadata = {
@@ -95,7 +90,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body
-        className={`${spaceGrotesk.variable} ${inter.variable} antialiased bg-background text-foreground`}
+        className={`${geologica.variable} antialiased bg-background text-foreground`}
       >
         <CartProvider>
           {children}
