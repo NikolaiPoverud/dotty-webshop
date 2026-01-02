@@ -29,21 +29,11 @@ interface ProductCardProps {
   index?: number;
 }
 
-// Random gradients for placeholder images
-const gradients = [
-  'from-primary to-accent',
-  'from-accent to-accent-2',
-  'from-accent-2 to-accent-3',
-  'from-accent-3 to-primary',
-  'from-primary-light to-accent',
-  'from-accent to-primary-dark',
-];
 
 export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
   const t = text[lang];
   // Item is sold if not available OR stock is 0
   const isSold = !product.is_available || product.stock_quantity === 0;
-  const gradient = gradients[index % gradients.length];
 
   return (
     <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
@@ -62,8 +52,8 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            // Placeholder gradient
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
+            // Placeholder
+            <div className="absolute inset-0 bg-primary" />
           )}
 
           {/* Sold Overlay */}
@@ -124,7 +114,7 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
             className="absolute inset-0 rounded-lg pointer-events-none"
             initial={{ boxShadow: 'none' }}
             whileHover={{
-              boxShadow: '0 0 30px rgba(236, 72, 153, 0.3)',
+              boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
             }}
             transition={{ duration: 0.3 }}
           />
