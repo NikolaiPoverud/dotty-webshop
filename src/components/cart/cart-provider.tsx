@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import type { Product, CartItem, Cart } from '@/types';
+import type { Product, CartProduct, CartItem, Cart } from '@/types';
 
 // Cart actions
 type CartAction =
@@ -13,6 +13,20 @@ type CartAction =
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: Cart }
   | { type: 'REMOVE_EXPIRED' };
+
+// ARCH-007: Extract only essential product fields for cart storage
+function toCartProduct(product: Product): CartProduct {
+  return {
+    id: product.id,
+    title: product.title,
+    slug: product.slug,
+    price: product.price,
+    image_url: product.image_url,
+    product_type: product.product_type,
+    stock_quantity: product.stock_quantity,
+    is_available: product.is_available,
+  };
+}
 
 // Initial cart state
 const initialCart: Cart = {
