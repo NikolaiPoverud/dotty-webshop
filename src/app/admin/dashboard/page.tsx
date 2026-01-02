@@ -1,8 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, ShoppingCart, Package, Users, Loader2, RefreshCw, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { TrendingUp, ShoppingCart, Package, Users, Loader2, RefreshCw, Plus, ExternalLink, Send, Tag } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
 
@@ -14,6 +16,8 @@ interface DashboardStats {
   totalSubscribers: number;
   subscribersThisMonth: number;
   recentOrders: Order[];
+  pendingOrdersCount: number;
+  unreadMessagesCount: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -31,14 +35,10 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Test email state
-  const [testEmail, setTestEmail] = useState('');
-  const [emailSending, setEmailSending] = useState(false);
-  const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const fetchStats = useCallback(async () => {
     setIsLoading(true);
@@ -58,37 +58,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
-
-  const sendTestEmail = async () => {
-    if (!testEmail) return;
-
-    setEmailSending(true);
-    setEmailResult(null);
-
-    try {
-      const response = await fetch('/api/admin/test-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: testEmail }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to send email');
-      }
-
-      setEmailResult({ success: true, message: 'E-post sendt!' });
-      setTestEmail('');
-    } catch (err) {
-      setEmailResult({
-        success: false,
-        message: err instanceof Error ? err.message : 'Kunne ikke sende e-post'
-      });
-    } finally {
-      setEmailSending(false);
-    }
-  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -143,16 +112,58 @@ export default function AdminDashboardPage() {
     },
   ] : [];
 
+  // Quick actions for common tasks
+  const quickActions = [
+    { label: 'Nytt produkt', icon: Plus, href: '/admin/products/new', color: 'bg-primary hover:bg-primary-light text-background' },
+    { label: 'Se shoppen', icon: ExternalLink, href: '/no', external: true, color: 'bg-muted hover:bg-muted-foreground/20' },
+    { label: 'Test e-post', icon: Send, href: '/admin/email-test', color: 'bg-muted hover:bg-muted-foreground/20' },
+    { label: 'Rabattkode', icon: Tag, href: '/admin/discounts', color: 'bg-muted hover:bg-muted-foreground/20' },
+  ];
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Oversikt over din shop</p>
+          <h1 className="text-3xl font-bold">Velkommen tilbake!</h1>
+          <p className="text-muted-foreground mt-1">Her er en oversikt over shoppen din</p>
         </div>
-        <button onClick={fetchStats} className="p-2 hover:bg-muted rounded-lg">
-          <RefreshCw className="w-5 h-5" />
+        <button
+          onClick={fetchStats}
+          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          title="Oppdater"
+        >
+          <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3">
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          const className = `flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${action.color}`;
+
+          if (action.external) {
+            return (
+              <a
+                key={action.label}
+                href={action.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={className}
+              >
+                <Icon className="w-4 h-4" />
+                {action.label}
+              </a>
+            );
+          }
+
+          return (
+            <Link key={action.label} href={action.href} className={className}>
+              <Icon className="w-4 h-4" />
+              {action.label}
+            </Link>
+          );
+        })}
       </div>
 
       {error && (
@@ -199,18 +210,27 @@ export default function AdminDashboardPage() {
         transition={{ delay: 0.4 }}
         className="bg-muted rounded-lg p-6"
       >
-        <h2 className="text-xl font-bold mb-4">Nylige ordrer</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Nylige ordrer</h2>
+          <Link
+            href="/admin/orders"
+            className="text-sm text-primary hover:underline"
+          >
+            Se alle →
+          </Link>
+        </div>
         {stats?.recentOrders && stats.recentOrders.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {stats.recentOrders.map((order) => (
-              <div
+              <Link
                 key={order.id}
-                className="flex items-center justify-between py-3 border-b border-border last:border-0"
+                href={`/admin/orders?highlight=${order.id}`}
+                className="flex items-center justify-between py-3 px-3 -mx-3 rounded-lg hover:bg-background/50 transition-colors cursor-pointer"
               >
                 <div>
                   <p className="font-medium">{order.customer_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {order.id} · {formatDate(order.created_at!)}
+                    {formatDate(order.created_at!)}
                   </p>
                 </div>
                 <div className="text-right">
@@ -221,64 +241,11 @@ export default function AdminDashboardPage() {
                     {statusLabels[order.status!] || order.status}
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
           <p className="text-muted-foreground">Ingen ordrer ennå.</p>
-        )}
-      </motion.div>
-
-      {/* Test Email Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-muted rounded-lg p-6"
-      >
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Mail className="w-5 h-5" />
-          Test E-post
-        </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Send en test e-post for å verifisere at e-postsystemet fungerer.
-        </p>
-
-        <div className="flex gap-3">
-          <input
-            type="email"
-            value={testEmail}
-            onChange={(e) => setTestEmail(e.target.value)}
-            placeholder="din@epost.no"
-            className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <button
-            onClick={sendTestEmail}
-            disabled={emailSending || !testEmail}
-            className="px-6 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 flex items-center gap-2"
-          >
-            {emailSending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Mail className="w-4 h-4" />
-            )}
-            Send
-          </button>
-        </div>
-
-        {emailResult && (
-          <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${
-            emailResult.success
-              ? 'bg-success/10 text-success'
-              : 'bg-destructive/10 text-destructive'
-          }`}>
-            {emailResult.success ? (
-              <CheckCircle className="w-4 h-4" />
-            ) : (
-              <AlertCircle className="w-4 h-4" />
-            )}
-            {emailResult.message}
-          </div>
         )}
       </motion.div>
     </div>

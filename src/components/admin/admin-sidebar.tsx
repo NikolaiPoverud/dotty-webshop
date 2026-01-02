@@ -14,20 +14,22 @@ import {
   Mail,
   Shield,
   FileText,
+  Send,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
 
 const navItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/dashboard', label: 'Oversikt', icon: LayoutDashboard },
+  { href: '/admin/orders', label: 'Ordrer', icon: ShoppingCart },
   { href: '/admin/products', label: 'Produkter', icon: Package },
   { href: '/admin/collections', label: 'Samlinger', icon: FolderOpen },
-  { href: '/admin/orders', label: 'Ordrer', icon: ShoppingCart },
   { href: '/admin/contact', label: 'Meldinger', icon: Mail },
   { href: '/admin/discounts', label: 'Rabattkoder', icon: Tag },
   { href: '/admin/testimonials', label: 'Tilbakemeldinger', icon: MessageSquareQuote },
-  { href: '/admin/gdpr', label: 'GDPR', icon: Shield },
-  { href: '/admin/audit-log', label: 'Revisjonslogg', icon: FileText },
+  { href: '/admin/email-test', label: 'Test e-post', icon: Send },
+  { href: '/admin/gdpr', label: 'Personvern', icon: Shield },
+  { href: '/admin/audit-log', label: 'Aktivitetslogg', icon: FileText },
 ];
 
 export function AdminSidebar() {
