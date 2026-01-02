@@ -17,6 +17,7 @@ const sectionText = {
     print: 'Trykk',
     empty: 'Kommer snart...',
     all: 'Alle',
+    sold: 'Solgt',
   },
   en: {
     title: 'Latest works',
@@ -25,6 +26,7 @@ const sectionText = {
     print: 'Print',
     empty: 'Coming soon...',
     all: 'All',
+    sold: 'Sold',
   },
 };
 
@@ -109,76 +111,93 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
           layout
         >
           <AnimatePresence mode="popLayout">
-            {filteredProducts.slice(0, 3).map((product, index) => (
-              <motion.div
-                key={product.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{
-                  opacity: { duration: 0.2 },
-                  scale: { duration: 0.2 },
-                  layout: { type: 'spring', stiffness: 300, damping: 30 }
-                }}
-              >
-                <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
-                  <motion.article
-                    className="group relative bg-muted rounded-lg overflow-hidden"
-                    whileHover={{ y: -8 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  >
-                    {/* Image Container */}
-                    <div className="relative aspect-[4/5] overflow-hidden">
-                      {product.image_url ? (
-                        <Image
-                          src={product.image_url}
-                          alt={product.title}
-                          fill
-                          priority={index < 2}
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-primary" />
-                      )}
+            {filteredProducts.slice(0, 3).map((product, index) => {
+              const isSold = !product.is_available || product.stock_quantity === 0;
 
-                      {/* Hover Overlay */}
-                      <motion.div
-                        className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      />
+              return (
+                <motion.div
+                  key={product.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    opacity: { duration: 0.2 },
+                    scale: { duration: 0.2 },
+                    layout: { type: 'spring', stiffness: 300, damping: 30 }
+                  }}
+                >
+                  <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
+                    <motion.article
+                      className="group relative bg-muted rounded-lg overflow-hidden"
+                      whileHover={isSold ? undefined : { y: -8 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    >
+                      {/* Image Container */}
+                      <div className="relative aspect-[4/5] overflow-hidden">
+                        {product.image_url ? (
+                          <Image
+                            src={product.image_url}
+                            alt={product.title}
+                            fill
+                            priority={index < 2}
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-primary" />
+                        )}
 
-                      {/* Product Type Badge */}
-                      <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
-                          {product.product_type === 'original' ? t.original : t.print}
-                        </span>
+                        {/* Sold Overlay */}
+                        {isSold && (
+                          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                            <span className="px-6 py-2 bg-foreground text-background text-lg font-bold uppercase tracking-widest">
+                              {t.sold}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Hover Overlay (only if not sold) */}
+                        {!isSold && (
+                          <motion.div
+                            className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          />
+                        )}
+
+                        {/* Product Type Badge */}
+                        <div className="absolute top-4 left-4">
+                          <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
+                            {product.product_type === 'original' ? t.original : t.print}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Product Info */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                        {product.title}
-                      </h3>
-                      <p className="text-muted-foreground mt-1">
-                        {formatPrice(product.price)}
-                      </p>
-                    </div>
+                      {/* Product Info */}
+                      <div className="p-4">
+                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          {product.title}
+                        </h3>
+                        <p className="text-muted-foreground mt-1">
+                          {formatPrice(product.price)}
+                        </p>
+                      </div>
 
-                    {/* Glow Effect */}
-                    <motion.div
-                      className="absolute inset-0 rounded-lg pointer-events-none"
-                      initial={{ boxShadow: 'none' }}
-                      whileHover={{
-                        boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
-                      }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.article>
-                </Link>
-              </motion.div>
-            ))}
+                      {/* Glow Effect (only if not sold) */}
+                      {!isSold && (
+                        <motion.div
+                          className="absolute inset-0 rounded-lg pointer-events-none"
+                          initial={{ boxShadow: 'none' }}
+                          whileHover={{
+                            boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
+                          }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      )}
+                    </motion.article>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
 
