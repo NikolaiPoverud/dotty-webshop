@@ -17,8 +17,6 @@ const contactText = {
     sending: 'Sender...',
     success: 'Takk! Jeg svarer så fort jeg kan.',
     error: 'Noe gikk galt. Prøv igjen!',
-    or: 'eller finn meg på',
-    followUs: 'Følg meg på Instagram',
     privacyNotice: 'Ved å sende denne meldingen godtar du at vi lagrer og behandler informasjonen i henhold til vår',
     privacyLink: 'personvernerklæring',
   },
@@ -33,8 +31,6 @@ const contactText = {
     sending: 'Sending...',
     success: "Thanks! I'll get back to you soon.",
     error: 'Something went wrong. Try again!',
-    or: 'or find me on',
-    followUs: 'Follow me on Instagram',
     privacyNotice: 'By sending this message, you agree that we store and process your information according to our',
     privacyLink: 'privacy policy',
   },
@@ -76,7 +72,7 @@ export function ContactSection({ lang }: { lang: Locale }) {
   };
 
   return (
-    <section id="contact" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
+    <section id="contact" className="py-16 sm:py-24 relative scroll-mt-20 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Personal Greeting */}
         <motion.p
@@ -111,7 +107,7 @@ export function ContactSection({ lang }: { lang: Locale }) {
         {/* Contact Form */}
         <motion.form
           onSubmit={handleSubmit}
-          className="max-w-xl mx-auto space-y-4 mb-12"
+          className="max-w-xl mx-auto space-y-4 mb-6"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -178,36 +174,22 @@ export function ContactSection({ lang }: { lang: Locale }) {
           </p>
         </motion.form>
 
-        {/* Divider */}
-        <motion.p
-          className="text-sm text-muted-foreground text-center mb-8"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-        >
-          {t.or}
-        </motion.p>
-
         {/* Instagram */}
         <div className="flex justify-center">
           <motion.a
             href="https://instagram.com/dottyartwork"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-3 px-6 py-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+            className="group inline-flex items-center gap-2 px-5 py-3 bg-muted rounded-full hover:bg-primary/20 transition-colors"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.25 }}
-            whileHover={{ scale: 1.02 }}
+            transition={{ delay: 0.2 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Instagram className="w-6 h-6 text-primary" />
-            <div className="text-left">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.followUs}</p>
-              <p className="font-medium text-lg group-hover:text-primary transition-colors">@dottyartwork</p>
-            </div>
+            <Instagram className="w-5 h-5 text-primary" />
+            <span className="font-medium group-hover:text-primary transition-colors">@dottyartwork</span>
           </motion.a>
         </div>
       </div>

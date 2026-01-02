@@ -77,40 +77,6 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
   return (
     <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* View All Link */}
-        <div className="flex justify-end mb-8">
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <Link
-              href={getLocalizedPath(lang, 'shop')}
-              className="text-sm uppercase tracking-widest text-primary hover:text-primary-light transition-colors"
-            >
-              {t.viewAll} →
-            </Link>
-          </motion.div>
-        </div>
-
-        {/* Filter Tabs - Centered */}
-        {showFilters && filterOptions.length > 1 && (
-          <motion.div
-            className="mb-12"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-          >
-            <FilterTabs
-              options={filterOptions}
-              activeId={activeFilter}
-              onChange={setActiveFilter}
-              centered
-            />
-          </motion.div>
-        )}
-
         {/* Product Grid */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
@@ -197,6 +163,40 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
           >
             {t.empty}
           </motion.p>
+        )}
+
+        {/* View All Link */}
+        <div className="flex justify-center mt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <Link
+              href={getLocalizedPath(lang, 'shop')}
+              className="text-sm uppercase tracking-widest text-primary hover:text-primary-light transition-colors"
+            >
+              {t.viewAll} →
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Filter Tabs - Centered */}
+        {showFilters && filterOptions.length > 1 && (
+          <motion.div
+            className="mt-4"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <FilterTabs
+              options={filterOptions}
+              activeId={activeFilter}
+              onChange={setActiveFilter}
+              centered
+            />
+          </motion.div>
         )}
       </div>
     </section>
