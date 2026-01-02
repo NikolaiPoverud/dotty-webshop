@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, ArrowLeft, Truck, Mail, Send, Loader2 } from 'lucide-react';
+import { Check, ArrowLeft, Mail, Send, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Locale, Product, GalleryImage } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -241,16 +241,6 @@ export function ProductDetail({ product, collectionName, shippingCost, lang }: P
                 </span>
               </div>
 
-              {/* Shipping */}
-              <div className="flex justify-between items-center pb-6 border-b border-border">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <Truck className="w-4 h-4" />
-                  {t.shipping}
-                </span>
-                <span className={`font-medium ${shippingCost === 0 ? 'text-green-500' : ''}`}>
-                  {shippingCost === 0 ? t.freeShipping : formatPrice(shippingCost)}
-                </span>
-              </div>
             </div>
 
             {/* Description */}

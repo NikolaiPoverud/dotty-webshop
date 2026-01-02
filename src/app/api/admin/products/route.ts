@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
       is_featured,
       sizes,
       gallery_images,
+      shipping_cost,
+      shipping_size,
+      requires_inquiry,
     } = body;
 
     // Validate required fields
@@ -130,6 +133,9 @@ export async function POST(request: NextRequest) {
         sizes: sizes || [],
         gallery_images: gallery_images || [],
         display_order,
+        shipping_cost: shipping_cost ?? null,
+        shipping_size: shipping_size ?? null,
+        requires_inquiry: requires_inquiry ?? false,
       })
       .select()
       .single();

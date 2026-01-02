@@ -63,6 +63,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       sizes,
       gallery_images,
       display_order,
+      shipping_cost,
+      shipping_size,
+      requires_inquiry,
     } = body;
 
     // Build update object with only provided fields
@@ -93,6 +96,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (sizes !== undefined) updateData.sizes = sizes;
     if (gallery_images !== undefined) updateData.gallery_images = gallery_images;
     if (display_order !== undefined) updateData.display_order = display_order;
+    if (shipping_cost !== undefined) updateData.shipping_cost = shipping_cost;
+    if (shipping_size !== undefined) updateData.shipping_size = shipping_size;
+    if (requires_inquiry !== undefined) updateData.requires_inquiry = requires_inquiry;
 
     const { data: product, error } = await supabase
       .from('products')
