@@ -41,6 +41,10 @@ const text = {
     paymentFailedDesc: 'Kortet ble avvist eller det oppstod en feil. Vennligst prøv igjen.',
     genericError: 'Noe gikk galt. Vennligst prøv igjen.',
     fillAllFields: 'Vennligst fyll ut alle påkrevde felt',
+    acceptPrivacy: 'Jeg har lest og godtar',
+    privacyPolicy: 'personvernerklæringen',
+    subscribeNewsletter: 'Ja, jeg vil motta nyhetsbrev med nyheter og tilbud',
+    acceptPrivacyRequired: 'Du må godta personvernerklæringen for å fortsette',
   },
   en: {
     title: 'Checkout',
@@ -73,6 +77,10 @@ const text = {
     paymentFailedDesc: 'Your card was declined or an error occurred. Please try again.',
     genericError: 'Something went wrong. Please try again.',
     fillAllFields: 'Please fill in all required fields',
+    acceptPrivacy: 'I have read and accept the',
+    privacyPolicy: 'privacy policy',
+    subscribeNewsletter: 'Yes, I want to receive newsletters with news and offers',
+    acceptPrivacyRequired: 'You must accept the privacy policy to continue',
   },
 };
 
@@ -96,6 +104,8 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
     postalCode: '',
     country: 'Norge',
   });
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
 
   // Check for canceled payment on mount
   useEffect(() => {
@@ -163,6 +173,12 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
       return;
     }
 
+    // Validate privacy acceptance
+    if (!privacyAccepted) {
+      setError(t.acceptPrivacyRequired);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -192,6 +208,8 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
             discount_code: cart.discountCode,
             discount_amount: cart.discountAmount,
             locale,
+            privacy_accepted: true,
+            newsletter_opt_in: newsletterOptIn,
           }),
         });
 
@@ -386,6 +404,44 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
               {discountSuccess && (
                 <p className="mt-2 text-sm text-success">{discountSuccess}</p>
               )}
+            </div>
+
+            {/* Consent Checkboxes */}
+            <div className="mt-8 space-y-4">
+              {/* Privacy Policy */}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={privacyAccepted}
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  className="mt-1 w-5 h-5 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0"
+                />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  {t.acceptPrivacy}{' '}
+                  <a
+                    href={`/${locale}/privacy`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {t.privacyPolicy}
+                  </a>
+                  {' *'}
+                </span>
+              </label>
+
+              {/* Newsletter Opt-in */}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={newsletterOptIn}
+                  onChange={(e) => setNewsletterOptIn(e.target.checked)}
+                  className="mt-1 w-5 h-5 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0"
+                />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  {t.subscribeNewsletter}
+                </span>
+              </label>
             </div>
           </motion.div>
 

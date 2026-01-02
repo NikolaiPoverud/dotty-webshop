@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logAudit, getIpFromRequest } from '@/lib/audit';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

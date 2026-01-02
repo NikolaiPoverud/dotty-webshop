@@ -19,6 +19,8 @@ const contactText = {
     error: 'Noe gikk galt. Prøv igjen!',
     or: 'eller finn meg på',
     followUs: 'Følg meg på Instagram',
+    privacyNotice: 'Ved å sende denne meldingen godtar du at vi lagrer og behandler informasjonen i henhold til vår',
+    privacyLink: 'personvernerklæring',
   },
   en: {
     greeting: 'Hey there!',
@@ -33,6 +35,8 @@ const contactText = {
     error: 'Something went wrong. Try again!',
     or: 'or find me on',
     followUs: 'Follow me on Instagram',
+    privacyNotice: 'By sending this message, you agree that we store and process your information according to our',
+    privacyLink: 'privacy policy',
   },
 };
 
@@ -163,6 +167,15 @@ export function ContactSection({ lang }: { lang: Locale }) {
               </>
             )}
           </motion.button>
+
+          {/* Privacy Notice */}
+          <p className="text-xs text-muted-foreground text-center">
+            {t.privacyNotice}{' '}
+            <a href={`/${lang}/privacy`} className="text-primary hover:underline">
+              {t.privacyLink}
+            </a>
+            .
+          </p>
         </motion.form>
 
         {/* Divider */}

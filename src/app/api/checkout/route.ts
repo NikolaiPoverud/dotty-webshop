@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
       discount_code,
       discount_amount,
       locale = 'no',
+      privacy_accepted = false,
+      newsletter_opt_in = false,
     } = body;
 
     // Validate items
@@ -71,6 +73,8 @@ export async function POST(request: NextRequest) {
       discount_code: discount_code || '',
       discount_amount: (discount_amount || 0).toString(),
       total: total.toString(),
+      privacy_accepted: privacy_accepted.toString(),
+      newsletter_opt_in: newsletter_opt_in.toString(),
     };
 
     // Get base URL - always use canonical (non-www) domain
