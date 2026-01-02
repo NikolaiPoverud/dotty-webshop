@@ -87,6 +87,17 @@ export interface DiscountCode {
   created_at: string;
 }
 
+export interface Testimonial {
+  id: string;
+  feedback: string;
+  name: string;
+  source: string;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CartReservation {
   id: string;
   product_id: string;

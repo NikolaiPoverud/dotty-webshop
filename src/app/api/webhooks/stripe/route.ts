@@ -122,31 +122,45 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       console.error('Email sending error:', emailError);
     }
 
-    // Update product availability for originals
+    // Update product availability/stock
     for (const item of items) {
       const { data: product } = await supabase
         .from('products')
-        .select('product_type, stock_quantity')
+        .select('product_type, stock_quantity, title')
         .eq('id', item.product_id)
         .single();
 
       if (product) {
         if (product.product_type === 'original') {
-          // Mark original as sold
-          await supabase
+          // Mark original as sold (one-of-a-kind)
+          const { error: updateError } = await supabase
             .from('products')
             .update({ is_available: false })
             .eq('id', item.product_id);
-        } else if (product.product_type === 'print' && product.stock_quantity !== null) {
+
+          if (updateError) {
+            console.error(`Failed to mark original as sold: ${product.title}`, updateError);
+          } else {
+            console.log(`Original artwork sold: "${product.title}" - marked as unavailable`);
+          }
+        } else if (product.product_type === 'print') {
           // Decrease print stock
-          const newQuantity = Math.max(0, product.stock_quantity - item.quantity);
-          await supabase
+          const currentStock = product.stock_quantity ?? 0;
+          const newQuantity = Math.max(0, currentStock - item.quantity);
+
+          const { error: updateError } = await supabase
             .from('products')
-            .update({ 
+            .update({
               stock_quantity: newQuantity,
               is_available: newQuantity > 0,
             })
             .eq('id', item.product_id);
+
+          if (updateError) {
+            console.error(`Failed to update print stock: ${product.title}`, updateError);
+          } else {
+            console.log(`Print stock updated: "${product.title}" - ${currentStock} → ${newQuantity} (ordered: ${item.quantity})`);
+          }
         }
       }
     }

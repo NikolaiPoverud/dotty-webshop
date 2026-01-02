@@ -1,4 +1,5 @@
-import type { Locale } from '@/types';
+// Define Locale locally to avoid importing from @/types in Edge runtime
+type Locale = 'no' | 'en';
 
 export interface DomainConfig {
   domain: string;

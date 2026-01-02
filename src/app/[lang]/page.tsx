@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import type { Locale, Product, Collection } from '@/types';
+import type { Locale, Product, Collection, Testimonial } from '@/types';
 import { Hero } from '@/components/landing/hero';
 import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { ArtistStatement } from '@/components/landing/artist-statement';
+import { Testimonials } from '@/components/landing/testimonials';
 import { ContactSection } from '@/components/landing/contact-section';
 import { createClient } from '@/lib/supabase/server';
 import { OrganizationJsonLd } from '@/components/seo';
@@ -60,6 +61,28 @@ async function getCollections(): Promise<Collection[]> {
   }
 }
 
+async function getTestimonials(): Promise<Testimonial[]> {
+  try {
+    const supabase = await createClient();
+
+    const { data: testimonials, error } = await supabase
+      .from('testimonials')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) {
+      console.error('Failed to fetch testimonials:', error);
+      return [];
+    }
+
+    return testimonials || [];
+  } catch (error) {
+    console.error('Failed to fetch testimonials:', error);
+    return [];
+  }
+}
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
@@ -111,9 +134,10 @@ export default async function HomePage({ params }: Props) {
   const { lang } = await params;
   const locale = lang as Locale;
 
-  const [products, collections] = await Promise.all([
+  const [products, collections, testimonials] = await Promise.all([
     getFeaturedProducts(),
     getCollections(),
+    getTestimonials(),
   ]);
 
   return (
@@ -122,6 +146,7 @@ export default async function HomePage({ params }: Props) {
       <Hero lang={locale} />
       <FeaturedGrid lang={locale} products={products} collections={collections} />
       <ArtistStatement lang={locale} />
+      <Testimonials testimonials={testimonials} />
       <ContactSection lang={locale} />
     </>
   );

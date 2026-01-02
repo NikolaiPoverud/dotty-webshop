@@ -9,6 +9,7 @@ import {
   Tag,
   FolderOpen,
   ExternalLink,
+  MessageSquareQuote,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/admin/collections', label: 'Samlinger', icon: FolderOpen },
   { href: '/admin/orders', label: 'Ordrer', icon: ShoppingCart },
   { href: '/admin/discounts', label: 'Rabattkoder', icon: Tag },
+  { href: '/admin/testimonials', label: 'Tilbakemeldinger', icon: MessageSquareQuote },
 ];
 
 export default function AdminLayout({
