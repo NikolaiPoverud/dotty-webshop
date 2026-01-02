@@ -12,18 +12,33 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Redirect non-locale paths to Norwegian (default)
-      { source: '/shop', destination: '/no/shop', permanent: true },
-      { source: '/shop/:slug', destination: '/no/shop/:slug', permanent: true },
-      { source: '/handlekurv', destination: '/no/handlekurv', permanent: true },
-      { source: '/cart', destination: '/no/handlekurv', permanent: true },
-      { source: '/kasse', destination: '/no/kasse', permanent: true },
-      { source: '/checkout', destination: '/no/kasse', permanent: true },
-      { source: '/solgt', destination: '/no/solgt', permanent: true },
-      { source: '/sold', destination: '/no/solgt', permanent: true },
-      { source: '/privacy', destination: '/no/privacy', permanent: true },
-      { source: '/terms', destination: '/no/terms', permanent: true },
+      // www to non-www redirects (handled at DNS/Vercel level, but backup here)
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dotty.no' }],
+        destination: 'https://dotty.no/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dottyartwork.no' }],
+        destination: 'https://dottyartwork.no/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dottyartwork.com' }],
+        destination: 'https://dottyartwork.com/:path*',
+        permanent: true,
+      },
     ];
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: [],
+    };
   },
 };
 

@@ -73,10 +73,17 @@ export async function POST(request: NextRequest) {
       total: total.toString(),
     };
 
-    // Get base URL
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const successUrl = baseUrl + '/' + locale + '/kasse/bekreftelse?session_id={CHECKOUT_SESSION_ID}';
-    const cancelUrl = baseUrl + '/' + locale + '/kasse';
+    // Get base URL for the locale
+    const baseUrl = locale === 'en'
+      ? (process.env.NEXT_PUBLIC_DOMAIN_EN || 'https://dottyartwork.com')
+      : (process.env.NEXT_PUBLIC_DOMAIN_NO || process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no');
+
+    // Use localized route paths
+    const successPath = locale === 'en' ? '/en/checkout/success' : '/no/kasse/bekreftelse';
+    const cancelPath = locale === 'en' ? '/en/checkout' : '/no/kasse';
+
+    const successUrl = `${baseUrl}${successPath}?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}${cancelPath}`;
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({

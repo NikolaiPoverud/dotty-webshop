@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+const DOMAIN_NO = process.env.NEXT_PUBLIC_DOMAIN_NO || 'https://dotty.no';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    // Sitemap served from primary domain
+    sitemap: `${DOMAIN_NO}/sitemap.xml`,
   };
 }

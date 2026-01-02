@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         image_url: image_url || '',
         image_path: image_path || '',
         product_type: product_type || 'original',
-        stock_quantity: product_type === 'print' ? (stock_quantity || 0) : null,
+        stock_quantity: stock_quantity ?? 1, // Default to 1 (originals have 1, prints start with 1)
         collection_id: collection_id || null,
         is_available: is_available ?? true,
         is_featured: is_featured ?? false,

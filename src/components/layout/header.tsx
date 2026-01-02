@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Menu, X, Settings, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Locale, Collection } from '@/types';
 import { getAlternateLocale, getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import { getLanguageSwitchUrl } from '@/lib/domains';
 import { Logo } from '@/components/ui/logo';
 import { useCart } from '@/components/cart/cart-provider';
 import { CartPanel } from '@/components/cart/cart-panel';
@@ -33,9 +35,18 @@ interface HeaderProps {
 export function Header({ lang, collections = [] }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [hostname, setHostname] = useState<string>('');
   const { itemCount } = useCart();
+  const pathname = usePathname();
   const altLang = getAlternateLocale(lang);
   const t = navItems[lang];
+
+  // Get hostname on client side for language switch URL
+  useEffect(() => {
+    setHostname(window.location.hostname);
+  }, []);
+
+  const langSwitchUrl = getLanguageSwitchUrl(pathname, lang, hostname);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -91,12 +102,12 @@ export function Header({ lang, collections = [] }: HeaderProps) {
             </button>
 
             {/* Language Switcher */}
-            <Link
-              href={`/${altLang}`}
+            <a
+              href={langSwitchUrl}
               className="text-xs uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors border border-border px-2 py-1 rounded"
             >
               {altLang.toUpperCase()}
-            </Link>
+            </a>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -180,13 +191,13 @@ export function Header({ lang, collections = [] }: HeaderProps) {
             </Link>
 
             {/* Language Switcher */}
-            <Link
-              href={`/${altLang}`}
+            <a
+              href={langSwitchUrl}
               onClick={() => setIsMenuOpen(false)}
               className="text-sm uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-3"
             >
               {altLang === 'en' ? 'English' : 'Norsk'}
-            </Link>
+            </a>
           </nav>
         </motion.div>
       )}
