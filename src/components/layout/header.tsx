@@ -78,14 +78,17 @@ export function Header({ lang, collections = [] }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo - Left */}
-          <a href={`https://dotty.no/${lang}`} className="relative group flex-shrink-0">
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="relative group flex-shrink-0"
+          >
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             >
               <Logo size="md" className="h-10 sm:h-12" />
             </motion.div>
-          </a>
+          </button>
 
           {/* Center Navigation - Desktop */}
           <nav className="hidden sm:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
