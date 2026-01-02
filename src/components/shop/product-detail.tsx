@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check } from 'lucide-react';
+import { Check, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import type { Locale, Product, GalleryImage } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
@@ -12,6 +13,7 @@ import { ProductGallery } from './product-gallery';
 
 const text = {
   no: {
+    backToShop: 'Tilbake til butikk',
     dimensions: 'Dimensjoner',
     year: 'År',
     availability: 'Tilgjengelighet',
@@ -24,6 +26,7 @@ const text = {
     print: 'Trykk',
   },
   en: {
+    backToShop: 'Back to shop',
     dimensions: 'Dimensions',
     year: 'Year',
     availability: 'Availability',
@@ -93,6 +96,36 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back to Shop Navigation */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          className="mb-8"
+        >
+          <Link
+            href={getLocalizedPath(lang, 'shop')}
+            className="group inline-flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors duration-300"
+          >
+            <motion.span
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-muted group-hover:bg-primary/20 transition-colors duration-300"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.span
+                initial={{ x: 0 }}
+                whileHover={{ x: -3 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              >
+                <ArrowLeft className="w-5 h-5 group-hover:text-primary transition-colors duration-300" />
+              </motion.span>
+            </motion.span>
+            <span className="text-sm font-medium uppercase tracking-wider group-hover:text-primary transition-colors duration-300">
+              {t.backToShop}
+            </span>
+          </Link>
+        </motion.div>
+
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Image Gallery Section */}
           <motion.div
@@ -104,6 +137,7 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
               mainImage={product.image_url}
               galleryImages={galleryImages}
               title={product.title}
+              isSold={isSold}
             />
           </motion.div>
 

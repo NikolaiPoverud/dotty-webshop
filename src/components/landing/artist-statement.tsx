@@ -20,7 +20,7 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
   const t = artistText[lang];
 
   return (
-    <section className="py-20 sm:py-32 relative overflow-hidden">
+    <section id="about" className="py-20 sm:py-32 relative overflow-hidden scroll-mt-20">
       {/* Background accent */}
       <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
 

@@ -74,7 +74,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
 
   if (products.length === 0) {
     return (
-      <section className="py-20 sm:py-32 relative">
+      <section id="art" className="py-20 sm:py-32 relative scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             className="text-3xl sm:text-4xl font-bold mb-12"
@@ -91,7 +91,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
   }
 
   return (
-    <section className="py-20 sm:py-32 relative">
+    <section id="art" className="py-20 sm:py-32 relative scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">

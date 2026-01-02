@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendOrderEmails } from '@/lib/email/send';
+import type { Order } from '@/types';
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -106,6 +108,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     console.log('Order created successfully:', order.id);
 
+    // Send confirmation emails (customer + artist)
+    try {
+      const emailResults = await sendOrderEmails(order as Order);
+      if (!emailResults.confirmation.success) {
+        console.error('Customer email failed:', emailResults.confirmation.error);
+      }
+      if (!emailResults.alert.success) {
+        console.error('Artist notification failed:', emailResults.alert.error);
+      }
+    } catch (emailError) {
+      // Don't fail the webhook if emails fail
+      console.error('Email sending error:', emailError);
+    }
+
     // Update product availability for originals
     for (const item of items) {
       const { data: product } = await supabase
@@ -134,9 +150,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         }
       }
     }
-
-    // TODO: Send confirmation email
-    // await sendOrderConfirmation(order);
 
   } catch (error) {
     console.error('Error handling checkout completed:', error);

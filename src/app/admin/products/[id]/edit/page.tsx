@@ -60,7 +60,7 @@ export default function EditProductPage() {
         setImageUrl(product.image_url || '');
         setImagePath(product.image_path || '');
         setProductType(product.product_type);
-        setStockQuantity(product.stock_quantity?.toString() || '');
+        setStockQuantity(product.stock_quantity?.toString() || '1');
         setCollectionId(product.collection_id || '');
         setIsAvailable(product.is_available);
         setIsFeatured(product.is_featured);
@@ -98,7 +98,7 @@ export default function EditProductPage() {
           image_url: imageUrl,
           image_path: imagePath,
           product_type: productType,
-          stock_quantity: productType === 'print' ? parseInt(stockQuantity, 10) || 0 : null,
+          stock_quantity: parseInt(stockQuantity, 10) || 1,
           collection_id: collectionId || null,
           is_available: isAvailable,
           is_featured: isFeatured,
@@ -286,28 +286,24 @@ export default function EditProductPage() {
               </select>
             </div>
 
-            {/* Stock Quantity (only for prints) */}
-            {productType === 'print' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-2"
-              >
-                <label htmlFor="stock" className="block text-sm font-medium">
-                  Antall pa lager
-                </label>
-                <input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  value={stockQuantity}
-                  onChange={(e) => setStockQuantity(e.target.value)}
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="0"
-                />
-              </motion.div>
-            )}
+            {/* Stock Quantity */}
+            <div className="space-y-2">
+              <label htmlFor="stock" className="block text-sm font-medium">
+                Antall pa lager {productType === 'original' && <span className="text-muted-foreground">(vanligvis 1)</span>}
+              </label>
+              <input
+                id="stock"
+                type="number"
+                min="0"
+                value={stockQuantity}
+                onChange={(e) => setStockQuantity(e.target.value)}
+                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="1"
+              />
+              <p className="text-xs text-muted-foreground">
+                Sett til 0 for a markere som solgt
+              </p>
+            </div>
 
             {/* Sizes */}
             <div className="space-y-2">

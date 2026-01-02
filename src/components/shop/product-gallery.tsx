@@ -10,9 +10,10 @@ interface ProductGalleryProps {
   mainImage: string;
   galleryImages?: GalleryImage[];
   title: string;
+  isSold?: boolean;
 }
 
-export function ProductGallery({ mainImage, galleryImages, title }: ProductGalleryProps) {
+export function ProductGallery({ mainImage, galleryImages, title, isSold = false }: ProductGalleryProps) {
   // Combine main image with gallery images
   const allImages = [
     mainImage,
@@ -68,7 +69,7 @@ export function ProductGallery({ mainImage, galleryImages, title }: ProductGalle
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="relative aspect-[4/5] max-w-md mx-auto lg:max-w-full rounded-lg overflow-hidden bg-muted group">
+      <div className={`relative aspect-[4/5] max-w-md mx-auto lg:max-w-full rounded-lg overflow-hidden bg-muted group ${isSold ? 'grayscale-[30%]' : ''}`}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentIndex}
@@ -98,6 +99,15 @@ export function ProductGallery({ mainImage, galleryImages, title }: ProductGalle
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* Sold Overlay */}
+        {isSold && (
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20 pointer-events-none">
+            <span className="px-8 py-3 bg-foreground text-background text-xl font-bold uppercase tracking-widest">
+              Solgt
+            </span>
+          </div>
+        )}
 
         {/* Navigation Arrows - visible on hover (desktop) or always visible with lower opacity on mobile */}
         {hasMultipleImages && (

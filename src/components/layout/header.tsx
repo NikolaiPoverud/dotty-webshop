@@ -18,12 +18,18 @@ const navItems = {
     shop: 'Shop',
     collections: 'Samlinger',
     allProducts: 'Alle produkter',
+    art: 'Kunst',
+    about: 'Om',
+    contact: 'Kontakt',
   },
   en: {
     cart: 'Cart',
     shop: 'Shop',
     collections: 'Collections',
     allProducts: 'All products',
+    art: 'Art',
+    about: 'About',
+    contact: 'Contact',
   },
 };
 
@@ -36,6 +42,7 @@ export function Header({ lang, collections = [] }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [hostname, setHostname] = useState<string>('');
+  const [isVisible, setIsVisible] = useState(false);
   const { itemCount } = useCart();
   const pathname = usePathname();
   const altLang = getAlternateLocale(lang);
@@ -46,10 +53,28 @@ export function Header({ lang, collections = [] }: HeaderProps) {
     setHostname(window.location.hostname);
   }, []);
 
+  // Show header on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      // Show header after scrolling 100px
+      setIsVisible(scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const langSwitchUrl = getLanguageSwitchUrl(pathname, lang, hostname);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+        isVisible
+          ? 'bg-background/90 backdrop-blur-md border-b border-border'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
@@ -63,7 +88,33 @@ export function Header({ lang, collections = [] }: HeaderProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden sm:flex items-center gap-6">
+          <nav className="hidden sm:flex items-center gap-8">
+            {/* Main Nav Links */}
+            <button
+              onClick={() => {
+                document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+            >
+              {t.art}
+            </button>
+            <button
+              onClick={() => {
+                document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+            >
+              {t.about}
+            </button>
+            <button
+              onClick={() => {
+                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+            >
+              {t.contact}
+            </button>
+
             {/* Admin Button (Dev) */}
             <Link
               href="/admin/products"
@@ -129,6 +180,38 @@ export function Header({ lang, collections = [] }: HeaderProps) {
           className="sm:hidden absolute top-full left-0 right-0 bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto"
         >
           <nav className="flex flex-col p-4 gap-2">
+            {/* Main Nav Links */}
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
+            >
+              {t.art}
+            </button>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
+            >
+              {t.about}
+            </button>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
+            >
+              {t.contact}
+            </button>
+
+            {/* Divider */}
+            <div className="border-t border-border my-2" />
+
             {/* Shop Link */}
             <Link
               href={getLocalizedPath(lang, 'shop')}

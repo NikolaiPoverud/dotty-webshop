@@ -3,6 +3,7 @@ import type { Locale, Product, Collection } from '@/types';
 import { Hero } from '@/components/landing/hero';
 import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { ArtistStatement } from '@/components/landing/artist-statement';
+import { ContactSection } from '@/components/landing/contact-section';
 import { createClient } from '@/lib/supabase/server';
 import { OrganizationJsonLd } from '@/components/seo';
 
@@ -121,6 +122,7 @@ export default async function HomePage({ params }: Props) {
       <Hero lang={locale} />
       <FeaturedGrid lang={locale} products={products} collections={collections} />
       <ArtistStatement lang={locale} />
+      <ContactSection lang={locale} />
     </>
   );
 }
