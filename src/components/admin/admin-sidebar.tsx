@@ -21,7 +21,7 @@ import { UserMenu } from '@/components/admin/user-menu';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Oversikt', icon: LayoutDashboard },
-  { href: '/admin/orders', label: 'Ordrer', icon: ShoppingCart },
+  { href: '/admin/orders', label: 'Ordre', icon: ShoppingCart },
   { href: '/admin/products', label: 'Produkter', icon: Package },
   { href: '/admin/collections', label: 'Samlinger', icon: FolderOpen },
   { href: '/admin/contact', label: 'Meldinger', icon: Mail },
