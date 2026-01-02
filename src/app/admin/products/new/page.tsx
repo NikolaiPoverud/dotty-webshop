@@ -8,13 +8,14 @@ import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
 import { GalleryUpload } from '@/components/admin/gallery-upload';
+import { useToast } from '@/components/admin/toast';
 import type { ProductSize, Collection, GalleryImage, ShippingSize } from '@/types';
 import { SHIPPING_SIZE_INFO } from '@/types';
 
 export default function NewProductPage() {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [collections, setCollections] = useState<Collection[]>([]);
 
   // Form state
@@ -52,7 +53,6 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -91,10 +91,11 @@ export default function NewProductPage() {
         throw new Error(result.error || 'Failed to create product');
       }
 
+      toast.success('Produkt opprettet');
       router.push('/admin/products');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error(err instanceof Error ? err.message : 'Noe gikk galt');
     } finally {
       setIsSubmitting(false);
     }
@@ -127,16 +128,6 @@ export default function NewProductPage() {
           </p>
         </div>
       </div>
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-error/10 border border-error/20 rounded-lg text-error"
-        >
-          {error}
-        </motion.div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

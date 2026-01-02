@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
 import { GalleryUpload } from '@/components/admin/gallery-upload';
+import { useToast } from '@/components/admin/toast';
 import type { Product, ProductSize, Collection, GalleryImage, ShippingSize } from '@/types';
 import { SHIPPING_SIZE_INFO } from '@/types';
 
@@ -15,10 +16,10 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
+  const toast = useToast();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [collections, setCollections] = useState<Collection[]>([]);
 
   // Form state
@@ -81,18 +82,17 @@ export default function EditProductPage() {
         setRequiresInquiry(product.requires_inquiry || false);
         setYear(product.year ? String(product.year) : '');
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load product');
+        toast.error(err instanceof Error ? err.message : 'Kunne ikke laste produkt');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [productId]);
+  }, [productId, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -128,10 +128,11 @@ export default function EditProductPage() {
         throw new Error(result.error || 'Failed to update product');
       }
 
+      toast.success('Produkt oppdatert');
       router.push('/admin/products');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error(err instanceof Error ? err.message : 'Noe gikk galt');
     } finally {
       setIsSubmitting(false);
     }
@@ -172,16 +173,6 @@ export default function EditProductPage() {
           </p>
         </div>
       </div>
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-error/10 border border-error/20 rounded-lg text-error"
-        >
-          {error}
-        </motion.div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

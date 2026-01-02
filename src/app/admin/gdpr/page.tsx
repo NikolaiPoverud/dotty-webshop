@@ -183,7 +183,9 @@ export default function GDPRDashboardPage() {
     setIsRunningCleanup(true);
     setCleanupResult(null);
     try {
-      const response = await fetch('/api/cron/data-retention');
+      const response = await fetch('/api/admin/data-cleanup', {
+        method: 'POST',
+      });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setCleanupResult(result.message);
