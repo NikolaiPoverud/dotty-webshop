@@ -112,3 +112,19 @@ html {
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
 }
+
+/* Page transition animation - lightweight CSS alternative to Framer Motion */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}

@@ -7,6 +7,7 @@ import { useState, useMemo } from 'react';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
+import { formatPrice } from '@/lib/utils';
 
 const sectionText = {
   no: {
@@ -26,15 +27,6 @@ const sectionText = {
     all: 'All',
   },
 };
-
-function formatPrice(priceInOre: number): string {
-  return new Intl.NumberFormat('nb-NO', {
-    style: 'currency',
-    currency: 'NOK',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(priceInOre / 100);
-}
 
 
 interface FeaturedGridProps {
@@ -130,7 +122,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                   layout: { type: 'spring', stiffness: 300, damping: 30 }
                 }}
               >
-                <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
+                <Link href={`${getLocalizedPath(lang, 'shop')}?highlight=${product.id}`}>
                   <motion.article
                     className="group relative bg-muted rounded-lg overflow-hidden"
                     whileHover={{ y: -8 }}
@@ -143,7 +135,9 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                           src={product.image_url}
                           alt={product.title}
                           fill
+                          priority={index < 2}
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       ) : (
                         <div className="absolute inset-0 bg-primary" />

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Minus, Plus, X } from 'lucide-react';
 import type { CartItem as CartItemType, Locale } from '@/types';
@@ -31,7 +32,7 @@ interface CartItemProps {
   lang: Locale;
 }
 
-export function CartItemRow({ item, lang }: CartItemProps) {
+export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemProps) {
   const { removeItem, updateQuantity } = useCart();
   const t = text[lang];
   const { product, quantity, expiresAt } = item;
@@ -134,4 +135,4 @@ export function CartItemRow({ item, lang }: CartItemProps) {
       </div>
     </motion.div>
   );
-}
+});

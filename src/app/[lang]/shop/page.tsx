@@ -13,7 +13,7 @@ export const revalidate = 60;
 
 type Props = {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ collection?: string }>;
+  searchParams: Promise<{ collection?: string; highlight?: string }>;
 };
 
 const pageText = {
@@ -120,7 +120,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ShopPage({ params, searchParams }: Props) {
   const { lang } = await params;
-  const { collection: initialCollection } = await searchParams;
+  const { collection: initialCollection, highlight: highlightedProduct } = await searchParams;
   const locale = lang as Locale;
   const t = pageText[locale];
 
@@ -160,6 +160,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
             collections={collections}
             lang={locale}
             initialCollection={initialCollection}
+            highlightedProduct={highlightedProduct}
           />
         </div>
       </div>

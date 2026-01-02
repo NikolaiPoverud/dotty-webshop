@@ -23,14 +23,17 @@ interface ShopContentProps {
   collections: CollectionCard[];
   lang: Locale;
   initialCollection?: string;
+  highlightedProduct?: string;
 }
 
-export function ShopContent({ products, collections, lang, initialCollection }: ShopContentProps) {
+export function ShopContent({ products, collections, lang, initialCollection, highlightedProduct }: ShopContentProps) {
   const t = filterText[lang];
   const searchParams = useSearchParams();
 
-  // Get collection from URL or use initialCollection prop
+  // Get collection and highlight from URL
   const collectionFromUrl = searchParams.get('collection');
+  const highlightFromUrl = searchParams.get('highlight');
+  const highlightId = highlightFromUrl || highlightedProduct;
   const defaultFilter = collectionFromUrl || initialCollection || 'all';
 
   const [activeFilter, setActiveFilter] = useState(defaultFilter);
@@ -41,6 +44,20 @@ export function ShopContent({ products, collections, lang, initialCollection }: 
       setActiveFilter(collectionFromUrl);
     }
   }, [collectionFromUrl]);
+
+  // Scroll to highlighted product
+  useEffect(() => {
+    if (highlightId) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`product-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId]);
 
   const filterOptions: FilterOption[] = useMemo(() => {
     const options: FilterOption[] = [{ id: 'all', label: t.all }];
@@ -87,6 +104,7 @@ export function ShopContent({ products, collections, lang, initialCollection }: 
             {filteredProducts.map((product, index) => (
               <motion.div
                 key={product.id}
+                id={`product-${product.id}`}
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -97,7 +115,12 @@ export function ShopContent({ products, collections, lang, initialCollection }: 
                   layout: { type: 'spring', stiffness: 300, damping: 30 }
                 }}
               >
-                <ProductCard product={product} lang={lang} index={index} />
+                <ProductCard
+                  product={product}
+                  lang={lang}
+                  index={index}
+                  isHighlighted={product.id === highlightId}
+                />
               </motion.div>
             ))}
           </AnimatePresence>

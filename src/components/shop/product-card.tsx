@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -29,7 +30,7 @@ const fallbackText: Record<Locale, ShopDictionary> = {
   en: { original: 'Original', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
 };
 
-export function ProductCard({ product, lang, index = 0, dictionary }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, lang, index = 0, dictionary }: ProductCardProps) {
   const t = dictionary || fallbackText[lang];
   // Item is sold if not available OR stock is 0
   const isSold = !product.is_available || product.stock_quantity === 0;
@@ -121,4 +122,4 @@ export function ProductCard({ product, lang, index = 0, dictionary }: ProductCar
       </motion.article>
     </Link>
   );
-}
+});

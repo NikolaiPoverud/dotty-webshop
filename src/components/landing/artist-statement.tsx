@@ -38,6 +38,7 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
                 src="/artist.jpg"
                 alt="Dotty - Artist"
                 fill
+                priority
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
