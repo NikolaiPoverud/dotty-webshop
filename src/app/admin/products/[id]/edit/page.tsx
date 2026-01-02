@@ -36,6 +36,7 @@ export default function EditProductPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [shippingCost, setShippingCost] = useState('');
   const [shippingSize, setShippingSize] = useState<ShippingSize | ''>('');
+  const [requiresInquiry, setRequiresInquiry] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,6 +77,7 @@ export default function EditProductPage() {
         // Load shipping fields
         setShippingCost(product.shipping_cost ? String(product.shipping_cost / 100) : '');
         setShippingSize(product.shipping_size || '');
+        setRequiresInquiry(product.requires_inquiry || false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load product');
       } finally {
@@ -113,6 +115,7 @@ export default function EditProductPage() {
           gallery_images: galleryImages,
           shipping_cost: shippingCostInOre,
           shipping_size: shippingSize || null,
+          requires_inquiry: requiresInquiry,
         }),
       });
 
@@ -397,6 +400,20 @@ export default function EditProductPage() {
                   className="w-5 h-5 rounded text-primary"
                 />
                 <span>Fremhevet pa forsiden</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={requiresInquiry}
+                  onChange={(e) => setRequiresInquiry(e.target.checked)}
+                  className="w-5 h-5 rounded text-primary"
+                />
+                <div>
+                  <span>Krever forespørsel</span>
+                  <p className="text-xs text-muted-foreground">
+                    Kunden kan ikke kjøpe direkte - må sende forespørsel
+                  </p>
+                </div>
               </label>
             </div>
           </div>

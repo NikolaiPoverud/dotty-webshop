@@ -50,6 +50,7 @@ export interface Product {
   display_order: number;
   shipping_cost: number | null; // NOK øre. NULL = use collection cost, 0 = free
   shipping_size: ShippingSize | null; // Size category for shipping
+  requires_inquiry: boolean; // If true, cannot add to cart - must contact seller
   sizes?: ProductSize[];
   gallery_images?: GalleryImage[];
   created_at: string;
@@ -59,7 +60,7 @@ export interface Product {
 // Lightweight product data for listing/card views (DB-011: optimized SELECT)
 export type ProductListItem = Pick<Product,
   'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' |
-  'is_available' | 'is_featured' | 'stock_quantity' | 'collection_id'
+  'is_available' | 'is_featured' | 'stock_quantity' | 'collection_id' | 'requires_inquiry'
 > & { sizes?: ProductSize[] };
 
 // Alias for backwards compatibility with component names
@@ -158,7 +159,7 @@ export interface NewsletterSubscriber {
 // Cart Types
 // ARCH-007: Optimized product data for cart storage (reduces localStorage size)
 export type CartProduct = Pick<Product,
-  'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' | 'stock_quantity' | 'is_available'
+  'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' | 'stock_quantity' | 'is_available' | 'requires_inquiry'
 >;
 
 export interface CartItem {
@@ -173,6 +174,7 @@ export interface Cart {
   subtotal: number;
   discountCode?: string;
   discountAmount: number;
+  artistLevy: number; // 5% kunsteravgift for items over 2500 NOK
   total: number;
 }
 

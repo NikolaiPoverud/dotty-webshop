@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, ArrowLeft, Truck } from 'lucide-react';
+import { Check, ArrowLeft, Truck, Mail, Send, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Locale, Product, GalleryImage } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -26,6 +26,13 @@ const text = {
     print: 'Trykk',
     shipping: 'Frakt',
     freeShipping: 'Gratis',
+    // Inquiry-only product
+    inquiryOnly: 'Forespørsel påkrevd',
+    inquiryDescription: 'Dette verket selges ikke direkte. Legg igjen din e-post, så tar vi kontakt.',
+    emailPlaceholder: 'Din e-postadresse',
+    sendInquiry: 'Send forespørsel',
+    inquirySent: 'Takk! Vi tar kontakt snart.',
+    inquiryError: 'Noe gikk galt. Prøv igjen.',
   },
   en: {
     backToShop: 'Back to shop',
@@ -41,6 +48,13 @@ const text = {
     print: 'Print',
     shipping: 'Shipping',
     freeShipping: 'Free',
+    // Inquiry-only product
+    inquiryOnly: 'Inquiry required',
+    inquiryDescription: 'This artwork is not sold directly. Leave your email and we will contact you.',
+    emailPlaceholder: 'Your email address',
+    sendInquiry: 'Send inquiry',
+    inquirySent: 'Thank you! We will be in touch soon.',
+    inquiryError: 'Something went wrong. Please try again.',
   },
 };
 
@@ -56,6 +70,10 @@ export function ProductDetail({ product, collectionName, shippingCost, lang }: P
   const router = useRouter();
   const { addItem, cart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
+
+  // Inquiry form state
+  const [inquiryEmail, setInquiryEmail] = useState('');
+  const [inquiryStatus, setInquiryStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   // Scroll to top on mount
   useEffect(() => {
@@ -96,6 +114,37 @@ export function ProductDetail({ product, collectionName, shippingCost, lang }: P
 
   const handleViewCart = () => {
     router.push(getLocalizedPath(lang, 'cart'));
+  };
+
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inquiryEmail || inquiryStatus === 'sending') return;
+
+    setInquiryStatus('sending');
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inquiryEmail,
+          name: '',
+          message: `Inquiry about artwork: ${product.title} (${product.id})`,
+          type: 'product_inquiry',
+          product_id: product.id,
+          product_title: product.title,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send inquiry');
+      }
+
+      setInquiryStatus('sent');
+    } catch {
+      setInquiryStatus('error');
+      // Reset error after 3 seconds to allow retry
+      setTimeout(() => setInquiryStatus('idle'), 3000);
+    }
   };
 
   return (
@@ -211,8 +260,58 @@ export function ProductDetail({ product, collectionName, shippingCost, lang }: P
               </p>
             )}
 
-            {/* Add to Cart Button */}
-            {isAdded || isInCart ? (
+            {/* Purchase / Inquiry Section */}
+            {product.requires_inquiry ? (
+              // Inquiry-only product - show email form
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{t.inquiryOnly}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t.inquiryDescription}
+                  </p>
+                </div>
+
+                {inquiryStatus === 'sent' ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full py-6 bg-success text-background font-semibold text-lg uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-6 h-6" />
+                    {t.inquirySent}
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleInquirySubmit} className="space-y-3">
+                    <input
+                      type="email"
+                      value={inquiryEmail}
+                      onChange={(e) => setInquiryEmail(e.target.value)}
+                      placeholder={t.emailPlaceholder}
+                      required
+                      className="w-full px-6 py-4 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg"
+                    />
+                    <motion.button
+                      type="submit"
+                      disabled={inquiryStatus === 'sending' || !inquiryEmail}
+                      className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {inquiryStatus === 'sending' ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
+                      {inquiryStatus === 'error' ? t.inquiryError : t.sendInquiry}
+                    </motion.button>
+                  </form>
+                )}
+              </div>
+            ) : isAdded || isInCart ? (
+              // Item added to cart
               <div className="space-y-3">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -232,6 +331,7 @@ export function ProductDetail({ product, collectionName, shippingCost, lang }: P
                 </motion.button>
               </div>
             ) : (
+              // Normal add to cart button
               <motion.button
                 onClick={handleAddToCart}
                 className="w-full py-6 bg-primary text-background font-semibold text-lg uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed"

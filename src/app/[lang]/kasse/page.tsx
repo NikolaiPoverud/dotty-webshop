@@ -25,6 +25,8 @@ const text = {
     discountCode: 'Rabattkode',
     apply: 'Bruk',
     subtotal: 'Delsum',
+    artistLevy: 'Kunsteravgift (5%)',
+    artistLevyNote: 'Gjelder kunst over 2 500 kr',
     discount: 'Rabatt',
     shipping_cost: 'Frakt',
     shipping_note: 'Beregnes etter bestilling',
@@ -61,6 +63,8 @@ const text = {
     discountCode: 'Discount code',
     apply: 'Apply',
     subtotal: 'Subtotal',
+    artistLevy: 'Artist levy (5%)',
+    artistLevyNote: 'Applies to art over 2,500 kr',
     discount: 'Discount',
     shipping_cost: 'Shipping',
     shipping_note: 'Calculated after order',
@@ -207,6 +211,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
             },
             discount_code: cart.discountCode,
             discount_amount: cart.discountAmount,
+            artist_levy: cart.artistLevy,
             locale,
             privacy_accepted: true,
             newsletter_opt_in: newsletterOptIn,
@@ -471,6 +476,16 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
                   <span className="text-muted-foreground">{t.subtotal}</span>
                   <span>{formatPrice(cart.subtotal)}</span>
                 </div>
+
+                {cart.artistLevy > 0 && (
+                  <div className="flex justify-between">
+                    <div>
+                      <span className="text-muted-foreground">{t.artistLevy}</span>
+                      <p className="text-xs text-muted-foreground/70">{t.artistLevyNote}</p>
+                    </div>
+                    <span className="text-muted-foreground">+{formatPrice(cart.artistLevy)}</span>
+                  </div>
+                )}
 
                 {cart.discountCode && cart.discountAmount > 0 && (
                   <div className="flex justify-between text-success">

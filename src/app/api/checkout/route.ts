@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       shipping_address,
       discount_code,
       discount_amount,
+      artist_levy = 0,
       locale = 'no',
       privacy_accepted = false,
       newsletter_opt_in = false,
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
       return sum + (item.price * item.quantity);
     }, 0);
 
-    const total = subtotal - (discount_amount || 0);
+    const total = subtotal + (artist_levy || 0) - (discount_amount || 0);
 
     // Create line items for Stripe
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: any) => ({
@@ -55,6 +56,23 @@ export async function POST(request: NextRequest) {
       quantity: item.quantity,
     }));
 
+    // Add artist levy (kunsteravgift) as a separate line item if applicable
+    if (artist_levy > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'nok',
+          product_data: {
+            name: locale === 'no' ? 'Kunsteravgift (5%)' : 'Artist Levy (5%)',
+            description: locale === 'no'
+              ? 'Lovpålagt avgift for kunst over 2 500 kr'
+              : 'Legal fee for artwork over 2,500 kr',
+          },
+          unit_amount: artist_levy, // Already in øre
+        },
+        quantity: 1,
+      });
+    }
+
     // Store order metadata
     const orderMetadata = {
       customer_email,
@@ -65,6 +83,7 @@ export async function POST(request: NextRequest) {
       subtotal: subtotal.toString(),
       discount_code: discount_code || '',
       discount_amount: (discount_amount || 0).toString(),
+      artist_levy: (artist_levy || 0).toString(),
       total: total.toString(),
       privacy_accepted: privacy_accepted.toString(),
       newsletter_opt_in: newsletter_opt_in.toString(),

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Menu, X, Settings, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Menu, X, Settings, ChevronRight, Home } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Locale, Collection } from '@/types';
 import { getAlternateLocale, getLocalizedPath } from '@/lib/i18n/get-dictionary';
@@ -20,6 +20,7 @@ interface NavigationDictionary {
   art: string;
   about: string;
   contact: string;
+  home: string;
   admin?: string;
 }
 
@@ -31,8 +32,8 @@ interface HeaderProps {
 
 // Fallback for backwards compatibility
 const fallbackNav: Record<Locale, NavigationDictionary> = {
-  no: { cart: 'Handlekurv', shop: 'Shop', collections: 'Samlinger', allProducts: 'Alle produkter', art: 'Kunst', about: 'Om', contact: 'Kontakt', admin: 'Admin' },
-  en: { cart: 'Cart', shop: 'Shop', collections: 'Collections', allProducts: 'All products', art: 'Art', about: 'About', contact: 'Contact', admin: 'Admin' },
+  no: { cart: 'Handlekurv', shop: 'Shop', collections: 'Samlinger', allProducts: 'Alle produkter', art: 'Kunst', about: 'Om', contact: 'Kontakt', home: 'Hjem', admin: 'Admin' },
+  en: { cart: 'Cart', shop: 'Shop', collections: 'Collections', allProducts: 'All products', art: 'Art', about: 'About', contact: 'Contact', home: 'Home', admin: 'Admin' },
 };
 
 export function Header({ lang, collections = [], dictionary }: HeaderProps) {
@@ -40,14 +41,26 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [hostname, setHostname] = useState<string>('');
   const [isVisible, setIsVisible] = useState(false);
+  const [activeHash, setActiveHash] = useState<string>('');
   const { itemCount } = useCart();
   const pathname = usePathname();
   const altLang = getAlternateLocale(lang);
   const t = dictionary || fallbackNav[lang];
+  const isHomePage = pathname === `/${lang}` || pathname === '/';
 
   // Get hostname on client side for language switch URL
   useEffect(() => {
     setHostname(window.location.hostname);
+    setActiveHash(window.location.hash);
+  }, []);
+
+  // Track hash changes for active nav highlighting
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveHash(window.location.hash);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   // Show header on scroll
@@ -97,21 +110,39 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
 
           {/* Center Navigation - Desktop */}
           <nav className="hidden sm:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            {!isHomePage && (
+              <Link
+                href={`/${lang}`}
+                className="flex items-center gap-1 text-sm uppercase tracking-widest text-primary hover:text-primary-light transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                {t.home}
+              </Link>
+            )}
             <Link
               href={`/${lang}#art`}
-              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+              onClick={() => setActiveHash('#art')}
+              className={`text-sm uppercase tracking-widest transition-colors ${
+                activeHash === '#art' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-primary'
+              }`}
             >
               {t.art}
             </Link>
             <Link
               href={`/${lang}#about`}
-              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+              onClick={() => setActiveHash('#about')}
+              className={`text-sm uppercase tracking-widest transition-colors ${
+                activeHash === '#about' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-primary'
+              }`}
             >
               {t.about}
             </Link>
             <Link
               href={`/${lang}#contact`}
-              className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+              onClick={() => setActiveHash('#contact')}
+              className={`text-sm uppercase tracking-widest transition-colors ${
+                activeHash === '#contact' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-primary'
+              }`}
             >
               {t.contact}
             </Link>
@@ -184,25 +215,43 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
           className="sm:hidden absolute top-full left-0 right-0 bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto"
         >
           <nav className="flex flex-col p-4 gap-2">
+            {/* Home Link - only show when not on home page */}
+            {!isHomePage && (
+              <Link
+                href={`/${lang}`}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-lg font-semibold uppercase tracking-widest text-primary hover:text-primary-light transition-colors py-3 flex items-center gap-2"
+              >
+                <Home className="w-5 h-5" />
+                {t.home}
+              </Link>
+            )}
+
             {/* Main Nav Links */}
             <Link
               href={`/${lang}#art`}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
+              onClick={() => { setActiveHash('#art'); setIsMenuOpen(false); }}
+              className={`text-lg font-semibold uppercase tracking-widest transition-colors py-3 text-left ${
+                activeHash === '#art' ? 'text-primary' : 'hover:text-primary'
+              }`}
             >
               {t.art}
             </Link>
             <Link
               href={`/${lang}#about`}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
+              onClick={() => { setActiveHash('#about'); setIsMenuOpen(false); }}
+              className={`text-lg font-semibold uppercase tracking-widest transition-colors py-3 text-left ${
+                activeHash === '#about' ? 'text-primary' : 'hover:text-primary'
+              }`}
             >
               {t.about}
             </Link>
             <Link
               href={`/${lang}#contact`}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 text-left"
+              onClick={() => { setActiveHash('#contact'); setIsMenuOpen(false); }}
+              className={`text-lg font-semibold uppercase tracking-widest transition-colors py-3 text-left ${
+                activeHash === '#contact' ? 'text-primary' : 'hover:text-primary'
+              }`}
             >
               {t.contact}
             </Link>

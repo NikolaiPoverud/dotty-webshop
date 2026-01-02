@@ -3,6 +3,8 @@ import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ShopContent } from '@/components/shop/shop-content';
 import { createClient } from '@/lib/supabase/server';
 import { BreadcrumbJsonLd } from '@/components/seo';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -17,9 +19,11 @@ type Props = {
 const pageText = {
   no: {
     title: 'Shop',
+    backToHome: 'Tilbake',
   },
   en: {
     title: 'Shop',
+    backToHome: 'Back',
   },
 };
 
@@ -29,7 +33,7 @@ async function getProducts(): Promise<ProductListItem[]> {
 
     const { data: products, error } = await supabase
       .from('products')
-      .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id')
+      .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
       .is('deleted_at', null)  // Exclude soft-deleted
       .order('is_featured', { ascending: false })
       .order('display_order', { ascending: true });
@@ -136,6 +140,15 @@ export default async function ShopPage({ params, searchParams }: Props) {
       <BreadcrumbJsonLd items={breadcrumbItems} />
       <div className="min-h-screen pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Back to Landing */}
+          <Link
+            href={`/${locale}`}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t.backToHome}
+          </Link>
+
           {/* Page Title */}
           <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
             <span className="gradient-text">{t.title}</span>
