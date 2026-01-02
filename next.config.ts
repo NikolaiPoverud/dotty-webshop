@@ -12,21 +12,21 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // www to non-www redirects (handled at DNS/Vercel level, but backup here)
+      // www to non-www redirects - exclude API routes for webhooks
       {
-        source: '/:path*',
+        source: '/((?!api).*)',
         has: [{ type: 'host', value: 'www.dotty.no' }],
         destination: 'https://dotty.no/:path*',
         permanent: true,
       },
       {
-        source: '/:path*',
+        source: '/((?!api).*)',
         has: [{ type: 'host', value: 'www.dottyartwork.no' }],
         destination: 'https://dottyartwork.no/:path*',
         permanent: true,
       },
       {
-        source: '/:path*',
+        source: '/((?!api).*)',
         has: [{ type: 'host', value: 'www.dottyartwork.com' }],
         destination: 'https://dottyartwork.com/:path*',
         permanent: true,

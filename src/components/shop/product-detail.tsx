@@ -14,7 +14,7 @@ import { ProductGallery } from './product-gallery';
 const text = {
   no: {
     backToShop: 'Tilbake til butikk',
-    dimensions: 'Dimensjoner',
+    dimensions: 'Størrelse',
     year: 'År',
     availability: 'Tilgjengelighet',
     available: 'Tilgjengelig',
@@ -27,7 +27,7 @@ const text = {
   },
   en: {
     backToShop: 'Back to shop',
-    dimensions: 'Dimensions',
+    dimensions: 'Size',
     year: 'Year',
     availability: 'Availability',
     available: 'Available',

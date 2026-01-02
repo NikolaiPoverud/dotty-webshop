@@ -160,16 +160,6 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                           {product.product_type === 'original' ? t.original : t.print}
                         </span>
                       </div>
-
-                      {/* Quick View on Hover */}
-                      <motion.div
-                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        initial={false}
-                      >
-                        <span className="px-6 py-3 bg-foreground text-background font-medium uppercase tracking-wider text-sm">
-                          {lang === 'no' ? 'Se mer' : 'View'}
-                        </span>
-                      </motion.div>
                     </div>
 
                     {/* Product Info */}

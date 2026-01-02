@@ -13,14 +13,12 @@ const text = {
     original: 'Original',
     print: 'Trykk',
     sold: 'Solgt',
-    view: 'Se mer',
     sizes: 'Storrelser',
   },
   en: {
     original: 'Original',
     print: 'Print',
     sold: 'Sold',
-    view: 'View',
     sizes: 'Sizes',
   },
 };
