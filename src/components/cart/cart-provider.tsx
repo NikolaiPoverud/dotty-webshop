@@ -61,8 +61,9 @@ function calculateTotals(items: CartItem[], discountAmount: number): { subtotal:
   }));
   const { totalLevy: artistLevy } = calculateArtistLevy(levyItems);
 
-  // Total = subtotal + shipping + artistLevy - discount
-  const total = Math.max(0, subtotal + shippingCost + artistLevy - discountAmount);
+  // Discount only applies to subtotal, never to shipping or artist levy
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const total = discountedSubtotal + shippingCost + artistLevy;
   return { subtotal, shippingCost, artistLevy, total };
 }
 
