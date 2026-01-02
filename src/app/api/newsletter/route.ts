@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getResend, emailConfig } from '@/lib/email/resend';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
+import { newsletterConfirmationTemplate } from '@/lib/email/templates';
 
 // Rate limit: 5 requests per minute per IP
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
@@ -146,42 +147,7 @@ async function sendConfirmationEmail(email: string, confirmationToken: string): 
       from: emailConfig.from,
       to: email,
       subject: 'Bekreft nyhetsbrev-abonnement | Confirm newsletter subscription',
-      html: `
-        <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="color: #FE206A; font-size: 32px; margin: 0;">Dotty.</h1>
-          </div>
-
-          <h2 style="color: #fafafa; margin-bottom: 16px;">Bekreft abonnementet ditt</h2>
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            Takk for at du vil abonnere på nyhetsbrevet til Dotty! Klikk på knappen under for å bekrefte abonnementet.
-          </p>
-
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${confirmUrl}" style="display: inline-block; background: #FE206A; color: #131316; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px;">
-              Bekreft abonnement
-            </a>
-          </div>
-
-          <hr style="border: none; border-top: 1px solid #3f3f46; margin: 32px 0;" />
-
-          <h2 style="color: #fafafa; margin-bottom: 16px;">Confirm your subscription</h2>
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            Thank you for subscribing to the Dotty newsletter! Click the button below to confirm your subscription.
-          </p>
-
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${confirmUrl}" style="display: inline-block; background: #FE206A; color: #131316; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px;">
-              Confirm subscription
-            </a>
-          </div>
-
-          <p style="color: #71717a; font-size: 12px; margin-top: 40px; text-align: center;">
-            Hvis du ikke ba om dette, kan du ignorere denne e-posten.<br/>
-            If you didn't request this, you can ignore this email.
-          </p>
-        </div>
-      `,
+      html: newsletterConfirmationTemplate(confirmUrl),
     });
     return { success: true };
   } catch (error) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getResend, emailConfig } from '@/lib/email/resend';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { gdprDataExportTemplate, gdprDeletionConfirmationTemplate } from '@/lib/email/templates';
 
 // SEC-002: Rate limit config for GDPR verification (10 per hour - slightly higher as users may click multiple times)
 const VERIFY_RATE_LIMIT = {
@@ -129,51 +130,13 @@ async function processExportRequest(supabase: ReturnType<typeof createAdminClien
       from: emailConfig.from,
       to: email,
       subject: 'Din dataeksport | Your data export - Dotty',
-      html: `
-        <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="color: #FE206A; font-size: 32px; margin: 0;">Dotty.</h1>
-          </div>
-
-          <h2 style="color: #fafafa; margin-bottom: 16px;">Din dataeksport</h2>
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            Her er all data vi har lagret om deg. I henhold til GDPR har du rett til å motta denne informasjonen.
-          </p>
-
-          <div style="background: #27272a; border-radius: 8px; padding: 20px; margin: 24px 0;">
-            <h3 style="color: #fafafa; margin-top: 0;">Ordrehistorikk</h3>
-            <p style="color: #a1a1aa;">Antall ordrer: ${exportData.orders.length}</p>
-
-            <h3 style="color: #fafafa;">Nyhetsbrev</h3>
-            <p style="color: #a1a1aa;">${exportData.newsletter_subscription ? 'Abonnert' : 'Ikke abonnert'}</p>
-
-            <h3 style="color: #fafafa;">Kontaktmeldinger</h3>
-            <p style="color: #a1a1aa;">Antall meldinger: ${exportData.contact_submissions.length}</p>
-
-            <h3 style="color: #fafafa;">Informasjonskapsler (cookies)</h3>
-            <p style="color: #a1a1aa;">Samtykker registrert: ${exportData.cookie_consents.length}</p>
-
-            <h3 style="color: #fafafa;">GDPR-forespørsler</h3>
-            <p style="color: #a1a1aa;">Tidligere forespørsler: ${exportData.data_request_history.length}</p>
-          </div>
-
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            Fullstendige data er vedlagt som JSON-fil.
-          </p>
-
-          <hr style="border: none; border-top: 1px solid #3f3f46; margin: 32px 0;" />
-
-          <h2 style="color: #fafafa; margin-bottom: 16px;">Your data export</h2>
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            Here is all the data we have stored about you. Under GDPR, you have the right to receive this information.
-          </p>
-
-          <p style="color: #71717a; font-size: 12px; margin-top: 40px; text-align: center;">
-            Spørsmål? Kontakt oss på ${emailConfig.artistEmail}<br/>
-            Questions? Contact us at ${emailConfig.artistEmail}
-          </p>
-        </div>
-      `,
+      html: gdprDataExportTemplate({
+        ordersCount: exportData.orders.length,
+        isSubscribed: !!exportData.newsletter_subscription,
+        contactCount: exportData.contact_submissions.length,
+        cookieConsentsCount: exportData.cookie_consents.length,
+        requestsCount: exportData.data_request_history.length,
+      }, emailConfig.artistEmail),
       attachments: [
         {
           filename: 'dotty-data-export.json',
@@ -245,48 +208,7 @@ async function processDeleteRequest(supabase: ReturnType<typeof createAdminClien
       from: emailConfig.from,
       to: email,
       subject: 'Dine data er slettet | Your data has been deleted - Dotty',
-      html: `
-        <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="color: #FE206A; font-size: 32px; margin: 0;">Dotty.</h1>
-          </div>
-
-          <h2 style="color: #fafafa; margin-bottom: 16px;">Dine data er slettet</h2>
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            Vi bekrefter at all din personlige informasjon er slettet fra våre systemer i henhold til GDPR.
-          </p>
-
-          <div style="background: #27272a; border-radius: 8px; padding: 20px; margin: 24px 0;">
-            <p style="color: #a1a1aa; margin: 0;">
-              <strong>Hva er slettet:</strong><br/>
-              • Nyhetsbrev-abonnement<br/>
-              • Kontaktmeldinger<br/>
-              • Personlig informasjon fra ordrer (ordrehistorikk beholdes anonymisert for regnskapsformål)
-            </p>
-          </div>
-
-          <hr style="border: none; border-top: 1px solid #3f3f46; margin: 32px 0;" />
-
-          <h2 style="color: #fafafa; margin-bottom: 16px;">Your data has been deleted</h2>
-          <p style="color: #a1a1aa; line-height: 1.6;">
-            We confirm that all your personal information has been deleted from our systems in accordance with GDPR.
-          </p>
-
-          <div style="background: #27272a; border-radius: 8px; padding: 20px; margin: 24px 0;">
-            <p style="color: #a1a1aa; margin: 0;">
-              <strong>What was deleted:</strong><br/>
-              • Newsletter subscription<br/>
-              • Contact messages<br/>
-              • Personal information from orders (order history is kept anonymized for accounting purposes)
-            </p>
-          </div>
-
-          <p style="color: #71717a; font-size: 12px; margin-top: 40px; text-align: center;">
-            Dette er den siste e-posten du vil motta fra oss.<br/>
-            This is the last email you will receive from us.
-          </p>
-        </div>
-      `,
+      html: gdprDeletionConfirmationTemplate(),
     });
   } catch (error) {
     console.error('Failed to send deletion confirmation email:', error);

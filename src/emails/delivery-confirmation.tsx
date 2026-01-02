@@ -12,41 +12,45 @@ interface DeliveryConfirmationEmailProps {
 export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailProps) {
   return (
     <EmailLayout preview={`Pakken din er levert! - Ordre #${order.id}`}>
-      <EmailHeader subtitle="Levert" />
+      <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
+        <EmailHeader subtitle="Levert" />
 
-      {/* Success Message */}
-      <Section className="text-center">
-        <Text className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success/20 text-2xl">
-          ✓
-        </Text>
-        <Heading className="m-0 text-2xl font-bold text-foreground">
-          Pakken din er levert!
-        </Heading>
-        <Text className="mt-2 text-muted">
-          Ordrenummer: #{order.id}
-        </Text>
-      </Section>
+        {/* Success Message */}
+        <Section className="px-8 pb-8 text-center">
+          <Text className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/20 text-3xl">
+            ✓
+          </Text>
+          <Heading className="m-0 text-2xl font-bold text-foreground">
+            Pakken din er levert!
+          </Heading>
+          <Text className="mt-2 text-muted-foreground">
+            Ordrenummer: <span className="font-mono font-bold text-foreground">#{order.id}</span>
+          </Text>
+        </Section>
 
-      <Hr className="my-8 border-border" />
+        <Hr className="mx-8 border-border" />
 
-      {/* Thank You Message */}
-      <Section className="rounded-lg bg-card p-6 text-center">
-        <Text className="m-0 text-foreground">
-          Takk for at du handler hos Dotty. Vi haper du er fornøyd med ditt nye kunstverk!
-        </Text>
-      </Section>
+        {/* Thank You Message */}
+        <Section className="px-8 py-6">
+          <Section className="rounded-xl border-l-4 border-primary bg-muted p-6 text-center">
+            <Text className="m-0 text-foreground">
+              Takk for at du handler hos Dotty. Vi haper du er fornoyd med ditt nye kunstverk!
+            </Text>
+          </Section>
+        </Section>
 
-      {/* Share Section */}
-      <Section className="mt-8 text-center">
-        <Heading as="h2" className="m-0 text-lg font-semibold text-muted">
-          Del ditt kjop
-        </Heading>
-        <Text className="mt-2 text-sm text-muted">
-          Vi setter pris pa om du deler ditt kjop pa Instagram.{' '}
-          <Link href="https://instagram.com/dotty.shop" className="text-primary">
-            Tag oss @dotty.shop
-          </Link>
-        </Text>
+        {/* Share Section */}
+        <Section className="px-8 pb-8 text-center">
+          <Heading as="h2" className="m-0 text-lg font-semibold text-muted-foreground">
+            Del ditt kjop
+          </Heading>
+          <Text className="mt-2 text-sm text-muted-foreground">
+            Vi setter pris pa om du deler ditt kjop pa Instagram.{' '}
+            <Link href="https://instagram.com/dotty.popart" className="font-semibold text-primary no-underline">
+              Tag oss @dotty.popart
+            </Link>
+          </Text>
+        </Section>
       </Section>
 
       <EmailFooter transactionText="Problemer med leveransen? Kontakt oss." />

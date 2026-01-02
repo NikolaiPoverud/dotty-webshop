@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Menu, X, Settings, ChevronRight, Home } from 'lucide-react';
+import { ShoppingBag, Menu, X, Settings, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Locale, Collection } from '@/types';
 import { getAlternateLocale, getLocalizedPath } from '@/lib/i18n/get-dictionary';
@@ -113,9 +113,8 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
             {!isHomePage && (
               <Link
                 href={`/${lang}`}
-                className="flex items-center gap-1 text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
+                className="text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
               >
-                <Home className="w-4 h-4" />
                 {t.home}
               </Link>
             )}
@@ -220,9 +219,8 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
               <Link
                 href={`/${lang}`}
                 onClick={() => setIsMenuOpen(false)}
-                className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center gap-2"
+                className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3"
               >
-                <Home className="w-5 h-5" />
                 {t.home}
               </Link>
             )}

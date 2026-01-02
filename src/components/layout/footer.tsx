@@ -105,9 +105,13 @@ export function Footer({ lang }: { lang: Locale }) {
             </Link>
           </div>
 
-          {/* Copyright */}
+          {/* Copyright - "Dotty." links to admin (hidden access) */}
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear} Dotty. {t.copyright}.
+            &copy; {currentYear}{' '}
+            <Link href="/admin/login" className="hover:text-foreground transition-colors">
+              Dotty.
+            </Link>{' '}
+            {t.copyright}.
           </p>
         </div>
       </div>

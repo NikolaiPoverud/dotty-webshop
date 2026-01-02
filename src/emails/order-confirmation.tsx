@@ -23,78 +23,105 @@ function formatDate(dateString: string): string {
 }
 
 export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
-  const shippingCost = 14900; // 149 kr in øre - adjust as needed
+  // Calculate shipping from order if available
+  const shippingCost = order.shipping_cost || 14900;
 
   return (
     <EmailLayout preview={`Ordrebekreftelse #${order.id}`}>
-      <EmailHeader subtitle="Ordrebekreftelse" />
+      <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
+        <EmailHeader subtitle="Ordrebekreftelse" />
 
-      {/* Success Message */}
-      <Section className="text-center">
-        <Text className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success/20 text-2xl">
-          ✓
-        </Text>
-        <Heading className="m-0 text-2xl font-bold text-foreground">
-          Takk for din bestilling!
-        </Heading>
-        <Text className="mt-2 text-muted">
-          Ordrenummer: #{order.id}
-        </Text>
-        <Text className="m-0 text-sm text-muted">
-          Dato: {formatDate(order.created_at)}
-        </Text>
-      </Section>
-
-      <Hr className="my-8 border-border" />
-
-      {/* Order Items */}
-      <Section>
-        <Heading as="h2" className="mb-4 text-lg font-semibold text-foreground">
-          Din ordre
-        </Heading>
-        <OrderItems items={order.items} />
-      </Section>
-
-      {/* Price Breakdown */}
-      <Section className="mt-6 rounded-lg bg-card p-4">
-        <div className="flex justify-between">
-          <Text className="m-0 text-muted">Delsum</Text>
-          <Text className="m-0 text-foreground">{formatPrice(order.subtotal)}</Text>
-        </div>
-        {order.discount_amount > 0 && (
-          <div className="flex justify-between">
-            <Text className="m-0 text-muted">Rabatt ({order.discount_code})</Text>
-            <Text className="m-0 text-success">-{formatPrice(order.discount_amount)}</Text>
-          </div>
-        )}
-        <div className="flex justify-between">
-          <Text className="m-0 text-muted">Frakt</Text>
-          <Text className="m-0 text-foreground">{formatPrice(shippingCost)}</Text>
-        </div>
-        <Hr className="my-3 border-border" />
-        <div className="flex justify-between">
-          <Text className="m-0 font-semibold text-foreground">Totalt</Text>
-          <Text className="m-0 font-semibold text-foreground">
-            {formatPrice(order.total + shippingCost)}
+        {/* Success Message */}
+        <Section className="px-8 pb-8 text-center">
+          <Text className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/20 text-3xl">
+            ✓
           </Text>
-        </div>
-      </Section>
-
-      {/* Shipping Address */}
-      <Section className="mt-6">
-        <Heading as="h2" className="mb-4 text-lg font-semibold text-foreground">
-          Leveringsadresse
-        </Heading>
-        <Section className="rounded-lg bg-card p-4">
-          <Text className="m-0 text-foreground">{order.customer_name}</Text>
-          <Text className="m-0 text-muted">{order.shipping_address.line1}</Text>
-          {order.shipping_address.line2 && (
-            <Text className="m-0 text-muted">{order.shipping_address.line2}</Text>
-          )}
-          <Text className="m-0 text-muted">
-            {order.shipping_address.postal_code} {order.shipping_address.city}
+          <Heading className="m-0 text-2xl font-bold text-foreground">
+            Takk for din bestilling!
+          </Heading>
+          <Text className="mt-2 text-muted-foreground">
+            Ordrenummer: <span className="font-mono font-bold text-primary">#{order.id}</span>
           </Text>
-          <Text className="m-0 text-muted">{order.shipping_address.country}</Text>
+          <Text className="m-0 text-sm text-muted-foreground">
+            Dato: {formatDate(order.created_at)}
+          </Text>
+        </Section>
+
+        <Hr className="mx-8 border-border" />
+
+        {/* Order Items */}
+        <Section className="px-8 py-6">
+          <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
+            Din ordre
+          </Heading>
+          <OrderItems items={order.items} />
+        </Section>
+
+        {/* Price Breakdown */}
+        <Section className="mx-8 mb-6 rounded-xl bg-muted p-4">
+          <table width="100%" cellSpacing="0" cellPadding="0">
+            <tbody>
+              <tr>
+                <td>
+                  <Text className="m-0 text-muted-foreground">Delsum</Text>
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <Text className="m-0 text-foreground">{formatPrice(order.subtotal)}</Text>
+                </td>
+              </tr>
+              {order.discount_amount > 0 && (
+                <tr>
+                  <td>
+                    <Text className="m-0 text-success">Rabatt ({order.discount_code})</Text>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <Text className="m-0 text-success">-{formatPrice(order.discount_amount)}</Text>
+                  </td>
+                </tr>
+              )}
+              <tr>
+                <td>
+                  <Text className="m-0 text-muted-foreground">Frakt</Text>
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <Text className="m-0 text-foreground">{formatPrice(shippingCost)}</Text>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <Hr className="my-3 border-border" />
+          <table width="100%" cellSpacing="0" cellPadding="0">
+            <tbody>
+              <tr>
+                <td>
+                  <Text className="m-0 text-lg font-bold text-foreground">Totalt</Text>
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <Text className="m-0 text-xl font-bold text-primary">
+                    {formatPrice(order.total + shippingCost)}
+                  </Text>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Section>
+
+        {/* Shipping Address */}
+        <Section className="px-8 pb-8">
+          <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
+            Leveringsadresse
+          </Heading>
+          <Section className="rounded-xl border-l-4 border-primary bg-muted p-4">
+            <Text className="m-0 font-semibold text-foreground">{order.customer_name}</Text>
+            <Text className="m-0 text-muted-foreground">{order.shipping_address.line1}</Text>
+            {order.shipping_address.line2 && (
+              <Text className="m-0 text-muted-foreground">{order.shipping_address.line2}</Text>
+            )}
+            <Text className="m-0 text-muted-foreground">
+              {order.shipping_address.postal_code} {order.shipping_address.city}
+            </Text>
+            <Text className="m-0 text-muted-foreground">{order.shipping_address.country}</Text>
+          </Section>
         </Section>
       </Section>
 

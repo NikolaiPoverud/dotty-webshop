@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw, Plus } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw, Plus, XCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import type { Order } from '@/types';
@@ -12,6 +12,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   paid: { label: 'Betalt', color: 'bg-success/10 text-success', icon: CheckCircle },
   shipped: { label: 'Sendt', color: 'bg-accent/10 text-accent', icon: Truck },
   delivered: { label: 'Levert', color: 'bg-muted-foreground/10 text-muted-foreground', icon: Package },
+  cancelled: { label: 'Kansellert', color: 'bg-error/10 text-error', icon: XCircle },
 };
 
 export default function AdminOrdersPage() {
@@ -110,6 +111,28 @@ export default function AdminOrdersPage() {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update');
+    }
+  };
+
+  const handleCancel = async (orderId: string) => {
+    if (!confirm('Er du sikker på at du vil kansellere denne ordren?')) return;
+
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+
+      if (!response.ok) throw new Error('Failed to cancel order');
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, status: 'cancelled' as const } : o
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel');
     }
   };
 
@@ -249,6 +272,14 @@ export default function AdminOrdersPage() {
                         className="px-4 py-2 bg-success text-white font-medium rounded-lg hover:bg-success/90 transition-colors"
                       >
                         Merk som levert
+                      </button>
+                    )}
+                    {(order.status === 'pending' || order.status === 'paid') && (
+                      <button
+                        onClick={() => handleCancel(order.id!)}
+                        className="px-4 py-2 bg-error/10 text-error font-medium rounded-lg hover:bg-error/20 transition-colors"
+                      >
+                        Kanseller
                       </button>
                     )}
                   </div>

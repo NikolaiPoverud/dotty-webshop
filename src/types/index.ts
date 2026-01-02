@@ -90,10 +90,11 @@ export interface Order {
   subtotal: number;
   discount_code: string | null;
   discount_amount: number;
+  shipping_cost: number;
   total: number;
   payment_provider: 'stripe' | 'vipps' | null;
   payment_session_id: string | null;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered';
+  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
   tracking_carrier: string | null;
   tracking_number: string | null;
   created_at: string;

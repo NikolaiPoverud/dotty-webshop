@@ -37,66 +37,86 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
     : null;
 
   return (
-    <EmailLayout preview={`Pakken din er på vei! - Ordre #${order.id}`}>
-      <EmailHeader subtitle="Forsendelsesbekreftelse" />
+    <EmailLayout preview={`Pakken din er pa vei! - Ordre #${order.id}`}>
+      <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
+        <EmailHeader subtitle="Forsendelsesbekreftelse" />
 
-      {/* Status Message */}
-      <Section className="text-center">
-        <Text className="mx-auto mb-4 text-4xl">
-          📦
-        </Text>
-        <Heading className="m-0 text-2xl font-bold text-foreground">
-          Ordren din er pa vei!
-        </Heading>
-        <Text className="mt-2 text-muted">
-          Ordrenummer: #{order.id}
-        </Text>
-      </Section>
+        {/* Status Message */}
+        <Section className="px-8 pb-8 text-center">
+          <Text className="mx-auto mb-4 text-5xl">
+            📦
+          </Text>
+          <Heading className="m-0 text-2xl font-bold text-foreground">
+            Ordren din er pa vei!
+          </Heading>
+          <Text className="mt-2 text-muted-foreground">
+            Ordrenummer: <span className="font-mono font-bold text-foreground">#{order.id}</span>
+          </Text>
+        </Section>
 
-      <Hr className="my-8 border-border" />
+        <Hr className="mx-8 border-border" />
 
-      {/* Tracking Info */}
-      <Section className="rounded-lg border-l-4 border-primary bg-card p-6">
-        <Heading as="h2" className="m-0 mb-4 text-lg font-semibold text-foreground">
-          Sporing
-        </Heading>
+        {/* Tracking Info */}
+        <Section className="px-8 py-6">
+          <Section className="rounded-xl border-l-4 border-primary bg-muted p-6">
+            <Heading as="h2" className="m-0 mb-4 text-base font-bold uppercase tracking-wider text-foreground">
+              Sporing
+            </Heading>
 
-        {order.tracking_carrier && (
-          <div className="mb-2 flex justify-between">
-            <Text className="m-0 text-muted">Transportor</Text>
-            <Text className="m-0 font-medium text-foreground">{order.tracking_carrier}</Text>
-          </div>
-        )}
+            {order.tracking_carrier && (
+              <table width="100%" cellSpacing="0" cellPadding="0" className="mb-2">
+                <tbody>
+                  <tr>
+                    <td>
+                      <Text className="m-0 text-muted-foreground">Transportor</Text>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <Text className="m-0 font-semibold text-foreground">{order.tracking_carrier}</Text>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
 
-        {order.tracking_number && (
-          <div className="mb-4 flex justify-between">
-            <Text className="m-0 text-muted">Sporingsnummer</Text>
-            <Text className="m-0 font-mono text-foreground">{order.tracking_number}</Text>
-          </div>
-        )}
+            {order.tracking_number && (
+              <table width="100%" cellSpacing="0" cellPadding="0">
+                <tbody>
+                  <tr>
+                    <td>
+                      <Text className="m-0 text-muted-foreground">Sporingsnummer</Text>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <Text className="m-0 font-mono font-semibold text-primary">{order.tracking_number}</Text>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
 
-        {trackingUrl && (
-          <Section className="mt-4 text-center">
-            <Button href={trackingUrl}>Spor pakken</Button>
-          </Section>
-        )}
+            {trackingUrl && (
+              <Section className="mt-6 text-center">
+                <Button href={trackingUrl}>Spor pakken</Button>
+              </Section>
+            )}
 
-        <Text className="m-0 mt-4 text-center text-sm text-muted">
-          Estimert levering: 3-5 virkedager
-        </Text>
-      </Section>
-
-      {/* Items Reminder */}
-      <Section className="mt-6">
-        <Heading as="h2" className="mb-4 text-lg font-semibold text-foreground">
-          I denne pakken
-        </Heading>
-        <Section className="rounded-lg bg-card p-4">
-          {order.items.map((item) => (
-            <Text key={item.product_id} className="m-0 py-1 text-foreground">
-              • {item.title} {item.quantity > 1 ? `(${item.quantity}x)` : ''}
+            <Text className="m-0 mt-4 text-center text-sm text-muted-foreground">
+              Estimert levering: 3-5 virkedager
             </Text>
-          ))}
+          </Section>
+        </Section>
+
+        {/* Items Reminder */}
+        <Section className="px-8 pb-8">
+          <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
+            I denne pakken
+          </Heading>
+          <Section className="rounded-xl bg-muted p-4">
+            {order.items.map((item) => (
+              <Text key={item.product_id} className="m-0 py-1 text-foreground">
+                • {item.title} {item.quantity > 1 ? `(${item.quantity}x)` : ''}
+              </Text>
+            ))}
+          </Section>
         </Section>
       </Section>
 
