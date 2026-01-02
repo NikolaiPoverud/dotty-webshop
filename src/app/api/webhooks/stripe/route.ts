@@ -85,6 +85,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       p_subtotal: parseInt(metadata.subtotal),
       p_discount_code: metadata.discount_code || null,
       p_discount_amount: parseInt(metadata.discount_amount) || 0,
+      p_shipping_cost: parseInt(metadata.shipping_cost) || 0,
+      p_artist_levy: parseInt(metadata.artist_levy) || 0,
       p_total: parseInt(metadata.total),
       p_payment_session_id: session.id,
     });
@@ -184,6 +186,8 @@ async function handleCheckoutCompletedFallback(
       subtotal: parseInt(metadata.subtotal),
       discount_code: metadata.discount_code || null,
       discount_amount: parseInt(metadata.discount_amount) || 0,
+      shipping_cost: parseInt(metadata.shipping_cost) || 0,
+      artist_levy: parseInt(metadata.artist_levy) || 0,
       total: parseInt(metadata.total),
       payment_provider: 'stripe',
       payment_session_id: session.id,

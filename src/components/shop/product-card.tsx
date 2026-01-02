@@ -99,7 +99,7 @@ export const ProductCard = memo(function ProductCard({ product, lang, index = 0,
           <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
             {product.title}
           </h3>
-          <p className={`mt-1 ${isSold ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+          <p className={`mt-1 ${isSold ? 'text-muted-foreground' : 'text-foreground'}`}>
             {formatPrice(product.price)}
           </p>
           {/* Display sizes if available */}
