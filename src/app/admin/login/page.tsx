@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
 import { createAuthClient } from '@/lib/supabase/auth';
@@ -132,9 +133,9 @@ export default function AdminLoginPage() {
 
         {/* Back to shop link */}
         <p className="text-center mt-6 text-sm text-muted-foreground">
-          <a href="/no" className="hover:text-primary transition-colors">
+          <Link href="/no" className="hover:text-primary transition-colors">
             Tilbake til shop
-          </a>
+          </Link>
         </p>
       </motion.div>
     </div>

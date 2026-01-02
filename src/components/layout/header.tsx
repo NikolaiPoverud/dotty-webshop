@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Menu, X, Settings, ChevronRight, Home } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -44,6 +44,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
   const [activeHash, setActiveHash] = useState<string>('');
   const { itemCount } = useCart();
   const pathname = usePathname();
+  const router = useRouter();
   const altLang = getAlternateLocale(lang);
   const t = dictionary || fallbackNav[lang];
   const isHomePage = pathname === `/${lang}` || pathname === '/';
@@ -90,11 +91,10 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
           {/* Logo - Left: scroll to top on homepage, navigate home otherwise */}
           <button
             onClick={() => {
-              const isHomePage = pathname === `/${lang}` || pathname === '/';
               if (isHomePage) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               } else {
-                window.location.href = `/${lang}`;
+                router.push(`/${lang}`);
               }
             }}
             className="relative group flex-shrink-0"
