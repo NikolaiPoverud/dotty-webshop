@@ -73,8 +73,11 @@ export async function POST(request: NextRequest) {
       total: total.toString(),
     };
 
-    // Get base URL from request origin (works for any domain)
-    const origin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/') || 'https://dotty.no';
+    // Get base URL - always use canonical (non-www) domain
+    let origin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/') || 'https://dotty.no';
+
+    // Normalize to non-www
+    origin = origin.replace('://www.', '://');
 
     // Use localized route paths
     const successPath = locale === 'en' ? '/en/checkout/success' : '/no/kasse/bekreftelse';
