@@ -113,7 +113,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
             {!isHomePage && (
               <Link
                 href={`/${lang}`}
-                className="flex items-center gap-1 text-sm uppercase tracking-widest text-primary hover:text-primary-light transition-colors"
+                className="flex items-center gap-1 text-sm uppercase tracking-widest text-foreground/80 hover:text-primary transition-colors"
               >
                 <Home className="w-4 h-4" />
                 {t.home}
@@ -220,7 +220,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
               <Link
                 href={`/${lang}`}
                 onClick={() => setIsMenuOpen(false)}
-                className="text-lg font-semibold uppercase tracking-widest text-primary hover:text-primary-light transition-colors py-3 flex items-center gap-2"
+                className="text-lg font-semibold uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center gap-2"
               >
                 <Home className="w-5 h-5" />
                 {t.home}

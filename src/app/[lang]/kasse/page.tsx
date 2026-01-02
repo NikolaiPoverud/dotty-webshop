@@ -523,17 +523,16 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: typeof text['no'] }
                   {isLoading ? t.processing : t.payWithCard}
                 </motion.button>
 
+                {/* Vipps - disabled for now */}
                 <motion.button
-                  onClick={() => handleCheckout('vipps')}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#ff5b24] text-white font-semibold text-lg uppercase tracking-widest rounded transition-all duration-300 hover:bg-[#ff5b24]/90 disabled:opacity-50"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  disabled={true}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#ff5b24]/40 text-white/60 font-semibold text-lg uppercase tracking-widest rounded cursor-not-allowed"
+                  title={locale === 'no' ? 'Kommer snart' : 'Coming soon'}
                 >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : null}
-                  {isLoading ? t.processing : t.payWithVipps}
+                  {t.payWithVipps}
+                  <span className="text-xs font-normal normal-case ml-2">
+                    ({locale === 'no' ? 'Kommer snart' : 'Coming soon'})
+                  </span>
                 </motion.button>
               </div>
             </div>

@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  const { name: collectionName, shippingCost } = await getCollectionInfo(product.collection_id);
+  const { name: collectionName } = await getCollectionInfo(product.collection_id);
 
   // Breadcrumb items for structured data
   const breadcrumbItems = [
@@ -152,7 +152,6 @@ export default async function ProductPage({ params }: Props) {
       <ProductDetail
         product={product}
         collectionName={collectionName}
-        shippingCost={shippingCost}
         lang={locale}
       />
     </>
