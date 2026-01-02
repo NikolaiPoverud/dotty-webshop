@@ -280,7 +280,7 @@ export default function AdminOrdersPage() {
                 )}
 
                 {/* Customer details */}
-                <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-3 gap-4 text-sm">
+                <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">E-post</p>
                     <p>{order.customer_email}</p>
@@ -288,6 +288,18 @@ export default function AdminOrdersPage() {
                   <div>
                     <p className="text-muted-foreground">Telefon</p>
                     <p>{order.customer_phone}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-muted-foreground">Leveringsadresse</p>
+                    {order.shipping_address ? (
+                      <p>
+                        {order.shipping_address.line1}
+                        {order.shipping_address.line2 && `, ${order.shipping_address.line2}`}
+                        , {order.shipping_address.postal_code} {order.shipping_address.city}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground/50">Ikke oppgitt</p>
+                    )}
                   </div>
                 </div>
               </motion.div>
