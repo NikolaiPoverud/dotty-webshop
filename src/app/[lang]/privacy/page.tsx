@@ -23,7 +23,7 @@ const content = {
       },
       {
         heading: 'Dine rettigheter',
-        text: 'Du har rett til å be om innsyn, retting eller sletting av dine personopplysninger. Kontakt oss på hei@dotty.art for henvendelser.',
+        text: 'Du har rett til å be om innsyn, retting eller sletting av dine personopplysninger. Kontakt oss via Instagram @dottyartwork eller kontaktskjemaet på nettsiden.',
       },
       {
         heading: 'Informasjonskapsler',
@@ -54,7 +54,7 @@ const content = {
       },
       {
         heading: 'Your rights',
-        text: 'You have the right to request access, correction, or deletion of your personal data. Contact us at hello@dotty.art for inquiries.',
+        text: 'You have the right to request access, correction, or deletion of your personal data. Contact us via Instagram @dottyartwork or the contact form on the website.',
       },
       {
         heading: 'Cookies',

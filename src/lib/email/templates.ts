@@ -61,7 +61,7 @@ function emailWrapper(content: string, previewText?: string): string {
                 Pop-art for alle
               </p>
               <p style="margin: 0; font-size: 12px; color: ${colors.mutedForeground};">
-                <a href="https://dotty.art" style="color: ${colors.primary}; text-decoration: none;">dotty.art</a>
+                <a href="https://dotty.no" style="color: ${colors.primary}; text-decoration: none;">dotty.no</a>
               </p>
             </td>
           </tr>

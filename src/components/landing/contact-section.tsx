@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Instagram, Mail, Send, Loader2 } from 'lucide-react';
+import { Instagram, Send, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import type { Locale } from '@/types';
 
@@ -16,10 +16,9 @@ const contactText = {
     send: 'Send melding',
     sending: 'Sender...',
     success: 'Takk! Jeg svarer så fort jeg kan.',
-    error: 'Noe gikk galt. Prøv igjen eller send e-post direkte.',
-    or: 'eller kontakt meg direkte',
-    email: 'E-post',
-    followUs: 'Følg meg',
+    error: 'Noe gikk galt. Prøv igjen!',
+    or: 'eller finn meg på',
+    followUs: 'Følg meg på Instagram',
   },
   en: {
     greeting: 'Hey there!',
@@ -31,10 +30,9 @@ const contactText = {
     send: 'Send message',
     sending: 'Sending...',
     success: "Thanks! I'll get back to you soon.",
-    error: 'Something went wrong. Try again or email me directly.',
-    or: 'or reach me directly',
-    email: 'Email',
-    followUs: 'Follow me',
+    error: 'Something went wrong. Try again!',
+    or: 'or find me on',
+    followUs: 'Follow me on Instagram',
   },
 };
 
@@ -178,40 +176,25 @@ export function ContactSection({ lang }: { lang: Locale }) {
           {t.or}
         </motion.p>
 
-        {/* Direct Contact */}
-        <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-6"
+        {/* Instagram */}
+        <motion.a
+          href="https://instagram.com/dottyartwork"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group inline-flex items-center gap-3 px-6 py-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.25 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {/* Email */}
-          <a
-            href="mailto:hei@dotty.no"
-            className="group flex items-center gap-3 px-5 py-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
-          >
-            <Mail className="w-5 h-5 text-primary" />
-            <div className="text-left">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.email}</p>
-              <p className="font-medium group-hover:text-primary transition-colors">hei@dotty.no</p>
-            </div>
-          </a>
-
-          {/* Instagram */}
-          <a
-            href="https://instagram.com/dotty.art"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-3 px-5 py-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
-          >
-            <Instagram className="w-5 h-5 text-primary" />
-            <div className="text-left">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.followUs}</p>
-              <p className="font-medium group-hover:text-primary transition-colors">@dotty.art</p>
-            </div>
-          </a>
-        </motion.div>
+          <Instagram className="w-6 h-6 text-primary" />
+          <div className="text-left">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.followUs}</p>
+            <p className="font-medium text-lg group-hover:text-primary transition-colors">@dottyartwork</p>
+          </div>
+        </motion.a>
       </div>
     </section>
   );

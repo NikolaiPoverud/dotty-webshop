@@ -41,7 +41,7 @@ export function Footer({ lang }: { lang: Locale }) {
           {/* Social + Links */}
           <div className="flex items-center gap-6">
             <a
-              href="https://instagram.com/dotty.art"
+              href="https://instagram.com/dottyartwork"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"
