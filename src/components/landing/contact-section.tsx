@@ -177,24 +177,26 @@ export function ContactSection({ lang }: { lang: Locale }) {
         </motion.p>
 
         {/* Instagram */}
-        <motion.a
-          href="https://instagram.com/dottyartwork"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group inline-flex items-center gap-3 px-6 py-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.25 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Instagram className="w-6 h-6 text-primary" />
-          <div className="text-left">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.followUs}</p>
-            <p className="font-medium text-lg group-hover:text-primary transition-colors">@dottyartwork</p>
-          </div>
-        </motion.a>
+        <div className="flex justify-center">
+          <motion.a
+            href="https://instagram.com/dottyartwork"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-3 px-6 py-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.25 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Instagram className="w-6 h-6 text-primary" />
+            <div className="text-left">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.followUs}</p>
+              <p className="font-medium text-lg group-hover:text-primary transition-colors">@dottyartwork</p>
+            </div>
+          </motion.a>
+        </div>
       </div>
     </section>
   );
