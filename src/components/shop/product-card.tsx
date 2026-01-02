@@ -4,34 +4,33 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ruler } from 'lucide-react';
-import type { Locale, Product } from '@/types';
+import type { Locale, ProductListItem } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
-const text = {
-  no: {
-    original: 'Original',
-    print: 'Trykk',
-    sold: 'Solgt',
-    sizes: 'Storrelser',
-  },
-  en: {
-    original: 'Original',
-    print: 'Print',
-    sold: 'Sold',
-    sizes: 'Sizes',
-  },
-};
-
-interface ProductCardProps {
-  product: Product;
-  lang: Locale;
-  index?: number;
+interface ShopDictionary {
+  original: string;
+  print: string;
+  sold: string;
+  sizes: string;
+  left: string;
 }
 
+interface ProductCardProps {
+  product: ProductListItem;
+  lang: Locale;
+  index?: number;
+  dictionary?: ShopDictionary;
+}
 
-export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
-  const t = text[lang];
+// Fallback for backwards compatibility
+const fallbackText: Record<Locale, ShopDictionary> = {
+  no: { original: 'Original', print: 'Trykk', sold: 'Solgt', sizes: 'Størrelser', left: 'igjen' },
+  en: { original: 'Original', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
+};
+
+export function ProductCard({ product, lang, index = 0, dictionary }: ProductCardProps) {
+  const t = dictionary || fallbackText[lang];
   // Item is sold if not available OR stock is 0
   const isSold = !product.is_available || product.stock_quantity === 0;
 
@@ -83,7 +82,7 @@ export function ProductCard({ product, lang, index = 0 }: ProductCardProps) {
           {product.product_type === 'print' && product.stock_quantity !== null && product.stock_quantity <= 3 && product.is_available && (
             <div className="absolute top-4 right-4">
               <span className="px-3 py-1 bg-warning text-background text-xs uppercase tracking-wider font-medium rounded">
-                {product.stock_quantity} {lang === 'no' ? 'igjen' : 'left'}
+                {product.stock_quantity} {t.left}
               </span>
             </div>
           )}

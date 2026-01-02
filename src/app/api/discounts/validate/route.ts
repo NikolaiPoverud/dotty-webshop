@@ -14,11 +14,15 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
-    // Look up the discount code (case-insensitive)
+    // SEC-010: Use exact match instead of ilike to prevent wildcard injection
+    // Normalize to uppercase for case-insensitive matching
+    const normalizedCode = code.trim().toUpperCase();
+
     const { data: discount, error } = await supabase
       .from('discount_codes')
       .select('*')
-      .ilike('code', code.trim())
+      .eq('code', normalizedCode)
+      .is('deleted_at', null)  // Exclude soft-deleted codes
       .single();
 
     if (error || !discount) {

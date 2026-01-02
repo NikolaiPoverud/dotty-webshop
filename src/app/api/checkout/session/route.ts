@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getStripe } from '@/lib/stripe';
 
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    throw new Error('STRIPE_SECRET_KEY is not configured');
-  }
-  return new Stripe(key);
+// SEC-011: Mask email to prevent full PII exposure in API response
+function maskEmail(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const [localPart, domain] = email.split('@');
+  if (!domain) return null;
+
+  const maskedLocal = localPart.length > 2
+    ? localPart[0] + '***' + localPart[localPart.length - 1]
+    : localPart[0] + '***';
+
+  const domainParts = domain.split('.');
+  const maskedDomain = domainParts[0].length > 2
+    ? domainParts[0][0] + '***'
+    : domainParts[0][0] + '*';
+
+  return `${maskedLocal}@${maskedDomain}.${domainParts.slice(1).join('.')}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -33,14 +43,15 @@ export async function GET(request: NextRequest) {
       .eq('payment_session_id', sessionId)
       .single();
 
+    // SEC-011: Return masked email to prevent PII exposure
     return NextResponse.json({
       order: order ? {
         id: order.id,
-        email: order.customer_email,
+        email: maskEmail(order.customer_email),
         total: order.total,
       } : {
         id: session.id,
-        email: session.customer_email,
+        email: maskEmail(session.customer_email),
         total: session.amount_total,
       },
     });

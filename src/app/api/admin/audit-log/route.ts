@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 // GET /api/admin/audit-log - List audit logs with filtering
 export async function GET(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
@@ -68,6 +72,9 @@ export async function GET(request: NextRequest) {
 
 // GET distinct values for filters
 export async function POST(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
     const { type } = await request.json();

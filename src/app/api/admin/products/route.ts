@@ -2,23 +2,52 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify } from '@/lib/utils';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 
-// GET /api/admin/products - List all products
-export async function GET() {
+// GET /api/admin/products - List all products with pagination
+export async function GET(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
+    const { searchParams } = new URL(request.url);
 
-    const { data: products, error } = await supabase
+    // DB-010: Parse pagination params
+    const paginationParams = parsePaginationParams(searchParams);
+    const { from, to } = getPaginationRange(paginationParams);
+
+    // Optional filters
+    const collectionId = searchParams.get('collection_id');
+    const productType = searchParams.get('product_type');
+    const isAvailable = searchParams.get('is_available');
+
+    let query = supabase
       .from('products')
-      .select('*')
-      .order('display_order', { ascending: true });
+      .select('*', { count: 'exact' })
+      .is('deleted_at', null)  // Exclude soft-deleted
+      .order('display_order', { ascending: true })
+      .range(from, to);
+
+    if (collectionId) {
+      query = query.eq('collection_id', collectionId);
+    }
+    if (productType) {
+      query = query.eq('product_type', productType);
+    }
+    if (isAvailable !== null) {
+      query = query.eq('is_available', isAvailable === 'true');
+    }
+
+    const { data: products, error, count } = await query;
 
     if (error) {
       console.error('Database error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: products });
+    return NextResponse.json(buildPaginationResult(products || [], count, paginationParams));
   } catch (error) {
     console.error('Failed to fetch products:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch products';
@@ -31,6 +60,9 @@ export async function GET() {
 
 // POST /api/admin/products - Create new product
 export async function POST(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
     const body = await request.json();

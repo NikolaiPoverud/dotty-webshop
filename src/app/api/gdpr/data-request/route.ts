@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getResend, emailConfig } from '@/lib/email/resend';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 
 // Use service role to bypass RLS
 const supabase = createClient(
@@ -8,8 +9,28 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// SEC-002: Rate limit config for GDPR requests (5 requests per hour)
+const GDPR_RATE_LIMIT = {
+  maxRequests: 5,
+  windowMs: 60 * 60 * 1000, // 1 hour
+};
+
 // POST /api/gdpr/data-request - Create a new data request
 export async function POST(request: Request) {
+  // SEC-002: Apply rate limiting
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`gdpr:${clientIp}`, GDPR_RATE_LIMIT);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: getRateLimitHeaders(rateLimitResult),
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const { email, request_type } = body;

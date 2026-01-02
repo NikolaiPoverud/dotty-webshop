@@ -2,7 +2,13 @@
   "navigation": {
     "shop": "Shop",
     "cart": "Cart",
-    "about": "About the artist"
+    "about": "About",
+    "aboutArtist": "About the artist",
+    "art": "Art",
+    "contact": "Contact",
+    "collections": "Collections",
+    "allProducts": "All products",
+    "admin": "Admin"
   },
   "hero": {
     "title": "Pop-art with personality",
@@ -17,13 +23,18 @@
     "sold": "Sold",
     "original": "Original",
     "print": "Print",
-    "requestSimilar": "Interested in similar work?"
+    "requestSimilar": "Interested in similar work?",
+    "sizes": "Sizes",
+    "left": "left"
   },
   "cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty",
+    "emptyShort": "Your cart is empty",
     "continueShopping": "Continue shopping",
+    "continueShoppingShort": "Continue shopping",
     "checkout": "Proceed to checkout",
+    "toCheckout": "Checkout",
     "remove": "Remove",
     "subtotal": "Subtotal",
     "total": "Total",
@@ -57,6 +68,9 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "copyright": "All rights reserved"
+  },
+  "language": {
+    "switchTo": "Norsk"
   },
   "errors": {
     "itemSold": "Oops! Someone was faster - this artwork has been sold!",

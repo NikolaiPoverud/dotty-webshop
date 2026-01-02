@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -8,6 +9,9 @@ interface RouteParams {
 
 // Mark as read/unread
 export async function PATCH(request: Request, { params }: RouteParams) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -59,6 +63,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
 // Delete a submission
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { id } = await params;
 
@@ -71,9 +78,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       .eq('id', id)
       .single();
 
+    // Soft delete
     const { error } = await supabase
       .from('contact_submissions')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {

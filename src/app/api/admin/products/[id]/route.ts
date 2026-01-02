@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify } from '@/lib/utils';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -9,6 +10,9 @@ interface RouteParams {
 
 // GET /api/admin/products/[id] - Get single product
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { id } = await params;
     const supabase = createAdminClient();
@@ -37,6 +41,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 // PUT /api/admin/products/[id] - Update product
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { id } = await params;
     const supabase = createAdminClient();
@@ -121,6 +128,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 // DELETE /api/admin/products/[id] - Delete product
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { id } = await params;
     const supabase = createAdminClient();
@@ -137,10 +147,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       await supabase.storage.from('artwork').remove([product.image_path]);
     }
 
-    // Delete the product
+    // Soft delete the product
     const { error } = await supabase
       .from('products')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {

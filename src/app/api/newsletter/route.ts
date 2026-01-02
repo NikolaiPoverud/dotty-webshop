@@ -10,7 +10,7 @@ const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 export async function POST(request: NextRequest) {
   // Check rate limit
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`newsletter:${clientIp}`, RATE_LIMIT_CONFIG);
+  const rateLimitResult = await checkRateLimit(`newsletter:${clientIp}`, RATE_LIMIT_CONFIG);
 
   if (!rateLimitResult.success) {
     return NextResponse.json(
@@ -72,12 +72,26 @@ export async function POST(request: NextRequest) {
         }
 
         // Send confirmation email
-        await sendConfirmationEmail(normalizedEmail, existing.confirmation_token);
+        const emailResult = await sendConfirmationEmail(normalizedEmail, existing.confirmation_token);
+        if (!emailResult.success) {
+          console.error('Email failed for resubscription:', emailResult.error);
+          return NextResponse.json(
+            { error: 'Failed to send confirmation email. Please try again.' },
+            { status: 500 }
+          );
+        }
         return NextResponse.json({ success: true, needs_confirmation: true });
       }
 
       // Not confirmed yet - resend confirmation
-      await sendConfirmationEmail(normalizedEmail, existing.confirmation_token);
+      const emailResult = await sendConfirmationEmail(normalizedEmail, existing.confirmation_token);
+      if (!emailResult.success) {
+        console.error('Email failed for resend:', emailResult.error);
+        return NextResponse.json(
+          { error: 'Failed to send confirmation email. Please try again.' },
+          { status: 500 }
+        );
+      }
       return NextResponse.json({ success: true, needs_confirmation: true });
     }
 
@@ -101,7 +115,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Send confirmation email
-    await sendConfirmationEmail(normalizedEmail, newSubscriber.confirmation_token);
+    const emailResult = await sendConfirmationEmail(normalizedEmail, newSubscriber.confirmation_token);
+    if (!emailResult.success) {
+      console.error('Email failed for new subscription:', emailResult.error);
+      // Subscription saved but email failed - delete the subscription to allow retry
+      await supabase.from('newsletter_subscribers').delete().eq('id', newSubscriber.id);
+      return NextResponse.json(
+        { error: 'Failed to send confirmation email. Please try again.' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true, needs_confirmation: true });
   } catch (error) {
@@ -113,7 +136,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function sendConfirmationEmail(email: string, confirmationToken: string) {
+// SEC-013: Return success/failure status instead of silently catching errors
+async function sendConfirmationEmail(email: string, confirmationToken: string): Promise<{ success: boolean; error?: string }> {
   try {
     const resend = getResend();
     const confirmUrl = `${emailConfig.baseUrl}/api/newsletter/confirm?token=${confirmationToken}`;
@@ -159,8 +183,12 @@ async function sendConfirmationEmail(email: string, confirmationToken: string) {
         </div>
       `,
     });
+    return { success: true };
   } catch (error) {
     console.error('Failed to send confirmation email:', error);
-    // Don't throw - subscription is saved, email can be resent
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Email sending failed'
+    };
   }
 }

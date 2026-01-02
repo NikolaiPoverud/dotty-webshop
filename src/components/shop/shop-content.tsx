@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import type { Locale, Product, Collection } from '@/types';
+import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ProductCard } from './product-card';
 import { FilterTabs, type FilterOption } from './filter-tabs';
 
@@ -19,8 +19,8 @@ const filterText = {
 };
 
 interface ShopContentProps {
-  products: Product[];
-  collections: Collection[];
+  products: ProductListItem[];
+  collections: CollectionCard[];
   lang: Locale;
   initialCollection?: string;
 }

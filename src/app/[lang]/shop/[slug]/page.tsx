@@ -35,21 +35,29 @@ async function getProduct(slug: string): Promise<Product | null> {
   }
 }
 
-async function getCollectionName(collectionId: string | null): Promise<string | null> {
-  if (!collectionId) return null;
+interface CollectionInfo {
+  name: string | null;
+  shippingCost: number;
+}
+
+async function getCollectionInfo(collectionId: string | null): Promise<CollectionInfo> {
+  if (!collectionId) return { name: null, shippingCost: 0 };
 
   try {
     const supabase = await createClient();
 
     const { data: collection } = await supabase
       .from('collections')
-      .select('name')
+      .select('name, shipping_cost')
       .eq('id', collectionId)
       .single();
 
-    return collection?.name || null;
+    return {
+      name: collection?.name || null,
+      shippingCost: collection?.shipping_cost || 0,
+    };
   } catch (error) {
-    return null;
+    return { name: null, shippingCost: 0 };
   }
 }
 
@@ -128,7 +136,7 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  const collectionName = await getCollectionName(product.collection_id);
+  const { name: collectionName, shippingCost } = await getCollectionInfo(product.collection_id);
 
   // Breadcrumb items for structured data
   const breadcrumbItems = [
@@ -144,6 +152,7 @@ export default async function ProductPage({ params }: Props) {
       <ProductDetail
         product={product}
         collectionName={collectionName}
+        shippingCost={shippingCost}
         lang={locale}
       />
     </>

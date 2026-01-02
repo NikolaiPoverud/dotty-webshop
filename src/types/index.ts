@@ -31,14 +31,27 @@ export interface Product {
   updated_at: string;
 }
 
+// Lightweight product data for listing/card views (DB-011: optimized SELECT)
+export type ProductListItem = Pick<Product,
+  'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' |
+  'is_available' | 'is_featured' | 'stock_quantity' | 'collection_id'
+> & { sizes?: ProductSize[] };
+
+// Alias for backwards compatibility with component names
+export type ProductCard = ProductListItem;
+
 export interface Collection {
   id: string;
   name: string;
   slug: string;
   description: string | null;
   display_order: number;
+  shipping_cost: number; // NOK øre (100 = 1 kr). 0 = free shipping
   created_at: string;
 }
+
+// Lightweight collection data for filter/listing views (DB-011: optimized SELECT)
+export type CollectionCard = Pick<Collection, 'id' | 'name' | 'slug' | 'description'>;
 
 export interface Order {
   id: string;
@@ -98,6 +111,9 @@ export interface Testimonial {
   updated_at: string;
 }
 
+// Lightweight testimonial data for display (DB-011: optimized SELECT)
+export type TestimonialCard = Pick<Testimonial, 'id' | 'name' | 'feedback' | 'source'>;
+
 export interface CartReservation {
   id: string;
   product_id: string;
@@ -115,8 +131,13 @@ export interface NewsletterSubscriber {
 }
 
 // Cart Types
+// ARCH-007: Optimized product data for cart storage (reduces localStorage size)
+export type CartProduct = Pick<Product,
+  'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type' | 'stock_quantity' | 'is_available'
+>;
+
 export interface CartItem {
-  product: Product;
+  product: CartProduct;
   quantity: number;
   reservationId?: string;
   expiresAt?: string;

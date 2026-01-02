@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 export async function GET() {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('discount_codes')
       .select('*')
+      .is('deleted_at', null)  // Exclude soft-deleted
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -22,6 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const body = await request.json();
     const supabase = createAdminClient();

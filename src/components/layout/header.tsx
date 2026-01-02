@@ -12,33 +12,30 @@ import { Logo } from '@/components/ui/logo';
 import { useCart } from '@/components/cart/cart-provider';
 import { CartPanel } from '@/components/cart/cart-panel';
 
-const navItems = {
-  no: {
-    cart: 'Handlekurv',
-    shop: 'Shop',
-    collections: 'Samlinger',
-    allProducts: 'Alle produkter',
-    art: 'Kunst',
-    about: 'Om',
-    contact: 'Kontakt',
-  },
-  en: {
-    cart: 'Cart',
-    shop: 'Shop',
-    collections: 'Collections',
-    allProducts: 'All products',
-    art: 'Art',
-    about: 'About',
-    contact: 'Contact',
-  },
-};
+interface NavigationDictionary {
+  cart: string;
+  shop: string;
+  collections: string;
+  allProducts: string;
+  art: string;
+  about: string;
+  contact: string;
+  admin?: string;
+}
 
 interface HeaderProps {
   lang: Locale;
   collections?: Collection[];
+  dictionary?: NavigationDictionary;
 }
 
-export function Header({ lang, collections = [] }: HeaderProps) {
+// Fallback for backwards compatibility
+const fallbackNav: Record<Locale, NavigationDictionary> = {
+  no: { cart: 'Handlekurv', shop: 'Shop', collections: 'Samlinger', allProducts: 'Alle produkter', art: 'Kunst', about: 'Om', contact: 'Kontakt', admin: 'Admin' },
+  en: { cart: 'Cart', shop: 'Shop', collections: 'Collections', allProducts: 'All products', art: 'Art', about: 'About', contact: 'Contact', admin: 'Admin' },
+};
+
+export function Header({ lang, collections = [], dictionary }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [hostname, setHostname] = useState<string>('');
@@ -46,7 +43,7 @@ export function Header({ lang, collections = [] }: HeaderProps) {
   const { itemCount } = useCart();
   const pathname = usePathname();
   const altLang = getAlternateLocale(lang);
-  const t = navItems[lang];
+  const t = dictionary || fallbackNav[lang];
 
   // Get hostname on client side for language switch URL
   useEffect(() => {
@@ -263,7 +260,7 @@ export function Header({ lang, collections = [] }: HeaderProps) {
               className="text-lg uppercase tracking-widest hover:text-primary transition-colors py-3 flex items-center gap-2 text-primary"
             >
               <Settings className="w-5 h-5" />
-              Admin
+              {t.admin || 'Admin'}
             </Link>
 
             {/* Language Switcher */}

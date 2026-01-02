@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 export async function GET(request: Request) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const unreadOnly = searchParams.get('unread') === 'true';
@@ -11,6 +15,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from('contact_submissions')
       .select('*')
+      .is('deleted_at', null)  // Exclude soft-deleted
       .order('created_at', { ascending: false });
 
     if (unreadOnly) {

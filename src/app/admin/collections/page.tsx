@@ -1,9 +1,19 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Loader2, RefreshCw, Truck } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Collection } from '@/types';
+import { formatPrice } from '@/lib/utils';
+
+// Shipping cost options in øre
+const SHIPPING_OPTIONS = [
+  { value: 0, label: 'Gratis frakt' },
+  { value: 9900, label: '99 kr - Små verk' },
+  { value: 14900, label: '149 kr - Mellomstore verk' },
+  { value: 19900, label: '199 kr - Store verk' },
+  { value: 29900, label: '299 kr - Ekstra store verk' },
+];
 
 export default function AdminCollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -12,7 +22,7 @@ export default function AdminCollectionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
-  const [formData, setFormData] = useState({ name: '', slug: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', slug: '', description: '', shipping_cost: 0 });
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
@@ -35,7 +45,7 @@ export default function AdminCollectionsPage() {
 
   const openNewModal = () => {
     setEditingCollection(null);
-    setFormData({ name: '', slug: '', description: '' });
+    setFormData({ name: '', slug: '', description: '', shipping_cost: 0 });
     setIsModalOpen(true);
   };
 
@@ -45,6 +55,7 @@ export default function AdminCollectionsPage() {
       name: collection.name,
       slug: collection.slug,
       description: collection.description || '',
+      shipping_cost: collection.shipping_cost || 0,
     });
     setIsModalOpen(true);
   };
@@ -65,6 +76,7 @@ export default function AdminCollectionsPage() {
           name: formData.name,
           slug: formData.slug,
           description: formData.description || null,
+          shipping_cost: formData.shipping_cost,
           display_order: editingCollection?.display_order || collections.length + 1,
         }),
       });
@@ -193,6 +205,7 @@ export default function AdminCollectionsPage() {
                 <th className="w-16 px-4 py-3 text-left text-sm font-medium">Rekkef.</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Navn</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Slug</th>
+                <th className="text-left px-6 py-3 text-sm font-medium">Frakt</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Beskrivelse</th>
                 <th className="text-right px-6 py-3 text-sm font-medium">Handlinger</th>
               </tr>
@@ -231,6 +244,14 @@ export default function AdminCollectionsPage() {
                     <code className="px-2 py-1 bg-background text-sm rounded">
                       {collection.slug}
                     </code>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1.5">
+                      <Truck className="w-4 h-4 text-muted-foreground" />
+                      <span className={collection.shipping_cost === 0 ? 'text-green-500' : ''}>
+                        {collection.shipping_cost === 0 ? 'Gratis' : formatPrice(collection.shipping_cost)}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground truncate max-w-xs">
                     {collection.description || '—'}
@@ -308,6 +329,24 @@ export default function AdminCollectionsPage() {
                   rows={3}
                   placeholder="Lysfylte verk som fanger byens energi"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Fraktkostnad</label>
+                <select
+                  value={formData.shipping_cost}
+                  onChange={(e) => setFormData({ ...formData, shipping_cost: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {SHIPPING_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Fraktkostnaden vises på produktsidene for denne samlingen
+                </p>
               </div>
             </div>
 

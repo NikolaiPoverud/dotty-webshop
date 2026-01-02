@@ -1,8 +1,23 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getResend, emailConfig } from '@/lib/email/resend';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
+// SEC-002: Rate limit config for GDPR verification (10 per hour - slightly higher as users may click multiple times)
+const VERIFY_RATE_LIMIT = {
+  maxRequests: 10,
+  windowMs: 60 * 60 * 1000, // 1 hour
+};
 
 export async function GET(request: Request) {
+  // SEC-002: Apply rate limiting
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`gdpr-verify:${clientIp}`, VERIFY_RATE_LIMIT);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.redirect(new URL('/no/my-data?status=rate-limited', request.url));
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');

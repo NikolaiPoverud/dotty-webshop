@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
 const locales = ['no', 'en'] as const;
 type Locale = (typeof locales)[number];
 const defaultLocale: Locale = 'no';
 
-// Paths that should bypass locale handling
-const publicPaths = [
+// Paths that bypass locale handling
+const localeBypasses = [
   '/api',
   '/admin',
   '/_next',
@@ -18,6 +19,15 @@ const publicPaths = [
   '/apple-touch-icon.png',
 ];
 
+// Paths that bypass all middleware processing
+const staticPaths = [
+  '/_next',
+  '/favicon.ico',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/manifest.json',
+];
+
 function getPathnameLocale(pathname: string): Locale | null {
   for (const locale of locales) {
     if (pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`) {
@@ -27,9 +37,15 @@ function getPathnameLocale(pathname: string): Locale | null {
   return null;
 }
 
-export function middleware(request: NextRequest) {
+// ARCH-003: Consolidated middleware - handles i18n, auth, and session management
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host') || '';
+
+  // Skip static assets entirely
+  if (staticPaths.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
 
   // Redirect Vercel preview URLs to main domain
   if (hostname.includes('vercel.app') && !pathname.startsWith('/api')) {
@@ -38,16 +54,24 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
-  // Skip public paths entirely
-  if (publicPaths.some(path => pathname.startsWith(path))) {
+  // For admin routes, handle authentication
+  if (pathname.startsWith('/admin')) {
+    return handleAdminAuth(request);
+  }
+
+  // For API routes, skip locale handling
+  if (pathname.startsWith('/api')) {
     return NextResponse.next();
   }
 
-  // Check if pathname already has a locale
-  const pathnameLocale = getPathnameLocale(pathname);
+  // Skip other locale bypasses
+  if (localeBypasses.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
 
+  // Handle i18n locale routing
+  const pathnameLocale = getPathnameLocale(pathname);
   if (pathnameLocale) {
-    // Already has locale, continue
     return NextResponse.next();
   }
 
@@ -55,6 +79,50 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.pathname = `/${defaultLocale}${pathname === '/' ? '' : pathname}`;
   return NextResponse.redirect(url);
+}
+
+// Handle admin authentication with Supabase session
+async function handleAdminAuth(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip auth check for login page
+  if (pathname === '/admin/login') {
+    return NextResponse.next();
+  }
+
+  let response = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin/login';
+    return NextResponse.redirect(url);
+  }
+
+  return response;
 }
 
 export const config = {

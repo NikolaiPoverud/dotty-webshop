@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('products')
-      .select('*')
+      .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id')
       .order('display_order', { ascending: true });
 
     // Filter by availability (show all, including sold, but mark them)

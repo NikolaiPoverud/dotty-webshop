@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { Locale, Product, Collection } from '@/types';
+import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ShopContent } from '@/components/shop/shop-content';
 import { createClient } from '@/lib/supabase/server';
 import { BreadcrumbJsonLd } from '@/components/seo';
@@ -23,13 +23,14 @@ const pageText = {
   },
 };
 
-async function getProducts(): Promise<Product[]> {
+async function getProducts(): Promise<ProductListItem[]> {
   try {
     const supabase = await createClient();
 
     const { data: products, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id')
+      .is('deleted_at', null)  // Exclude soft-deleted
       .order('is_featured', { ascending: false })
       .order('display_order', { ascending: true });
 
@@ -45,13 +46,14 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-async function getCollections(): Promise<Collection[]> {
+async function getCollections(): Promise<CollectionCard[]> {
   try {
     const supabase = await createClient();
 
     const { data: collections, error } = await supabase
       .from('collections')
-      .select('*')
+      .select('id, name, slug, description')
+      .is('deleted_at', null)  // Exclude soft-deleted
       .order('display_order', { ascending: true });
 
     if (error) {

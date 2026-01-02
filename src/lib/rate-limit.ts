@@ -1,29 +1,13 @@
 /**
- * Simple in-memory rate limiter for Edge/Serverless functions
- * Uses a sliding window approach
+ * Rate limiter with Vercel KV (Redis) backend for serverless environments
+ * Falls back to in-memory for development/testing
  */
 
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-}
-
-// In-memory store (per instance - works for moderate traffic)
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(key);
-    }
-  }
-}, 60000); // Clean every minute
+import { kv } from '@vercel/kv';
 
 export interface RateLimitConfig {
-  maxRequests: number; // Maximum requests allowed
-  windowMs: number; // Time window in milliseconds
+  maxRequests: number;
+  windowMs: number;
 }
 
 export interface RateLimitResult {
@@ -32,35 +16,71 @@ export interface RateLimitResult {
   resetTime: number;
 }
 
+// In-memory fallback for development (when KV is not configured)
+const memoryStore = new Map<string, { count: number; resetTime: number }>();
+
 /**
  * Check if a request should be rate limited
- * @param identifier - Unique identifier for the client (usually IP address)
- * @param config - Rate limit configuration
- * @returns Rate limit result
+ * Uses Redis in production, in-memory in development
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
-): RateLimitResult {
+): Promise<RateLimitResult> {
   const now = Date.now();
-  const key = identifier;
-  const entry = rateLimitStore.get(key);
+  const key = `ratelimit:${identifier}`;
+  const windowSeconds = Math.ceil(config.windowMs / 1000);
 
-  // If no entry exists or window has expired, start fresh
+  // Try Redis first (production)
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+    try {
+      const current = await kv.get<number>(key);
+
+      if (current === null) {
+        // First request in window
+        await kv.set(key, 1, { ex: windowSeconds });
+        return {
+          success: true,
+          remaining: config.maxRequests - 1,
+          resetTime: now + config.windowMs,
+        };
+      }
+
+      if (current < config.maxRequests) {
+        // Under limit, increment
+        await kv.incr(key);
+        return {
+          success: true,
+          remaining: config.maxRequests - current - 1,
+          resetTime: now + config.windowMs,
+        };
+      }
+
+      // Rate limit exceeded
+      const ttl = await kv.ttl(key);
+      return {
+        success: false,
+        remaining: 0,
+        resetTime: now + (ttl > 0 ? ttl * 1000 : config.windowMs),
+      };
+    } catch (error) {
+      console.error('Redis rate limit error, falling back to memory:', error);
+      // Fall through to memory store
+    }
+  }
+
+  // In-memory fallback (development or Redis failure)
+  const entry = memoryStore.get(key);
+
   if (!entry || now > entry.resetTime) {
-    const newEntry: RateLimitEntry = {
-      count: 1,
-      resetTime: now + config.windowMs,
-    };
-    rateLimitStore.set(key, newEntry);
+    memoryStore.set(key, { count: 1, resetTime: now + config.windowMs });
     return {
       success: true,
       remaining: config.maxRequests - 1,
-      resetTime: newEntry.resetTime,
+      resetTime: now + config.windowMs,
     };
   }
 
-  // If within window and under limit, increment
   if (entry.count < config.maxRequests) {
     entry.count++;
     return {
@@ -70,7 +90,6 @@ export function checkRateLimit(
     };
   }
 
-  // Rate limit exceeded
   return {
     success: false,
     remaining: 0,
@@ -80,17 +99,20 @@ export function checkRateLimit(
 
 /**
  * Get IP address from request headers
+ * Uses Vercel's trusted headers in production
  */
 export function getClientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for');
+  // Vercel provides the true client IP in x-real-ip (trusted, not spoofable)
+  // https://vercel.com/docs/edge-network/headers#x-real-ip
   const realIp = request.headers.get('x-real-ip');
-
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-
   if (realIp) {
     return realIp;
+  }
+
+  // Fallback to x-forwarded-for (less trusted, take first IP)
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
   }
 
   return 'unknown';
@@ -104,4 +126,16 @@ export function getRateLimitHeaders(result: RateLimitResult): Record<string, str
     'X-RateLimit-Remaining': result.remaining.toString(),
     'X-RateLimit-Reset': Math.ceil(result.resetTime / 1000).toString(),
   };
+}
+
+// Clean up memory store periodically (for dev environment)
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of memoryStore.entries()) {
+      if (now > entry.resetTime) {
+        memoryStore.delete(key);
+      }
+    }
+  }, 60000);
 }

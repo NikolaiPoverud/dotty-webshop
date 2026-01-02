@@ -2,7 +2,13 @@
   "navigation": {
     "shop": "Shop",
     "cart": "Handlekurv",
-    "about": "Om kunstneren"
+    "about": "Om",
+    "aboutArtist": "Om kunstneren",
+    "art": "Kunst",
+    "contact": "Kontakt",
+    "collections": "Samlinger",
+    "allProducts": "Alle produkter",
+    "admin": "Admin"
   },
   "hero": {
     "title": "Pop-art med personlighet",
@@ -17,13 +23,18 @@
     "sold": "Solgt",
     "original": "Original",
     "print": "Trykk",
-    "requestSimilar": "Interessert i lignende verk?"
+    "requestSimilar": "Interessert i lignende verk?",
+    "sizes": "Størrelser",
+    "left": "igjen"
   },
   "cart": {
     "title": "Handlekurv",
     "empty": "Handlekurven din er tom",
+    "emptyShort": "Handlekurven er tom",
     "continueShopping": "Fortsett å handle",
+    "continueShoppingShort": "Fortsett handelen",
     "checkout": "Gå til kassen",
+    "toCheckout": "Til kassen",
     "remove": "Fjern",
     "subtotal": "Delsum",
     "total": "Totalt",
@@ -57,6 +68,9 @@
     "privacy": "Personvern",
     "terms": "Vilkår",
     "copyright": "Alle rettigheter reservert"
+  },
+  "language": {
+    "switchTo": "English"
   },
   "errors": {
     "itemSold": "Oops! Noen var raskere enn deg - dette verket er solgt!",

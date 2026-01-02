@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
-import type { Locale, Product, Collection } from '@/types';
+import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 
@@ -39,8 +39,8 @@ function formatPrice(priceInOre: number): string {
 
 interface FeaturedGridProps {
   lang: Locale;
-  products: Product[];
-  collections: Collection[];
+  products: ProductListItem[];
+  collections: CollectionCard[];
   showFilters?: boolean;
 }
 

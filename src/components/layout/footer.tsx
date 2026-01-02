@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Instagram } from 'lucide-react';
+import { Instagram, Shield, RotateCcw, CreditCard } from 'lucide-react';
 import type { Locale } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
@@ -14,6 +14,9 @@ const footerText = {
     cookies: 'Informasjonskapsler',
     myData: 'Mine data',
     copyright: 'Alle rettigheter reservert',
+    returns: '14 dagers returrett',
+    securePayment: 'Sikker betaling',
+    freeShipping: 'Fri frakt over 1000 kr',
   },
   en: {
     privacy: 'Privacy',
@@ -21,6 +24,9 @@ const footerText = {
     cookies: 'Cookies',
     myData: 'My Data',
     copyright: 'All rights reserved',
+    returns: '14-day returns',
+    securePayment: 'Secure payment',
+    freeShipping: 'Free shipping over 1000 kr',
   },
 };
 
@@ -34,6 +40,22 @@ export function Footer({ lang }: { lang: Locale }) {
         {/* Newsletter Section */}
         <div className="mb-12">
           <NewsletterForm lang={lang} />
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-8 pb-8 border-b border-border">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <RotateCcw className="w-5 h-5 text-primary" />
+            <span className="text-sm">{t.returns}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="text-sm">{t.securePayment}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <CreditCard className="w-5 h-5 text-primary" />
+            <span className="text-sm">Stripe</span>
+          </div>
         </div>
 
         {/* Footer Links */}

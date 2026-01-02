@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getResend, emailConfig } from '@/lib/email/resend';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
+import { success, errors } from '@/lib/api-response';
 
 // Rate limit: 5 requests per minute per IP
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
@@ -15,15 +16,12 @@ const supabase = createClient(
 export async function POST(request: Request) {
   // Check rate limit
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`contact:${clientIp}`, RATE_LIMIT_CONFIG);
+  const rateLimitResult = await checkRateLimit(`contact:${clientIp}`, RATE_LIMIT_CONFIG);
 
   if (!rateLimitResult.success) {
     return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
-      {
-        status: 429,
-        headers: getRateLimitHeaders(rateLimitResult),
-      }
+      { success: false, error: 'Too many requests. Please try again later.', code: 'RATE_LIMITED' },
+      { status: 429, headers: getRateLimitHeaders(rateLimitResult) }
     );
   }
 
@@ -33,19 +31,13 @@ export async function POST(request: Request) {
 
     // Validate required fields
     if (!name || !email || !message) {
-      return NextResponse.json(
-        { error: 'Name, email, and message are required' },
-        { status: 400 }
-      );
+      return errors.badRequest('Name, email, and message are required');
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      );
+      return errors.badRequest('Invalid email address');
     }
 
     // Save to database
@@ -61,10 +53,7 @@ export async function POST(request: Request) {
 
     if (dbError) {
       console.error('Database error:', dbError);
-      return NextResponse.json(
-        { error: 'Failed to save message' },
-        { status: 500 }
-      );
+      return errors.internal('Failed to save message');
     }
 
     // Send email notification to artist
@@ -101,12 +90,9 @@ export async function POST(request: Request) {
       console.error('Failed to send email notification:', emailError);
     }
 
-    return NextResponse.json({ success: true, id: data.id });
+    return success({ id: data.id }, 'Message sent successfully');
   } catch (error) {
     console.error('Contact form error:', error);
-    return NextResponse.json(
-      { error: 'An unexpected error occurred' },
-      { status: 500 }
-    );
+    return errors.internal('An unexpected error occurred');
   }
 }

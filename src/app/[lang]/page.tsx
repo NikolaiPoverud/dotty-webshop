@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { Locale, Product, Collection, Testimonial } from '@/types';
+import type { Locale, ProductListItem, CollectionCard, TestimonialCard } from '@/types';
 import { Hero } from '@/components/landing/hero';
 import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { ArtistStatement } from '@/components/landing/artist-statement';
@@ -17,12 +17,12 @@ type Props = {
   params: Promise<{ lang: string }>;
 };
 
-async function getFeaturedProducts(): Promise<Product[]> {
+async function getFeaturedProducts(): Promise<ProductListItem[]> {
   try {
     const supabase = await createClient();
     const { data: products, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id')
       .order('is_featured', { ascending: false })
       .order('display_order', { ascending: true })
       .limit(12);
@@ -39,13 +39,14 @@ async function getFeaturedProducts(): Promise<Product[]> {
   }
 }
 
-async function getCollections(): Promise<Collection[]> {
+async function getCollections(): Promise<CollectionCard[]> {
   try {
     const supabase = await createClient();
 
     const { data: collections, error } = await supabase
       .from('collections')
-      .select('*')
+      .select('id, name, slug, description')
+      .is('deleted_at', null)  // Exclude soft-deleted
       .order('display_order', { ascending: true });
 
     if (error) {
@@ -60,14 +61,15 @@ async function getCollections(): Promise<Collection[]> {
   }
 }
 
-async function getTestimonials(): Promise<Testimonial[]> {
+async function getTestimonials(): Promise<TestimonialCard[]> {
   try {
     const supabase = await createClient();
 
     const { data: testimonials, error } = await supabase
       .from('testimonials')
-      .select('*')
+      .select('id, name, feedback, source')
       .eq('is_active', true)
+      .is('deleted_at', null)  // Exclude soft-deleted
       .order('display_order', { ascending: true });
 
     if (error) {

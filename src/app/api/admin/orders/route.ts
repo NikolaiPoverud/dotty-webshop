@@ -1,18 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase
+    const { searchParams } = new URL(request.url);
+
+    // DB-010: Parse pagination params
+    const paginationParams = parsePaginationParams(searchParams);
+    const { from, to } = getPaginationRange(paginationParams);
+
+    // Optional status filter
+    const status = searchParams.get('status');
+
+    let query = supabase
       .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
-    return NextResponse.json({ data });
+    return NextResponse.json(buildPaginationResult(data || [], count, paginationParams));
   } catch (error) {
     console.error('Failed to fetch orders:', error);
     return NextResponse.json(
@@ -23,6 +44,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
     const body = await request.json();

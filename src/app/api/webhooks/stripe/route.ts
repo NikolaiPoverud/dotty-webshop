@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
+import { getStripe } from '@/lib/stripe';
 import type { Order } from '@/types';
-
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    throw new Error('STRIPE_SECRET_KEY is not configured');
-  }
-  return new Stripe(key);
-}
 
 export async function POST(request: NextRequest) {
   const stripe = getStripe();
@@ -68,7 +61,7 @@ export async function POST(request: NextRequest) {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const metadata = session.metadata;
-  
+
   if (!metadata) {
     console.error('No metadata in session');
     return;
@@ -81,115 +74,152 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const items = JSON.parse(metadata.items || '[]');
     const shippingAddress = JSON.parse(metadata.shipping_address || '{}');
 
-    // Create order in database
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
-        customer_email: metadata.customer_email,
-        customer_name: metadata.customer_name,
-        customer_phone: metadata.customer_phone,
-        shipping_address: shippingAddress,
-        items: items,
-        subtotal: parseInt(metadata.subtotal),
-        discount_code: metadata.discount_code || null,
-        discount_amount: parseInt(metadata.discount_amount) || 0,
-        total: parseInt(metadata.total),
-        payment_provider: 'stripe',
-        payment_session_id: session.id,
-        status: 'paid',
-      })
-      .select()
-      .single();
+    // DB-007: Use atomic transaction function for order processing
+    // This wraps order creation, discount decrement, and inventory update in a single transaction
+    const { data: result, error: rpcError } = await supabase.rpc('process_order', {
+      p_customer_email: metadata.customer_email,
+      p_customer_name: metadata.customer_name,
+      p_customer_phone: metadata.customer_phone,
+      p_shipping_address: shippingAddress,
+      p_items: items,
+      p_subtotal: parseInt(metadata.subtotal),
+      p_discount_code: metadata.discount_code || null,
+      p_discount_amount: parseInt(metadata.discount_amount) || 0,
+      p_total: parseInt(metadata.total),
+      p_payment_session_id: session.id,
+    });
 
-    if (error) {
-      console.error('Failed to create order:', error);
+    // Check for RPC errors or function not existing
+    if (rpcError) {
+      console.warn('Atomic order processing unavailable, using fallback:', rpcError.message);
+      await handleCheckoutCompletedFallback(supabase, session, metadata, items, shippingAddress);
       return;
     }
 
-    console.log('Order created successfully:', order.id);
+    // Process result
+    if (!result?.success) {
+      console.error('Order processing failed:', result?.error);
+      return;
+    }
 
-    // Decrement discount code uses_remaining if a code was used
-    if (metadata.discount_code) {
-      const { error: discountError } = await supabase.rpc('decrement_discount_uses', {
-        discount_code: metadata.discount_code,
-      });
+    if (result.is_duplicate) {
+      console.log(`Order already exists for session ${session.id}, skipping duplicate processing`);
+      return;
+    }
 
-      if (discountError) {
-        // Fallback: manually decrement if RPC doesn't exist
-        const { data: discountData } = await supabase
-          .from('discount_codes')
-          .select('uses_remaining')
-          .ilike('code', metadata.discount_code)
-          .single();
+    console.log('Order created successfully (atomic):', result.order_id);
 
-        if (discountData && discountData.uses_remaining !== null) {
-          await supabase
-            .from('discount_codes')
-            .update({ uses_remaining: Math.max(0, discountData.uses_remaining - 1) })
-            .ilike('code', metadata.discount_code);
+    // Log any inventory errors (non-fatal)
+    if (result.errors && result.errors.length > 0) {
+      console.warn('Some inventory updates had issues:', result.errors);
+    }
+
+    // Log successful inventory updates
+    if (result.items_processed) {
+      for (const item of result.items_processed) {
+        if (item.product_type === 'original') {
+          console.log(`Original artwork sold: product ${item.product_id} - marked as unavailable`);
+        } else {
+          console.log(`Print stock updated: product ${item.product_id} - new stock: ${item.new_stock}`);
         }
-        console.log(`Discount code "${metadata.discount_code}" usage decremented`);
       }
     }
 
-    // Send confirmation emails (customer + artist)
-    try {
-      const emailResults = await sendOrderEmails(order as Order);
-      if (!emailResults.confirmation.success) {
-        console.error('Customer email failed:', emailResults.confirmation.error);
-      }
-      if (!emailResults.alert.success) {
-        console.error('Artist notification failed:', emailResults.alert.error);
-      }
-    } catch (emailError) {
-      // Don't fail the webhook if emails fail
-      console.error('Email sending error:', emailError);
-    }
+    // Fetch the order for email sending
+    const { data: order } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', result.order_id)
+      .single();
 
-    // Update product availability/stock
-    for (const item of items) {
-      const { data: product } = await supabase
-        .from('products')
-        .select('product_type, stock_quantity, title')
-        .eq('id', item.product_id)
-        .single();
-
-      if (product) {
-        if (product.product_type === 'original') {
-          // Mark original as sold (one-of-a-kind)
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({ is_available: false })
-            .eq('id', item.product_id);
-
-          if (updateError) {
-            console.error(`Failed to mark original as sold: ${product.title}`, updateError);
-          } else {
-            console.log(`Original artwork sold: "${product.title}" - marked as unavailable`);
-          }
-        } else if (product.product_type === 'print') {
-          // Decrease print stock
-          const currentStock = product.stock_quantity ?? 0;
-          const newQuantity = Math.max(0, currentStock - item.quantity);
-
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({
-              stock_quantity: newQuantity,
-              is_available: newQuantity > 0,
-            })
-            .eq('id', item.product_id);
-
-          if (updateError) {
-            console.error(`Failed to update print stock: ${product.title}`, updateError);
-          } else {
-            console.log(`Print stock updated: "${product.title}" - ${currentStock} → ${newQuantity} (ordered: ${item.quantity})`);
-          }
+    if (order) {
+      // Send confirmation emails (outside transaction - non-critical)
+      try {
+        const emailResults = await sendOrderEmails(order as Order);
+        if (!emailResults.confirmation.success) {
+          console.error('Customer email failed:', emailResults.confirmation.error);
         }
+        if (!emailResults.alert.success) {
+          console.error('Artist notification failed:', emailResults.alert.error);
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
       }
     }
 
   } catch (error) {
     console.error('Error handling checkout completed:', error);
+  }
+}
+
+// Fallback for when the atomic RPC function is not available
+async function handleCheckoutCompletedFallback(
+  supabase: ReturnType<typeof createAdminClient>,
+  session: Stripe.Checkout.Session,
+  metadata: Stripe.Metadata,
+  items: Array<{ product_id: string; quantity: number }>,
+  shippingAddress: Record<string, unknown>
+) {
+  // SEC-004: Idempotency check
+  const { data: existingOrder } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('payment_session_id', session.id)
+    .maybeSingle();
+
+  if (existingOrder) {
+    console.log(`Order already exists for session ${session.id}, skipping`);
+    return;
+  }
+
+  // Create order
+  const { data: order, error } = await supabase
+    .from('orders')
+    .insert({
+      customer_email: metadata.customer_email,
+      customer_name: metadata.customer_name,
+      customer_phone: metadata.customer_phone,
+      shipping_address: shippingAddress,
+      items: items,
+      subtotal: parseInt(metadata.subtotal),
+      discount_code: metadata.discount_code || null,
+      discount_amount: parseInt(metadata.discount_amount) || 0,
+      total: parseInt(metadata.total),
+      payment_provider: 'stripe',
+      payment_session_id: session.id,
+      status: 'paid',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to create order:', error);
+    return;
+  }
+
+  console.log('Order created (fallback):', order.id);
+
+  // Decrement discount code
+  if (metadata.discount_code) {
+    const normalizedCode = metadata.discount_code.toUpperCase();
+    await supabase
+      .from('discount_codes')
+      .update({ uses_remaining: supabase.rpc('greatest', { a: 0, b: 'uses_remaining - 1' }) })
+      .eq('code', normalizedCode);
+  }
+
+  // Update inventory
+  for (const item of items) {
+    await supabase.rpc('decrement_product_stock', {
+      p_product_id: item.product_id,
+      p_quantity: item.quantity,
+    });
+  }
+
+  // Send emails
+  try {
+    await sendOrderEmails(order as Order);
+  } catch (emailError) {
+    console.error('Email error:', emailError);
   }
 }

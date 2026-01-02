@@ -1,10 +1,37 @@
 import Stripe from 'stripe';
 
-// Server-side Stripe client
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover',
-  typescript: true,
-});
+// ARCH-008: Consolidated Stripe client
+// Use getStripe() for safe access with error handling
+
+let stripeInstance: Stripe | null = null;
+
+/**
+ * Get or create the Stripe client instance
+ * Throws if STRIPE_SECRET_KEY is not configured
+ */
+export function getStripe(): Stripe {
+  if (stripeInstance) return stripeInstance;
+
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+
+  stripeInstance = new Stripe(key, {
+    apiVersion: '2025-12-15.clover',
+    typescript: true,
+  });
+
+  return stripeInstance;
+}
+
+// Legacy export for backwards compatibility
+// @deprecated Use getStripe() instead
+export const stripe = {
+  get checkout() { return getStripe().checkout; },
+  get webhooks() { return getStripe().webhooks; },
+  get coupons() { return getStripe().coupons; },
+} as unknown as Stripe;
 
 // Create a checkout session
 export async function createCheckoutSession({
@@ -37,7 +64,7 @@ export async function createCheckoutSession({
     quantity: item.quantity,
   }));
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: lineItems,
     mode: 'payment',
@@ -58,7 +85,7 @@ export async function createCheckoutSession({
 
 // Verify webhook signature
 export function constructWebhookEvent(body: string, signature: string) {
-  return stripe.webhooks.constructEvent(
+  return getStripe().webhooks.constructEvent(
     body,
     signature,
     process.env.STRIPE_WEBHOOK_SECRET!

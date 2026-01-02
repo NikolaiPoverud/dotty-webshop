@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import type { Locale } from '@/types';
 
 const artistText = {
@@ -32,17 +33,16 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
             transition={{ duration: 0.6 }}
           >
             {/* Main image container */}
-            <div className="relative bg-muted w-full h-full">
-              {/* Placeholder - replace with actual artist photo */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <div className="text-6xl mb-4">🎨</div>
-                  <p className="text-sm uppercase tracking-widest">Artist Photo</p>
-                </div>
-              </div>
-
-              {/* Halftone overlay */}
-              <div className="absolute inset-0 halftone-pattern opacity-50" />
+            <div className="relative bg-muted w-full h-full overflow-hidden rounded-lg">
+              <Image
+                src="/artist.jpg"
+                alt="Dotty - Artist"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              {/* Subtle pink overlay */}
+              <div className="absolute inset-0 bg-primary/10" />
             </div>
           </motion.div>
 

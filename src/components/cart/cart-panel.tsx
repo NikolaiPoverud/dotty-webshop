@@ -11,34 +11,31 @@ import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
-const text = {
-  no: {
-    title: 'Handlekurv',
-    empty: 'Handlekurven er tom',
-    continueShopping: 'Fortsett handelen',
-    subtotal: 'Delsum',
-    checkout: 'Til kassen',
-    remove: 'Fjern',
-  },
-  en: {
-    title: 'Shopping Cart',
-    empty: 'Your cart is empty',
-    continueShopping: 'Continue shopping',
-    subtotal: 'Subtotal',
-    checkout: 'Checkout',
-    remove: 'Remove',
-  },
-};
+interface CartDictionary {
+  title: string;
+  empty: string;
+  continueShopping: string;
+  subtotal: string;
+  checkout: string;
+  remove: string;
+}
 
 interface CartPanelProps {
   isOpen: boolean;
   onClose: () => void;
   lang: Locale;
+  dictionary?: CartDictionary;
 }
 
-export function CartPanel({ isOpen, onClose, lang }: CartPanelProps) {
+// Fallback for backwards compatibility
+const fallbackText: Record<Locale, CartDictionary> = {
+  no: { title: 'Handlekurv', empty: 'Handlekurven er tom', continueShopping: 'Fortsett handelen', subtotal: 'Delsum', checkout: 'Til kassen', remove: 'Fjern' },
+  en: { title: 'Shopping Cart', empty: 'Your cart is empty', continueShopping: 'Continue shopping', subtotal: 'Subtotal', checkout: 'Checkout', remove: 'Remove' },
+};
+
+export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps) {
   const { cart, itemCount, updateQuantity, removeItem } = useCart();
-  const t = text[lang];
+  const t = dictionary || fallbackText[lang];
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

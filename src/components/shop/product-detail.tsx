@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, ArrowLeft } from 'lucide-react';
+import { Check, ArrowLeft, Truck } from 'lucide-react';
 import Link from 'next/link';
 import type { Locale, Product, GalleryImage } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -24,6 +24,8 @@ const text = {
     viewCart: 'Se handlekurv',
     original: 'Original',
     print: 'Trykk',
+    shipping: 'Frakt',
+    freeShipping: 'Gratis',
   },
   en: {
     backToShop: 'Back to shop',
@@ -37,16 +39,19 @@ const text = {
     viewCart: 'View cart',
     original: 'Original',
     print: 'Print',
+    shipping: 'Shipping',
+    freeShipping: 'Free',
   },
 };
 
 interface ProductDetailProps {
   product: Product;
   collectionName: string | null;
+  shippingCost: number;
   lang: Locale;
 }
 
-export function ProductDetail({ product, collectionName, lang }: ProductDetailProps) {
+export function ProductDetail({ product, collectionName, shippingCost, lang }: ProductDetailProps) {
   const t = text[lang];
   const router = useRouter();
   const { addItem, cart } = useCart();
@@ -184,6 +189,17 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
                 <span className="text-muted-foreground">{t.availability}</span>
                 <span className={`font-medium ${isSold ? 'text-error' : ''}`}>
                   {isSold ? t.soldOut : t.available}
+                </span>
+              </div>
+
+              {/* Shipping */}
+              <div className="flex justify-between items-center pb-6 border-b border-border">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Truck className="w-4 h-4" />
+                  {t.shipping}
+                </span>
+                <span className={`font-medium ${shippingCost === 0 ? 'text-green-500' : ''}`}>
+                  {shippingCost === 0 ? t.freeShipping : formatPrice(shippingCost)}
                 </span>
               </div>
             </div>

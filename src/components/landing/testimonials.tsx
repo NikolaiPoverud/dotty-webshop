@@ -3,10 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Instagram, Facebook, MessageCircle } from 'lucide-react';
-import type { Testimonial } from '@/types';
+import type { TestimonialCard } from '@/types';
 
 interface TestimonialsProps {
-  testimonials: Testimonial[];
+  testimonials: TestimonialCard[];
 }
 
 const sourceIcons: Record<string, React.ReactNode> = {

@@ -1,9 +1,6 @@
-import { createBrowserClient } from '@supabase/ssr';
+// ARCH-005: Consolidated Supabase clients
+// Re-export from client.ts for backwards compatibility
+import { createClient } from './client';
 
-// Browser client for client components
-export function createAuthClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+// @deprecated Use createClient from './client' instead
+export const createAuthClient = createClient;

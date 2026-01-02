@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getResend, emailConfig } from '@/lib/email/resend';
 import { testEmailTemplate } from '@/lib/email/templates';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const { email } = await request.json();
 
