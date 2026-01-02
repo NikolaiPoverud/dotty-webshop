@@ -20,7 +20,7 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
   const t = artistText[lang];
 
   return (
-    <section id="about" className="py-20 sm:py-32 relative overflow-hidden scroll-mt-20">
+    <section id="about" className="py-20 sm:py-32 relative overflow-hidden scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Artist Image Placeholder */}

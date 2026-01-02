@@ -66,16 +66,8 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
 
   if (products.length === 0) {
     return (
-      <section id="art" className="py-20 sm:py-32 relative scroll-mt-20">
+      <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2
-            className="text-3xl sm:text-4xl font-bold mb-12"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            {t.title}
-          </motion.h2>
           <p className="text-muted-foreground text-center py-12">{t.empty}</p>
         </div>
       </section>
@@ -83,18 +75,10 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
   }
 
   return (
-    <section id="art" className="py-20 sm:py-32 relative scroll-mt-20">
+    <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex items-center justify-between mb-8">
-          <motion.h2
-            className="text-3xl sm:text-4xl font-bold"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            {t.title}
-          </motion.h2>
+        {/* View All Link */}
+        <div className="flex justify-end mb-8">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
