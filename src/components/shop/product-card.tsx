@@ -22,6 +22,7 @@ interface ProductCardProps {
   lang: Locale;
   index?: number;
   dictionary?: ShopDictionary;
+  isHighlighted?: boolean;
 }
 
 // Fallback for backwards compatibility
@@ -30,7 +31,7 @@ const fallbackText: Record<Locale, ShopDictionary> = {
   en: { original: 'Original', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
 };
 
-export const ProductCard = memo(function ProductCard({ product, lang, index = 0, dictionary }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, lang, index = 0, dictionary, isHighlighted }: ProductCardProps) {
   const t = dictionary || fallbackText[lang];
   // Item is sold if not available OR stock is 0
   const isSold = !product.is_available || product.stock_quantity === 0;
@@ -38,7 +39,11 @@ export const ProductCard = memo(function ProductCard({ product, lang, index = 0,
   return (
     <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
       <motion.article
-        className="group relative bg-muted rounded-lg overflow-hidden"
+        className={`group relative bg-muted rounded-lg overflow-hidden ${
+          isHighlighted ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
+        }`}
+        initial={isHighlighted ? { scale: 1.02 } : undefined}
+        animate={isHighlighted ? { scale: [1.02, 1], boxShadow: ['0 0 40px rgba(254, 32, 106, 0.5)', '0 0 20px rgba(254, 32, 106, 0.3)'] } : undefined}
         whileHover={{ y: -8 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >
