@@ -24,8 +24,6 @@ const text = {
     viewCart: 'Se handlekurv',
     original: 'Original',
     print: 'Trykk',
-    shipping: 'Frakt',
-    freeShipping: 'Gratis',
     // Inquiry-only product
     inquiryOnly: 'Forespørsel påkrevd',
     inquiryDescription: 'Dette verket selges ikke direkte. Legg igjen din e-post, så tar vi kontakt.',
@@ -46,8 +44,6 @@ const text = {
     viewCart: 'View cart',
     original: 'Original',
     print: 'Print',
-    shipping: 'Shipping',
-    freeShipping: 'Free',
     // Inquiry-only product
     inquiryOnly: 'Inquiry required',
     inquiryDescription: 'This artwork is not sold directly. Leave your email and we will contact you.',
@@ -61,11 +57,10 @@ const text = {
 interface ProductDetailProps {
   product: Product;
   collectionName: string | null;
-  shippingCost: number;
   lang: Locale;
 }
 
-export function ProductDetail({ product, collectionName, shippingCost, lang }: ProductDetailProps) {
+export function ProductDetail({ product, collectionName, lang }: ProductDetailProps) {
   const t = text[lang];
   const router = useRouter();
   const { addItem, cart } = useCart();
