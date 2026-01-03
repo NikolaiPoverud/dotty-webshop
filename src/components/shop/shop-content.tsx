@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ProductCard } from './product-card';
 import { FilterTabs, type FilterOption } from './filter-tabs';
@@ -28,6 +28,7 @@ interface ShopContentProps {
 
 export function ShopContent({ products, collections, lang, initialCollection, highlightedProduct }: ShopContentProps) {
   const t = filterText[lang];
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Get collection and highlight from URL
@@ -38,12 +39,30 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
 
   const [activeFilter, setActiveFilter] = useState(defaultFilter);
 
-  // Update filter when URL changes
+  // Update filter when initialCollection changes (from URL route)
   useEffect(() => {
-    if (collectionFromUrl) {
+    if (initialCollection) {
+      setActiveFilter(initialCollection);
+    } else if (collectionFromUrl) {
       setActiveFilter(collectionFromUrl);
     }
-  }, [collectionFromUrl]);
+  }, [initialCollection, collectionFromUrl]);
+
+  // Handle filter change - update URL
+  const handleFilterChange = (filterId: string) => {
+    setActiveFilter(filterId);
+
+    if (filterId === 'all') {
+      // Navigate to main shop page
+      router.push(`/${lang}/shop`);
+    } else {
+      // Find collection slug and navigate to collection page
+      const collection = collections.find(c => c.id === filterId);
+      if (collection) {
+        router.push(`/${lang}/shop/${collection.slug}`);
+      }
+    }
+  };
 
   // Scroll to highlighted product
   useEffect(() => {
@@ -88,7 +107,7 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
           <FilterTabs
             options={filterOptions}
             activeId={activeFilter}
-            onChange={setActiveFilter}
+            onChange={handleFilterChange}
             centered
           />
         </motion.div>
