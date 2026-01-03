@@ -22,8 +22,8 @@ const text = {
     addToCart: 'Legg i Handlekurv',
     addedToCart: 'Lagt i handlekurv',
     viewCart: 'Se handlekurv',
-    original: 'Original',
-    print: 'Trykk',
+    original: 'Maleri',
+    print: 'Prints',
     // Inquiry-only product
     inquiryOnly: 'Forespørsel påkrevd',
     inquiryDescription: 'Dette verket selges ikke direkte. Legg igjen din e-post, så tar vi kontakt.',
@@ -46,7 +46,7 @@ const text = {
     addToCart: 'Add to Cart',
     addedToCart: 'Added to cart',
     viewCart: 'View cart',
-    original: 'Original',
+    original: 'Painting',
     print: 'Print',
     // Inquiry-only product
     inquiryOnly: 'Inquiry required',

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Instagram, Shield, RotateCcw, CreditCard } from 'lucide-react';
+import { Instagram, Mail, Shield, RotateCcw, CreditCard } from 'lucide-react';
 import type { Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
@@ -106,6 +106,13 @@ export function Footer({ lang, collections = [] }: FooterProps) {
 
           {/* Social + Links */}
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <a
+              href="mailto:hei@dotty.no"
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Email"
+            >
+              <Mail className="w-5 h-5" />
+            </a>
             <a
               href="https://instagram.com/dottyartwork"
               target="_blank"

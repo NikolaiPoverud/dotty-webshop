@@ -27,8 +27,8 @@ interface ProductCardProps {
 
 // Fallback for backwards compatibility
 const fallbackText: Record<Locale, ShopDictionary> = {
-  no: { original: 'Original', print: 'Trykk', sold: 'Solgt', sizes: 'Størrelser', left: 'igjen' },
-  en: { original: 'Original', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
+  no: { original: 'Maleri', print: 'Prints', sold: 'Solgt', sizes: 'Størrelser', left: 'igjen' },
+  en: { original: 'Painting', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
 };
 
 export const ProductCard = memo(function ProductCard({ product, lang, index = 0, dictionary, isHighlighted }: ProductCardProps) {

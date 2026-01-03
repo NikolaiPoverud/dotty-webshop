@@ -172,7 +172,7 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 bg-background text-xs uppercase rounded">
-                      {product.product_type === 'original' ? 'Original' : 'Trykk'}
+                      {product.product_type === 'original' ? 'Maleri' : 'Prints'}
                     </span>
                   </td>
                   <td className="px-6 py-4 font-medium">

@@ -13,8 +13,8 @@ const sectionText = {
   no: {
     title: 'Nyeste verk',
     viewAll: 'Se alle',
-    original: 'Original',
-    print: 'Trykk',
+    original: 'Maleri',
+    print: 'Prints',
     empty: 'Kommer snart...',
     all: 'Alle',
     sold: 'Solgt',
@@ -22,7 +22,7 @@ const sectionText = {
   en: {
     title: 'Latest works',
     viewAll: 'View all',
-    original: 'Original',
+    original: 'Painting',
     print: 'Print',
     empty: 'Coming soon...',
     all: 'All',

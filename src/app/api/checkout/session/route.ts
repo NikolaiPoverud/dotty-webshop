@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient();
     const { data: order } = await supabase
       .from('orders')
-      .select('id, order_number, customer_email, total')
+      .select('id, order_number, customer_email, total, items')
       .eq('payment_session_id', sessionId)
       .single();
 
@@ -50,11 +50,13 @@ export async function GET(request: NextRequest) {
         order_number: order.order_number,
         email: maskEmail(order.customer_email),
         total: order.total,
+        items: order.items || [],
       } : {
         id: session.id,
         order_number: null, // Order not yet created
         email: maskEmail(session.customer_email),
         total: session.amount_total,
+        items: [],
       },
     });
 

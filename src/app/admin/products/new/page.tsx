@@ -231,7 +231,7 @@ export default function NewProductPage() {
                     onChange={() => setProductType('original')}
                     className="w-4 h-4 text-primary"
                   />
-                  <span>Original</span>
+                  <span>Maleri</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -242,7 +242,7 @@ export default function NewProductPage() {
                     onChange={() => setProductType('print')}
                     className="w-4 h-4 text-primary"
                   />
-                  <span>Trykk</span>
+                  <span>Prints</span>
                 </label>
               </div>
             </div>

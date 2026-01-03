@@ -2,10 +2,11 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { CheckCircle, Package, Loader2 } from 'lucide-react';
 import { Suspense, use, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import type { Locale } from '@/types';
+import type { Locale, OrderItem } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { formatPrice } from '@/lib/utils';
@@ -20,6 +21,7 @@ const text = {
     backToShop: 'Tilbake til shop',
     total: 'Total betalt',
     loading: 'Henter ordredetaljer...',
+    yourOrder: 'Din bestilling',
   },
   en: {
     title: 'Thank you for your order!',
@@ -30,6 +32,7 @@ const text = {
     backToShop: 'Back to shop',
     total: 'Total paid',
     loading: 'Loading order details...',
+    yourOrder: 'Your order',
   },
 };
 
@@ -38,6 +41,7 @@ interface OrderInfo {
   order_number: string | null;
   email: string;
   total: number;
+  items: OrderItem[];
 }
 
 function LoadingFallback({ t }: { t: typeof text['no'] }) {
@@ -143,6 +147,33 @@ function SuccessContent({ locale, t }: { locale: Locale; t: typeof text['no'] })
                 <div className="mt-4 pt-4 border-t border-border">
                   <p className="text-sm text-muted-foreground">{t.emailSent}</p>
                   <p className="font-medium">{orderInfo.email}</p>
+                </div>
+              )}
+
+              {/* Order Items */}
+              {orderInfo?.items && orderInfo.items.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-3">{t.yourOrder}</p>
+                  <div className="space-y-3">
+                    {orderInfo.items.map((item, index) => (
+                      <div key={index} className="flex items-center gap-3 text-left">
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background flex-shrink-0">
+                          <Image
+                            src={item.image_url}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{item.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatPrice(item.price)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
