@@ -57,7 +57,7 @@ export function AdminSidebar() {
   }, []);
 
   return (
-    <aside className="w-64 bg-muted border-r border-border flex flex-col">
+    <aside className="w-64 min-w-64 h-screen sticky top-0 bg-muted border-r border-border flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <Link href="/admin/dashboard" className="text-xl font-bold">

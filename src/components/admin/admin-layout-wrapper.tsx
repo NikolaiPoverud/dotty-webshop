@@ -26,7 +26,7 @@ export function AdminLayoutWrapper({ children, sidebar }: AdminLayoutWrapperProp
     <ToastProvider>
       <div className="min-h-screen flex">
         {sidebar}
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 min-h-screen overflow-y-auto p-8">
           {children}
         </main>
       </div>
