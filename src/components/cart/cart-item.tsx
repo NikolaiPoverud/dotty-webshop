@@ -13,11 +13,15 @@ const text = {
     remove: 'Fjern',
     reserved: 'Reservert',
     expires: 'Utløper',
+    original: 'Maleri',
+    print: 'Prints',
   },
   en: {
     remove: 'Remove',
     reserved: 'Reserved',
     expires: 'Expires',
+    original: 'Painting',
+    print: 'Print',
   },
 };
 
@@ -83,7 +87,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
           <div>
             <h3 className="font-semibold truncate">{product.title}</h3>
             <p className="text-sm text-muted-foreground capitalize">
-              {product.product_type === 'original' ? 'Original' : 'Print'}
+              {product.product_type === 'original' ? t.original : t.print}
             </p>
           </div>
 
