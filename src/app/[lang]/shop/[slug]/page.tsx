@@ -316,18 +316,12 @@ export default async function ShopSlugPage({ params }: Props) {
             </Link>
 
             {/* Collection Title */}
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
               <span className="gradient-text">{collection.name}</span>
             </h1>
 
-            {/* Collection Description */}
-            {collection.description && (
-              <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-8">
-                {collection.description}
-              </p>
-            )}
-
             {/* Shop Content - reuse the same component for consistent UX */}
+            {/* Description is now handled inside ShopContent with smooth animations */}
             <ShopContent
               products={products}
               collections={allCollections}

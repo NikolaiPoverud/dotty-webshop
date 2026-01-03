@@ -18,6 +18,8 @@ const filterText = {
   },
 };
 
+const MAX_DESCRIPTION_CHARS = 150;
+
 interface ShopContentProps {
   products: ProductListItem[];
   collections: CollectionCard[];
@@ -94,24 +96,55 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
     return products.filter(p => p.collection_id === activeFilter);
   }, [products, activeFilter]);
 
+  // Get active collection description (truncated)
+  const activeDescription = useMemo(() => {
+    if (activeFilter === 'all') return null;
+    const collection = collections.find(c => c.id === activeFilter);
+    if (!collection?.description) return null;
+
+    const desc = collection.description;
+    if (desc.length <= MAX_DESCRIPTION_CHARS) return desc;
+    return desc.slice(0, MAX_DESCRIPTION_CHARS).trim() + '...';
+  }, [activeFilter, collections]);
+
   return (
     <>
-      {/* Filter Tabs - Centered */}
-      {filterOptions.length > 1 && (
-        <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <FilterTabs
-            options={filterOptions}
-            activeId={activeFilter}
-            onChange={handleFilterChange}
-            centered
-          />
-        </motion.div>
-      )}
+      {/* Filter Section - Fixed spacing */}
+      <div className="mb-12">
+        {/* Filter Tabs - Centered */}
+        {filterOptions.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <FilterTabs
+              options={filterOptions}
+              activeId={activeFilter}
+              onChange={handleFilterChange}
+              centered
+            />
+          </motion.div>
+        )}
+
+        {/* Collection Description - Fixed height container */}
+        <div className="h-16 flex items-center justify-center mt-6">
+          <AnimatePresence mode="wait">
+            {activeDescription && (
+              <motion.p
+                key={activeFilter}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="text-center text-muted-foreground max-w-2xl px-4"
+              >
+                {activeDescription}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
       {/* Product Grid */}
       {filteredProducts.length > 0 ? (
