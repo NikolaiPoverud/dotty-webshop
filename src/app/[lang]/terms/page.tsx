@@ -1,4 +1,29 @@
+import type { Metadata } from 'next';
 import type { Locale } from '@/types';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isNorwegian = lang === 'no';
+
+  const title = isNorwegian ? 'Vilkår' : 'Terms & Conditions';
+  const description = isNorwegian
+    ? 'Les våre kjøpsvilkår for handel hos Dotty. - priser, betaling, levering, angrerett og reklamasjon.'
+    : 'Read our terms and conditions for shopping at Dotty. - prices, payment, delivery, returns and complaints.';
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/${lang}/terms`,
+      languages: {
+        'nb-NO': `${BASE_URL}/no/terms`,
+        'en': `${BASE_URL}/en/terms`,
+      },
+    },
+  };
+}
 
 const content = {
   no: {

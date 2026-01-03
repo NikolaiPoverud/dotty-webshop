@@ -65,10 +65,11 @@ const text = {
 interface ProductDetailProps {
   product: Product;
   collectionName: string | null;
+  collectionSlug?: string | null;
   lang: Locale;
 }
 
-export function ProductDetail({ product, collectionName, lang }: ProductDetailProps) {
+export function ProductDetail({ product, collectionName, collectionSlug, lang }: ProductDetailProps) {
   const t = text[lang];
   const router = useRouter();
   const { addItem, cart } = useCart();
@@ -231,9 +232,18 @@ export function ProductDetail({ product, collectionName, lang }: ProductDetailPr
           >
             {/* Collection Name */}
             {collectionName && (
-              <p className="text-primary font-medium mb-2">
-                {collectionName}
-              </p>
+              collectionSlug ? (
+                <Link
+                  href={`/${lang}/shop/${collectionSlug}`}
+                  className="text-primary font-medium mb-2 hover:underline inline-block"
+                >
+                  {collectionName}
+                </Link>
+              ) : (
+                <p className="text-primary font-medium mb-2">
+                  {collectionName}
+                </p>
+              )
             )}
 
             {/* Product Title */}

@@ -47,19 +47,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]);
 
-  // Collection URLs
+  // Collection URLs - now with dedicated SEO-friendly pages
   const collectionUrls = (collections || []).flatMap((collection) => [
     {
-      url: `${DOMAIN_NO}/no/shop?collection=${collection.slug}`,
+      url: `${DOMAIN_NO}/no/shop/${collection.slug}`,
       lastModified: collection.updated_at ? new Date(collection.updated_at) : now,
       changeFrequency: 'weekly' as const,
-      priority: 0.6,
+      priority: 0.8,
     },
     {
-      url: `${DOMAIN_EN}/en/shop?collection=${collection.slug}`,
+      url: `${DOMAIN_EN}/en/shop/${collection.slug}`,
       lastModified: collection.updated_at ? new Date(collection.updated_at) : now,
       changeFrequency: 'weekly' as const,
-      priority: 0.5,
+      priority: 0.7,
     },
   ]);
 

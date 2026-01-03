@@ -152,18 +152,21 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
             <button
               onClick={() => setIsCartOpen(true)}
               className="relative group"
+              aria-label={`${t.cart}${itemCount > 0 ? ` (${itemCount})` : ''}`}
             >
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2 rounded-full hover:bg-muted transition-colors"
               >
-                <ShoppingBag className="w-5 h-5" />
+                <ShoppingBag className="w-5 h-5" aria-hidden="true" />
                 {itemCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-background text-xs font-bold rounded-full flex items-center justify-center"
+                    role="status"
+                    aria-live="polite"
                   >
                     {itemCount > 9 ? '9+' : itemCount}
                   </motion.span>
@@ -184,8 +187,10 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps) {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="sm:hidden p-2 hover:bg-muted rounded-lg transition-colors"
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Minus, Plus, X } from 'lucide-react';
 import type { CartItem as CartItemType, Locale } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -64,10 +65,12 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
       {/* Image */}
       <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden flex-shrink-0">
         {product.image_url ? (
-          <img
+          <Image
             src={product.image_url}
             alt={product.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 96px, 128px"
           />
         ) : (
           <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />

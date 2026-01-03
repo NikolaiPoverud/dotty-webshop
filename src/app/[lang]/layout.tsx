@@ -49,7 +49,7 @@ export default async function LangLayout({
       <div className="min-h-screen flex flex-col" lang={locale}>
         <Header lang={locale} collections={collections} />
         <main className="flex-1">{children}</main>
-        <Footer lang={locale} />
+        <Footer lang={locale} collections={collections} />
         <CookieConsent lang={locale} />
       </div>
     </PasswordGate>

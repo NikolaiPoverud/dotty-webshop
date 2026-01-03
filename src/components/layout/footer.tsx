@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Instagram, Shield, RotateCcw, CreditCard } from 'lucide-react';
-import type { Locale } from '@/types';
+import type { Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
 import { resetCookieConsent } from '@/components/gdpr/cookie-consent';
@@ -17,6 +17,9 @@ const footerText = {
     returns: '14 dagers returrett',
     securePayment: 'Sikker betaling',
     freeShipping: 'Fri frakt over 1000 kr',
+    shop: 'Shop',
+    collections: 'Samlinger',
+    allProducts: 'Alle produkter',
   },
   en: {
     privacy: 'Privacy',
@@ -27,10 +30,18 @@ const footerText = {
     returns: '14-day returns',
     securePayment: 'Secure payment',
     freeShipping: 'Free shipping over 1000 kr',
+    shop: 'Shop',
+    collections: 'Collections',
+    allProducts: 'All products',
   },
 };
 
-export function Footer({ lang }: { lang: Locale }) {
+interface FooterProps {
+  lang: Locale;
+  collections?: Collection[];
+}
+
+export function Footer({ lang, collections = [] }: FooterProps) {
   const t = footerText[lang];
   const currentYear = new Date().getFullYear();
 
@@ -41,6 +52,34 @@ export function Footer({ lang }: { lang: Locale }) {
         <div className="mb-12">
           <NewsletterForm lang={lang} />
         </div>
+
+        {/* Shop Links - Collections */}
+        {collections.length > 0 && (
+          <div className="mb-8 pb-8 border-b border-border">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href={`/${lang}/shop`}
+                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              >
+                {t.allProducts}
+              </Link>
+              <span className="text-muted-foreground">•</span>
+              {collections.map((collection, index) => (
+                <span key={collection.id} className="flex items-center gap-4">
+                  <Link
+                    href={`/${lang}/shop/${collection.slug}`}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {collection.name}
+                  </Link>
+                  {index < collections.length - 1 && (
+                    <span className="text-muted-foreground">•</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Trust Badges */}
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-8 pb-8 border-b border-border">

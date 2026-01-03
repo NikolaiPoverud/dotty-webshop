@@ -1,7 +1,32 @@
+import type { Metadata } from 'next';
 import type { Locale, Product, Collection } from '@/types';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { CollectionFilter } from '@/components/shop/collection-filter';
 import { createClient } from '@/lib/supabase/server';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isNorwegian = lang === 'no';
+
+  const title = isNorwegian ? 'Solgte verk' : 'Sold Works';
+  const description = isNorwegian
+    ? 'Utforsk solgte originale kunstverk fra Dotty. Interessert i lignende verk? Ta kontakt!'
+    : 'Explore sold original artworks from Dotty. Interested in similar work? Get in touch!';
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/${lang}/${isNorwegian ? 'solgt' : 'sold'}`,
+      languages: {
+        'nb-NO': `${BASE_URL}/no/solgt`,
+        'en': `${BASE_URL}/en/sold`,
+      },
+    },
+  };
+}
 
 const pageText = {
   no: {

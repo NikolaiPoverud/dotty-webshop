@@ -1,5 +1,30 @@
+import type { Metadata } from 'next';
 import type { Locale } from '@/types';
 import Link from 'next/link';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isNorwegian = lang === 'no';
+
+  const title = isNorwegian ? 'Personvernerklæring' : 'Privacy Policy';
+  const description = isNorwegian
+    ? 'Les om hvordan Dotty. samler inn, bruker og beskytter dine personopplysninger i henhold til GDPR.'
+    : 'Learn how Dotty. collects, uses, and protects your personal data in accordance with GDPR.';
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/${lang}/privacy`,
+      languages: {
+        'nb-NO': `${BASE_URL}/no/privacy`,
+        'en': `${BASE_URL}/en/privacy`,
+      },
+    },
+  };
+}
 
 const content = {
   no: {
