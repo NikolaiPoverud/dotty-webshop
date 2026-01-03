@@ -9,11 +9,16 @@ interface AdminLayoutWrapperProps {
   sidebar: ReactNode;
 }
 
+// Pages that should not show the admin sidebar
+const publicAdminPages = ['/admin/login', '/admin/reset-password'];
+
 export function AdminLayoutWrapper({ children, sidebar }: AdminLayoutWrapperProps) {
   const pathname = usePathname();
 
-  // Don't show sidebar on login page
-  if (pathname === '/admin/login') {
+  // Don't show sidebar on login/reset-password pages
+  const isPublicPage = publicAdminPages.some(page => pathname === page || pathname?.startsWith(`${page}/`));
+
+  if (isPublicPage) {
     return <ToastProvider>{children}</ToastProvider>;
   }
 
