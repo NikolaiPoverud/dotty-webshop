@@ -67,7 +67,7 @@ export function Footer({ lang, collections = [] }: FooterProps) {
               {collections.map((collection, index) => (
                 <span key={collection.id} className="flex items-center gap-4">
                   <Link
-                    href={`/${lang}/shop/${collection.slug}`}
+                    href={collection.slug === 'kunst' ? `/${lang}/shop` : `/${lang}/shop/${collection.slug}`}
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {collection.name}
