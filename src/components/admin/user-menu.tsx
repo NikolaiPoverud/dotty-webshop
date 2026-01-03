@@ -38,14 +38,19 @@ export function UserMenu() {
     setIsLoggingOut(true);
 
     try {
-      const response = await fetch('/api/auth/logout', {
+      // Sign out from browser client first
+      const supabase = createAuthClient();
+      await supabase.auth.signOut();
+
+      // Then clear server session
+      await fetch('/api/auth/logout', {
         method: 'POST',
       });
 
-      if (response.ok) {
-        router.push('/admin/login');
-        router.refresh();
-      }
+      // Clear user state and redirect
+      setUser(null);
+      router.push('/admin/login');
+      router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {

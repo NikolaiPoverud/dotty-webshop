@@ -85,15 +85,20 @@ export async function middleware(request: NextRequest) {
 async function handleAdminAuth(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Create request headers with x-pathname for the layout to read
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
+
   // Skip auth check for login and reset-password pages
   if (pathname === '/admin/login' || pathname === '/admin/reset-password') {
-    const response = NextResponse.next();
-    response.headers.set('x-pathname', pathname);
-    return response;
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 
-  let response = NextResponse.next({ request });
-  response.headers.set('x-pathname', pathname);
+  let response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -107,7 +112,9 @@ async function handleAdminAuth(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          response = NextResponse.next({ request });
+          response = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
