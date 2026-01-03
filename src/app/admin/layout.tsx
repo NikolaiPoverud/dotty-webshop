@@ -45,13 +45,16 @@ export default async function AdminLayout({
                       referer.includes('/admin/login') ||
                       referer.includes('/admin/reset-password');
 
-  // For non-auth pages, verify the user is logged in
-  if (!isLoginPage) {
-    const user = await getUser();
+  // For login/reset pages, render without the admin layout wrapper
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
-    if (!user) {
-      redirect('/admin/login');
-    }
+  // For other admin pages, verify the user is logged in
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/admin/login');
   }
 
   return (
