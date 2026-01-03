@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface GDPRStats {
   cookieConsent: {
@@ -164,7 +165,7 @@ export default function GDPRDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/gdpr-stats');
+      const response = await adminFetch('/api/admin/gdpr-stats');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setStats(result);
@@ -183,7 +184,7 @@ export default function GDPRDashboardPage() {
     setIsRunningCleanup(true);
     setCleanupResult(null);
     try {
-      const response = await fetch('/api/admin/data-cleanup', {
+      const response = await adminFetch('/api/admin/data-cleanup', {
         method: 'POST',
       });
       const result = await response.json();

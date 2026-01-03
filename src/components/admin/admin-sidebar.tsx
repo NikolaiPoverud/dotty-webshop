@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
+import { adminFetch } from '@/lib/admin-fetch';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Oversikt', icon: LayoutDashboard },
@@ -39,7 +40,7 @@ export function AdminSidebar() {
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const response = await fetch('/api/admin/contact/unread-count');
+        const response = await adminFetch('/api/admin/contact/unread-count');
         if (response.ok) {
           const data = await response.json();
           setUnreadCount(data.count || 0);

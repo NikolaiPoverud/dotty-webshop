@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Copy, Check, Loader2, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { DiscountCode } from '@/types';
+import { adminFetch } from '@/lib/admin-fetch';
 
 export default function AdminDiscountsPage() {
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
@@ -25,7 +26,7 @@ export default function AdminDiscountsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/discounts');
+      const response = await adminFetch('/api/admin/discounts');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setDiscounts(result.data || []);
@@ -82,7 +83,7 @@ export default function AdminDiscountsPage() {
         ? `/api/admin/discounts/${editingDiscount.id}`
         : '/api/admin/discounts';
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method: editingDiscount ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(discountData),
@@ -101,7 +102,7 @@ export default function AdminDiscountsPage() {
 
   const toggleActive = async (id: string, currentValue: boolean) => {
     try {
-      const response = await fetch(`/api/admin/discounts/${id}`, {
+      const response = await adminFetch(`/api/admin/discounts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !currentValue }),
@@ -120,7 +121,7 @@ export default function AdminDiscountsPage() {
     if (!confirm('Er du sikker på at du vil slette denne rabattkoden?')) return;
 
     try {
-      const response = await fetch(`/api/admin/discounts/${id}`, {
+      const response = await adminFetch(`/api/admin/discounts/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete');

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface DashboardStats {
   salesThisMonth: number;
@@ -44,7 +45,7 @@ export default function AdminDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await adminFetch('/api/admin/stats');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setStats(result.data);

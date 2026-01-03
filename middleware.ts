@@ -85,12 +85,15 @@ export async function middleware(request: NextRequest) {
 async function handleAdminAuth(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip auth check for login page
-  if (pathname === '/admin/login') {
-    return NextResponse.next();
+  // Skip auth check for login and reset-password pages
+  if (pathname === '/admin/login' || pathname === '/admin/reset-password') {
+    const response = NextResponse.next();
+    response.headers.set('x-pathname', pathname);
+    return response;
   }
 
   let response = NextResponse.next({ request });
+  response.headers.set('x-pathname', pathname);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

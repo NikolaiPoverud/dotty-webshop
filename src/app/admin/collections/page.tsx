@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Loader2, RefreshCw, Truck
 import { useState, useEffect, useCallback } from 'react';
 import type { Collection } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { adminFetch } from '@/lib/admin-fetch';
 
 // Shipping cost options in øre
 const SHIPPING_OPTIONS = [
@@ -28,7 +29,7 @@ export default function AdminCollectionsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/collections');
+      const response = await adminFetch('/api/admin/collections');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setCollections(result.data || []);
@@ -69,7 +70,7 @@ export default function AdminCollectionsPage() {
         ? `/api/admin/collections/${editingCollection.id}`
         : '/api/admin/collections';
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method: editingCollection ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,7 +97,7 @@ export default function AdminCollectionsPage() {
     if (!confirm('Er du sikker på at du vil slette denne samlingen?')) return;
 
     try {
-      const response = await fetch(`/api/admin/collections/${id}`, {
+      const response = await adminFetch(`/api/admin/collections/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete');
@@ -134,7 +135,7 @@ export default function AdminCollectionsPage() {
 
       await Promise.all(
         updates.map((update) =>
-          fetch(`/api/admin/collections/${update.id}`, {
+          adminFetch(`/api/admin/collections/${update.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ display_order: update.display_order }),

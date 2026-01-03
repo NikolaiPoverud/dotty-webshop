@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { adminFetch } from '@/lib/admin-fetch';
 
 const gradients = [
   'from-primary to-accent',
@@ -23,13 +24,10 @@ export default function AdminProductsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/products');
+      const response = await adminFetch('/api/admin/products');
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Du må være logget inn for å se produkter');
-        }
         throw new Error(result.error || 'Failed to fetch products');
       }
 
@@ -51,7 +49,7 @@ export default function AdminProductsPage() {
     if (!confirm('Er du sikker pa at du vil slette dette produktet?')) return;
 
     try {
-      const response = await fetch(`/api/admin/products/${id}`, {
+      const response = await adminFetch(`/api/admin/products/${id}`, {
         method: 'DELETE',
       });
 

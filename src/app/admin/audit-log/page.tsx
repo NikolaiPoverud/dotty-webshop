@@ -18,6 +18,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface AuditLogEntry {
   id: string;
@@ -116,7 +117,7 @@ export default function AuditLogPage() {
       if (dateFrom) params.set('date_from', dateFrom);
       if (dateTo) params.set('date_to', dateTo);
 
-      const response = await fetch(`/api/admin/audit-log?${params}`);
+      const response = await adminFetch(`/api/admin/audit-log?${params}`);
       const result = await response.json();
 
       if (!response.ok) throw new Error(result.error);
@@ -132,7 +133,7 @@ export default function AuditLogPage() {
 
   const fetchFilterOptions = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/audit-log', {
+      const response = await adminFetch('/api/admin/audit-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'filters' }),

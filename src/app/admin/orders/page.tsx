@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { adminFetch } from '@/lib/admin-fetch';
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'Venter', color: 'bg-warning/10 text-warning', icon: Clock },
@@ -57,7 +58,7 @@ function AdminOrdersContent() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/orders');
+      const response = await adminFetch('/api/admin/orders');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setOrders(result.data || []);
@@ -92,7 +93,7 @@ function AdminOrdersContent() {
     }
 
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
+      const response = await adminFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,7 +126,7 @@ function AdminOrdersContent() {
 
   const handleDelivered = async (orderId: string) => {
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
+      const response = await adminFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'delivered' }),
@@ -147,7 +148,7 @@ function AdminOrdersContent() {
     if (!confirm('Er du sikker på at du vil kansellere denne ordren?')) return;
 
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
+      const response = await adminFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'cancelled' }),

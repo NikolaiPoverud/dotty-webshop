@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, GripVertical, Loader2, RefreshCw, Eye, EyeOff, Instagram, Facebook, MessageCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import type { Testimonial } from '@/types';
+import { adminFetch } from '@/lib/admin-fetch';
 
 const sourceOptions = ['Instagram', 'Facebook', 'Google', 'Email', 'Other'];
 
@@ -31,7 +32,7 @@ export default function AdminTestimonialsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/testimonials');
+      const response = await adminFetch('/api/admin/testimonials');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setTestimonials(result.data || []);
@@ -72,7 +73,7 @@ export default function AdminTestimonialsPage() {
         ? `/api/admin/testimonials/${editingTestimonial.id}`
         : '/api/admin/testimonials';
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method: editingTestimonial ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,7 +99,7 @@ export default function AdminTestimonialsPage() {
     if (!confirm('Er du sikker på at du vil slette denne tilbakemeldingen?')) return;
 
     try {
-      const response = await fetch(`/api/admin/testimonials/${id}`, {
+      const response = await adminFetch(`/api/admin/testimonials/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete');
@@ -110,7 +111,7 @@ export default function AdminTestimonialsPage() {
 
   const toggleActive = async (testimonial: Testimonial) => {
     try {
-      const response = await fetch(`/api/admin/testimonials/${testimonial.id}`, {
+      const response = await adminFetch(`/api/admin/testimonials/${testimonial.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !testimonial.is_active }),

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Mail, MailOpen, Trash2, Search, Loader2, RefreshCw, CheckCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface ContactSubmission {
   id: string;
@@ -27,7 +28,7 @@ export default function AdminContactPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/contact');
+      const response = await adminFetch('/api/admin/contact');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setSubmissions(result || []);
@@ -60,7 +61,7 @@ export default function AdminContactPage() {
 
   const handleToggleRead = async (id: string, currentlyRead: boolean) => {
     try {
-      const response = await fetch(`/api/admin/contact/${id}`, {
+      const response = await adminFetch(`/api/admin/contact/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_read: !currentlyRead }),
@@ -85,7 +86,7 @@ export default function AdminContactPage() {
 
     setDeletingId(id);
     try {
-      const response = await fetch(`/api/admin/contact/${id}`, {
+      const response = await adminFetch(`/api/admin/contact/${id}`, {
         method: 'DELETE',
       });
 
