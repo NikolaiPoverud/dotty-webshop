@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Download, Loader2, X, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
+import JSZip from 'jszip';
 
 // Configure PDF.js worker - use local copy for speed
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -19,6 +20,7 @@ interface ConvertedFile {
 export default function PdfConverterPage() {
   const [files, setFiles] = useState<ConvertedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const convertPdfToPng = async (file: File): Promise<string> => {
@@ -135,12 +137,36 @@ export default function PdfConverterPage() {
     link.click();
   };
 
-  const downloadAll = () => {
+  const downloadAll = async () => {
     const doneFiles = files.filter((f) => f.status === 'done' && f.pngDataUrl);
-    doneFiles.forEach((file, index) => {
-      // Stagger downloads to avoid browser blocking
-      setTimeout(() => downloadFile(file), index * 200);
-    });
+    if (doneFiles.length === 0) return;
+
+    setIsZipping(true);
+    try {
+      const zip = new JSZip();
+
+      // Add each PNG to the zip
+      for (const file of doneFiles) {
+        if (!file.pngDataUrl) continue;
+        // Convert data URL to blob
+        const response = await fetch(file.pngDataUrl);
+        const blob = await response.blob();
+        const filename = file.originalName.replace('.pdf', '.png').replace('.PDF', '.png');
+        zip.file(filename, blob);
+      }
+
+      // Generate and download zip
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.download = `dotty-bilder-${Date.now()}.zip`;
+      link.href = URL.createObjectURL(zipBlob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Zip error:', error);
+    } finally {
+      setIsZipping(false);
+    }
   };
 
   const removeFile = (id: string) => {
@@ -209,10 +235,20 @@ export default function PdfConverterPage() {
             {doneCount > 0 && (
               <button
                 onClick={downloadAll}
-                className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+                disabled={isZipping}
+                className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
-                <Download className="w-4 h-4" />
-                Last ned alle ({doneCount})
+                {isZipping ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Pakker...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Last ned ZIP ({doneCount})
+                  </>
+                )}
               </button>
             )}
           </div>
