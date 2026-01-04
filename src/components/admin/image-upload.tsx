@@ -139,7 +139,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
             <input
               ref={inputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+              accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf"
               onChange={handleFileSelect}
               className="hidden"
             />
