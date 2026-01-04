@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Download, Loader2, X, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker - use local copy for speed
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface ConvertedFile {
   id: string;
@@ -65,33 +65,40 @@ export default function PdfConverterPage() {
 
     setFiles((prev) => [...prev, ...newFiles]);
 
-    // Process each file
-    for (let i = 0; i < pdfFiles.length; i++) {
-      const file = pdfFiles[i];
-      const fileId = newFiles[i].id;
+    // Process files in parallel batches of 3
+    const batchSize = 3;
+    for (let i = 0; i < pdfFiles.length; i += batchSize) {
+      const batch = pdfFiles.slice(i, i + batchSize);
+      const batchIds = newFiles.slice(i, i + batchSize);
 
-      // Update status to converting
-      setFiles((prev) =>
-        prev.map((f) => (f.id === fileId ? { ...f, status: 'converting' as const } : f))
+      await Promise.all(
+        batch.map(async (file, idx) => {
+          const fileId = batchIds[idx].id;
+
+          // Update status to converting
+          setFiles((prev) =>
+            prev.map((f) => (f.id === fileId ? { ...f, status: 'converting' as const } : f))
+          );
+
+          try {
+            const pngDataUrl = await convertPdfToPng(file);
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.id === fileId ? { ...f, status: 'done' as const, pngDataUrl } : f
+              )
+            );
+          } catch (error) {
+            console.error('Conversion error:', error);
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.id === fileId
+                  ? { ...f, status: 'error' as const, error: 'Kunne ikke konvertere' }
+                  : f
+              )
+            );
+          }
+        })
       );
-
-      try {
-        const pngDataUrl = await convertPdfToPng(file);
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId ? { ...f, status: 'done' as const, pngDataUrl } : f
-          )
-        );
-      } catch (error) {
-        console.error('Conversion error:', error);
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? { ...f, status: 'error' as const, error: 'Kunne ikke konvertere' }
-              : f
-          )
-        );
-      }
     }
   };
 
