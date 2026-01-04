@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
+import { ChevronRight } from 'lucide-react';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
@@ -13,6 +14,7 @@ const sectionText = {
   no: {
     title: 'Nyeste verk',
     viewAll: 'Se alle',
+    seeMore: 'Se mer',
     original: 'Maleri',
     print: 'Prints',
     empty: 'Kommer snart...',
@@ -22,6 +24,7 @@ const sectionText = {
   en: {
     title: 'Latest works',
     viewAll: 'View all',
+    seeMore: 'See more',
     original: 'Painting',
     print: 'Print',
     empty: 'Coming soon...',
@@ -41,6 +44,8 @@ interface FeaturedGridProps {
 export function FeaturedGrid({ lang, products, collections, showFilters = true }: FeaturedGridProps) {
   const t = sectionText[lang];
   const [activeFilter, setActiveFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(0);
+  const productsPerPage = 3;
 
   const filterOptions: FilterOption[] = useMemo(() => {
     const options: FilterOption[] = [{ id: 'all', label: t.all }];
@@ -57,6 +62,23 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
     if (activeFilter === 'all') return products;
     return products.filter(p => p.collection_id === activeFilter);
   }, [products, activeFilter]);
+
+  // Reset page when filter changes
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    setCurrentPage(0);
+  };
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const hasMorePages = currentPage < totalPages - 1;
+  const startIndex = currentPage * productsPerPage;
+  const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
+
+  const handleNextPage = () => {
+    if (hasMorePages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
 
   if (products.length === 0) {
     return (
@@ -99,7 +121,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
             <FilterTabs
               options={filterOptions}
               activeId={activeFilter}
-              onChange={setActiveFilter}
+              onChange={handleFilterChange}
               centered
             />
           </motion.div>
@@ -111,8 +133,10 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
           layout
         >
           <AnimatePresence mode="popLayout">
-            {filteredProducts.slice(0, 3).map((product, index) => {
+            {visibleProducts.map((product, index) => {
               const isSold = !product.is_available || product.stock_quantity === 0;
+              const isLastProduct = index === visibleProducts.length - 1;
+              const showArrow = isLastProduct && hasMorePages;
 
               return (
                 <motion.div
@@ -122,10 +146,11 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{
-                    opacity: { duration: 0.2 },
-                    scale: { duration: 0.2 },
+                    opacity: { duration: 0.3 },
+                    scale: { duration: 0.3 },
                     layout: { type: 'spring', stiffness: 300, damping: 30 }
                   }}
+                  className="relative"
                 >
                   <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
                     <motion.article
@@ -195,6 +220,37 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                       )}
                     </motion.article>
                   </Link>
+
+                  {/* See More Arrow Overlay */}
+                  {showArrow && (
+                    <motion.button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNextPage();
+                      }}
+                      className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-l from-background/90 via-background/50 to-transparent rounded-lg" />
+
+                      {/* Arrow button */}
+                      <motion.div
+                        className="relative flex items-center gap-2 px-4 py-3 bg-primary text-background rounded-full font-medium shadow-lg"
+                        whileHover={{ scale: 1.05, x: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{
+                          x: { repeat: Infinity, duration: 1.5, ease: 'easeInOut' }
+                        }}
+                      >
+                        <span className="text-sm">{t.seeMore}</span>
+                        <ChevronRight className="w-5 h-5" />
+                      </motion.div>
+                    </motion.button>
+                  )}
                 </motion.div>
               );
             })}
