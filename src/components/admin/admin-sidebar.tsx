@@ -15,6 +15,7 @@ import {
   Shield,
   FileText,
   Send,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/admin/orders', label: 'Ordre', icon: ShoppingCart },
   { href: '/admin/products', label: 'Produkter', icon: Package },
   { href: '/admin/collections', label: 'Samlinger', icon: FolderOpen },
+  { href: '/admin/customers', label: 'Kunder', icon: Users },
   { href: '/admin/contact', label: 'Meldinger', icon: Mail },
   { href: '/admin/discounts', label: 'Rabattkoder', icon: Tag },
   { href: '/admin/testimonials', label: 'Tilbakemeldinger', icon: MessageSquareQuote },
