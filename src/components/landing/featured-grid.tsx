@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
@@ -14,7 +14,6 @@ const sectionText = {
   no: {
     title: 'Nyeste verk',
     viewAll: 'Se alle',
-    seeMore: 'Se mer',
     original: 'Maleri',
     print: 'Prints',
     empty: 'Kommer snart...',
@@ -24,7 +23,6 @@ const sectionText = {
   en: {
     title: 'Latest works',
     viewAll: 'View all',
-    seeMore: 'See more',
     original: 'Painting',
     print: 'Print',
     empty: 'Coming soon...',
@@ -70,13 +68,20 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
   };
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const hasMorePages = currentPage < totalPages - 1;
+  const hasNextPage = currentPage < totalPages - 1;
+  const hasPrevPage = currentPage > 0;
   const startIndex = currentPage * productsPerPage;
   const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
 
   const handleNextPage = () => {
-    if (hasMorePages) {
+    if (hasNextPage) {
       setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (hasPrevPage) {
+      setCurrentPage(prev => prev - 1);
     }
   };
 
@@ -127,135 +132,159 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
           </motion.div>
         )}
 
-        {/* Product Grid */}
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-          layout
-        >
-          <AnimatePresence mode="popLayout">
-            {visibleProducts.map((product, index) => {
-              const isSold = !product.is_available || product.stock_quantity === 0;
-              const isLastProduct = index === visibleProducts.length - 1;
-              const showArrow = isLastProduct && hasMorePages;
-
-              return (
+        {/* Product Grid with Navigation */}
+        <div className="relative">
+          {/* Left Arrow */}
+          <AnimatePresence>
+            {hasPrevPage && (
+              <motion.button
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                onClick={handlePrevPage}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-20 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-muted/80 backdrop-blur-sm border border-border hover:bg-primary hover:text-background transition-colors"
+              >
                 <motion.div
-                  key={product.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{
-                    opacity: { duration: 0.3 },
-                    scale: { duration: 0.3 },
-                    layout: { type: 'spring', stiffness: 300, damping: 30 }
-                  }}
-                  className="relative"
+                  animate={{ x: [0, -3, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
                 >
-                  <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
-                    <motion.article
-                      className="group relative bg-muted rounded-lg overflow-hidden"
-                      whileHover={isSold ? undefined : { y: -8 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    >
-                      {/* Image Container */}
-                      <div className="relative aspect-[4/5] overflow-hidden">
-                        {product.image_url ? (
-                          <Image
-                            src={product.image_url}
-                            alt={product.title}
-                            fill
-                            priority={index < 2}
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 bg-primary" />
-                        )}
+                  <ChevronLeft className="w-5 h-5" />
+                </motion.div>
+              </motion.button>
+            )}
+          </AnimatePresence>
 
-                        {/* Sold Overlay */}
-                        {isSold && (
-                          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                            <span className="px-6 py-2 bg-foreground text-background text-lg font-bold uppercase tracking-widest">
-                              {t.sold}
+          {/* Right Arrow */}
+          <AnimatePresence>
+            {hasNextPage && (
+              <motion.button
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                onClick={handleNextPage}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-20 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-muted/80 backdrop-blur-sm border border-border hover:bg-primary hover:text-background transition-colors"
+              >
+                <motion.div
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </motion.div>
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {/* Grid */}
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+            layout
+          >
+            <AnimatePresence mode="popLayout">
+              {visibleProducts.map((product, index) => {
+                const isSold = !product.is_available || product.stock_quantity === 0;
+
+                return (
+                  <motion.div
+                    key={product.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{
+                      opacity: { duration: 0.3 },
+                      scale: { duration: 0.3 },
+                      layout: { type: 'spring', stiffness: 300, damping: 30 }
+                    }}
+                  >
+                    <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
+                      <motion.article
+                        className="group relative bg-muted rounded-lg overflow-hidden"
+                        whileHover={isSold ? undefined : { y: -8 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      >
+                        {/* Image Container */}
+                        <div className="relative aspect-[4/5] overflow-hidden">
+                          {product.image_url ? (
+                            <Image
+                              src={product.image_url}
+                              alt={product.title}
+                              fill
+                              priority={index < 2}
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-primary" />
+                          )}
+
+                          {/* Sold Overlay */}
+                          {isSold && (
+                            <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                              <span className="px-6 py-2 bg-foreground text-background text-lg font-bold uppercase tracking-widest">
+                                {t.sold}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Hover Overlay (only if not sold) */}
+                          {!isSold && (
+                            <motion.div
+                              className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            />
+                          )}
+
+                          {/* Product Type Badge */}
+                          <div className="absolute top-4 left-4">
+                            <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
+                              {product.product_type === 'original' ? t.original : t.print}
                             </span>
                           </div>
-                        )}
+                        </div>
 
-                        {/* Hover Overlay (only if not sold) */}
+                        {/* Product Info */}
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                            {product.title}
+                          </h3>
+                          <p className="text-muted-foreground mt-1">
+                            {formatPrice(product.price)}
+                          </p>
+                        </div>
+
+                        {/* Glow Effect (only if not sold) */}
                         {!isSold && (
                           <motion.div
-                            className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            className="absolute inset-0 rounded-lg pointer-events-none"
+                            initial={{ boxShadow: 'none' }}
+                            whileHover={{
+                              boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
+                            }}
+                            transition={{ duration: 0.3 }}
                           />
                         )}
+                      </motion.article>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
 
-                        {/* Product Type Badge */}
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
-                            {product.product_type === 'original' ? t.original : t.print}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                          {product.title}
-                        </h3>
-                        <p className="text-muted-foreground mt-1">
-                          {formatPrice(product.price)}
-                        </p>
-                      </div>
-
-                      {/* Glow Effect (only if not sold) */}
-                      {!isSold && (
-                        <motion.div
-                          className="absolute inset-0 rounded-lg pointer-events-none"
-                          initial={{ boxShadow: 'none' }}
-                          whileHover={{
-                            boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
-                          }}
-                          transition={{ duration: 0.3 }}
-                        />
-                      )}
-                    </motion.article>
-                  </Link>
-
-                  {/* See More Arrow Overlay */}
-                  {showArrow && (
-                    <motion.button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleNextPage();
-                      }}
-                      className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-l from-background/90 via-background/50 to-transparent rounded-lg" />
-
-                      {/* Arrow button */}
-                      <motion.div
-                        className="relative flex items-center gap-2 px-4 py-3 bg-primary text-background rounded-full font-medium shadow-lg"
-                        whileHover={{ scale: 1.05, x: 5 }}
-                        whileTap={{ scale: 0.95 }}
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{
-                          x: { repeat: Infinity, duration: 1.5, ease: 'easeInOut' }
-                        }}
-                      >
-                        <span className="text-sm">{t.seeMore}</span>
-                        <ChevronRight className="w-5 h-5" />
-                      </motion.div>
-                    </motion.button>
-                  )}
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </motion.div>
+          {/* Mobile Navigation Dots */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-6 sm:hidden">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    i === currentPage ? 'bg-primary' : 'bg-muted-foreground/30'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Empty state for filtered results */}
         {filteredProducts.length === 0 && (
