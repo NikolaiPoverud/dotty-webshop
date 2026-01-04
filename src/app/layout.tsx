@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
 const geologica = Geologica({
   variable: "--font-geologica",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
 });
 
