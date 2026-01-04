@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         pathname: '/storage/v1/object/public/**',
       },
     ],
+    // Cap image sizes at 800px to protect artwork from high-res downloads
+    deviceSizes: [320, 420, 640, 800],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // High quality for best display within size limits
+    quality: 85,
   },
   async redirects() {
     return [
