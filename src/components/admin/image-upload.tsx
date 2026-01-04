@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Loader2, Image as ImageIcon, FileText } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageUploadProps {
@@ -57,7 +57,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
-    if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+    if (file && file.type.startsWith('image/')) {
       handleUpload(file);
     }
   }, []);
@@ -98,19 +98,12 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative aspect-[4/3] max-h-64 rounded-lg overflow-hidden bg-muted"
           >
-            {value.endsWith('.pdf') ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                <FileText className="w-16 h-16 text-primary" />
-                <p className="text-sm text-muted-foreground">PDF-fil lastet opp</p>
-              </div>
-            ) : (
-              <Image
-                src={value}
-                alt="Product preview"
-                fill
-                className="object-cover"
-              />
-            )}
+            <Image
+              src={value}
+              alt="Product preview"
+              fill
+              className="object-cover"
+            />
             <button
               type="button"
               onClick={handleRemove}
@@ -139,7 +132,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
             <input
               ref={inputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -168,7 +161,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    JPEG, PNG, WebP, GIF, PDF (maks 10MB)
+                    JPEG, PNG, WebP, GIF (maks 10MB)
                   </p>
                 </>
               )}

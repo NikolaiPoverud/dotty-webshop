@@ -2,18 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
-// SEC-005: Magic byte signatures for file validation
-const FILE_SIGNATURES: { type: string; ext: string; bytes: number[]; offset?: number }[] = [
+// SEC-005: Magic byte signatures for image validation
+const IMAGE_SIGNATURES: { type: string; ext: string; bytes: number[]; offset?: number }[] = [
   { type: 'image/jpeg', ext: 'jpg', bytes: [0xFF, 0xD8, 0xFF] },
   { type: 'image/png', ext: 'png', bytes: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
   { type: 'image/gif', ext: 'gif', bytes: [0x47, 0x49, 0x46, 0x38] }, // GIF8
   { type: 'image/webp', ext: 'webp', bytes: [0x52, 0x49, 0x46, 0x46] }, // RIFF header (WebP also has WEBP at offset 8)
-  { type: 'application/pdf', ext: 'pdf', bytes: [0x25, 0x50, 0x44, 0x46] }, // %PDF
 ];
 
 // Validate file content matches magic bytes
 function validateFileMagicBytes(buffer: Uint8Array): { valid: boolean; type: string; ext: string } | null {
-  for (const sig of FILE_SIGNATURES) {
+  for (const sig of IMAGE_SIGNATURES) {
     const offset = sig.offset || 0;
     if (buffer.length < offset + sig.bytes.length) continue;
 
@@ -69,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (!fileValidation) {
       console.warn('Magic byte validation failed for file:', file.name);
       return NextResponse.json(
-        { error: 'Invalid file type. File must be a valid JPEG, PNG, WebP, GIF image or PDF.' },
+        { error: 'Invalid file type. File must be a valid JPEG, PNG, WebP, or GIF image.' },
         { status: 400 }
       );
     }
