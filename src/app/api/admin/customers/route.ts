@@ -11,6 +11,7 @@ interface CustomerEmail {
   email: string;
   source: 'newsletter' | 'order';
   name?: string;
+  is_confirmed?: boolean;
 }
 
 // GET: Fetch all unique customer emails
@@ -21,12 +22,12 @@ export async function GET() {
   try {
     const supabase = createAdminClient();
 
-    // Get newsletter subscribers
+    // Get all newsletter subscribers (not unsubscribed)
     const { data: subscribers, error: subscribersError } = await supabase
       .from('newsletter_subscribers')
-      .select('email, subscribed_at')
-      .eq('is_active', true)
-      .order('subscribed_at', { ascending: false });
+      .select('email, created_at, is_confirmed')
+      .is('unsubscribed_at', null)
+      .order('created_at', { ascending: false });
 
     if (subscribersError) {
       console.error('Failed to fetch subscribers:', subscribersError);
@@ -50,7 +51,11 @@ export async function GET() {
     (subscribers || []).forEach((sub) => {
       const email = sub.email.toLowerCase();
       if (!emailMap.has(email)) {
-        emailMap.set(email, { email, source: 'newsletter' });
+        emailMap.set(email, {
+          email,
+          source: 'newsletter',
+          is_confirmed: sub.is_confirmed ?? false,
+        });
       }
     });
 
