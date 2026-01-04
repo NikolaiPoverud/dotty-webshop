@@ -16,10 +16,8 @@ export function getResend(): Resend {
 
 // Email configuration
 export const emailConfig = {
-  // Use Resend verified sender (update when domain is verified)
-  from: process.env.RESEND_FROM_EMAIL
-    ? `Dotty <${process.env.RESEND_FROM_EMAIL}>`
-    : 'Dotty <onboarding@resend.dev>',
+  // Use Resend verified sender with dotty.no domain
+  from: 'Dotty <hei@dotty.no>',
   // Artist email for order notifications
   artistEmail: process.env.ARTIST_EMAIL || 'hei@dotty.no',
   // Base URLs for links in emails
