@@ -25,9 +25,9 @@ export async function GET() {
     // Get all newsletter subscribers (not unsubscribed)
     const { data: subscribers, error: subscribersError } = await supabase
       .from('newsletter_subscribers')
-      .select('email, created_at, is_confirmed')
+      .select('email, subscribed_at, is_confirmed')
       .is('unsubscribed_at', null)
-      .order('created_at', { ascending: false });
+      .order('subscribed_at', { ascending: false });
 
     if (subscribersError) {
       console.error('Failed to fetch subscribers:', subscribersError);
