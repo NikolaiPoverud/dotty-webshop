@@ -14,55 +14,63 @@ export async function GET() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-    // Fetch all data in parallel
+    // Fetch all data in parallel - optimized with counts and filters
     const [
       ordersThisMonth,
-      allProducts,
-      subscribers,
+      totalProductsCount,
+      availableProductsCount,
+      totalSubscribersCount,
+      subscribersThisMonthCount,
       recentOrders,
     ] = await Promise.all([
-      // Orders this month
+      // Orders this month - only needed fields
       supabase
         .from('orders')
         .select('total, status')
         .gte('created_at', startOfMonth)
         .lte('created_at', endOfMonth),
 
-      // All products
+      // Total products count
       supabase
         .from('products')
-        .select('id, is_available'),
+        .select('id', { count: 'exact', head: true }),
 
-      // Newsletter subscribers
+      // Available products count
+      supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_available', true),
+
+      // Total subscribers count
       supabase
         .from('newsletter_subscribers')
-        .select('id, created_at'),
+        .select('id', { count: 'exact', head: true }),
 
-      // Recent orders for display
+      // Subscribers this month count
+      supabase
+        .from('newsletter_subscribers')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', startOfMonth),
+
+      // Recent orders - only needed fields
       supabase
         .from('orders')
-        .select('*')
+        .select('id, order_number, customer_name, total, status, created_at')
         .order('created_at', { ascending: false })
         .limit(5),
     ]);
 
-    // Calculate stats
+    // Calculate stats from optimized queries
     const ordersData = ordersThisMonth.data || [];
     const salesThisMonth = ordersData
       .filter(o => o.status !== 'cancelled')
       .reduce((sum, o) => sum + (o.total || 0), 0);
     const orderCountThisMonth = ordersData.length;
 
-    const productsData = allProducts.data || [];
-    const totalProducts = productsData.length;
-    const availableProducts = productsData.filter(p => p.is_available).length;
-
-    const subscribersData = subscribers.data || [];
-    const totalSubscribers = subscribersData.length;
-    const subscribersThisMonth = subscribersData.filter(s => {
-      const created = new Date(s.created_at);
-      return created >= new Date(startOfMonth);
-    }).length;
+    const totalProducts = totalProductsCount.count || 0;
+    const availableProducts = availableProductsCount.count || 0;
+    const totalSubscribers = totalSubscribersCount.count || 0;
+    const subscribersThisMonth = subscribersThisMonthCount.count || 0;
 
     return NextResponse.json({
       data: {

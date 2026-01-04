@@ -257,20 +257,11 @@ function AdminOrdersContent() {
             const isHighlighted = order.id === highlightId;
 
             return (
-              <motion.div
+              <div
                 key={order.id}
                 id={`order-${order.id}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  boxShadow: isHighlighted
-                    ? ['0 0 40px rgba(254, 32, 106, 0.5)', '0 0 20px rgba(254, 32, 106, 0.3)']
-                    : 'none'
-                }}
-                transition={{ delay: index * 0.05 }}
                 className={`bg-muted rounded-lg p-6 ${
-                  isHighlighted ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
+                  isHighlighted ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-[0_0_30px_rgba(254,32,106,0.3)]' : ''
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -401,7 +392,7 @@ function AdminOrdersContent() {
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

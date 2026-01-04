@@ -176,12 +176,9 @@ export default function AdminTestimonialsPage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
+          {testimonials.map((testimonial) => (
+            <div
               key={testimonial.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
               className={`bg-muted rounded-lg p-4 ${!testimonial.is_active ? 'opacity-50' : ''}`}
             >
               <div className="flex items-start gap-4">
@@ -235,7 +232,7 @@ export default function AdminTestimonialsPage() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

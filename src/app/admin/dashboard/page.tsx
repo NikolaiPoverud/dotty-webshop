@@ -175,14 +175,11 @@ export default function AdminDashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat, index) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
               className="bg-muted rounded-lg p-6"
             >
               <div className="flex items-center justify-between mb-4">
@@ -199,7 +196,7 @@ export default function AdminDashboardPage() {
                   : stat.value}
               </p>
               <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-            </motion.div>
+            </div>
           );
         })}
       </div>

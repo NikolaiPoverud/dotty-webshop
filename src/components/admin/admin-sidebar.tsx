@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -38,25 +38,48 @@ const navItems = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const lastFetchRef = useRef<number>(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    // Throttle: skip if fetched within last 30 seconds
+    const now = Date.now();
+    if (now - lastFetchRef.current < 30000) return;
+    lastFetchRef.current = now;
+
+    try {
+      const response = await adminFetch('/api/admin/contact/unread-count');
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const response = await adminFetch('/api/admin/contact/unread-count');
-        if (response.ok) {
-          const data = await response.json();
-          setUnreadCount(data.count || 0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch unread count:', error);
+    fetchUnreadCount();
+
+    // Only poll when document is visible, every 60 seconds
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchUnreadCount();
+      }
+    }, 60000);
+
+    // Also fetch when page becomes visible again
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUnreadCount();
       }
     };
+    document.addEventListener('visibilitychange', handleVisibility);
 
-    fetchUnreadCount();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [fetchUnreadCount]);
 
   return (
     <aside className="w-64 min-w-64 h-screen sticky top-0 bg-muted border-r border-border flex flex-col">

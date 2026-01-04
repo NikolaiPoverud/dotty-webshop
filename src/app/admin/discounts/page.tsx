@@ -215,12 +215,9 @@ export default function AdminDiscountsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {discounts.map((discount, index) => (
-                <motion.tr
+              {discounts.map((discount) => (
+                <tr
                   key={discount.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
                   className="hover:bg-muted-foreground/5"
                 >
                   <td className="px-6 py-4">
@@ -277,7 +274,7 @@ export default function AdminDiscountsPage() {
                       </button>
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

@@ -16,8 +16,9 @@ export async function GET(request: NextRequest) {
     const paginationParams = parsePaginationParams(searchParams);
     const { from, to } = getPaginationRange(paginationParams);
 
-    // Optional status filter
+    // Optional filters
     const status = searchParams.get('status');
+    const search = searchParams.get('search');
 
     let query = supabase
       .from('orders')
@@ -25,8 +26,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (status) {
+    if (status && status !== 'all') {
       query = query.eq('status', status);
+    }
+
+    // Server-side search on customer name, email, or order number
+    if (search) {
+      query = query.or(`customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,order_number.ilike.%${search}%`);
     }
 
     const { data, error, count } = await query;

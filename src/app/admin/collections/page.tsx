@@ -213,11 +213,8 @@ export default function AdminCollectionsPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {collections.map((collection, index) => (
-                <motion.tr
+                <tr
                   key={collection.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
                   className="hover:bg-muted-foreground/5"
                 >
                   <td className="px-4 py-4">
@@ -273,7 +270,7 @@ export default function AdminCollectionsPage() {
                       </button>
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

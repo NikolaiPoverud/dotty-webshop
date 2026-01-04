@@ -139,11 +139,8 @@ export default function AdminProductsPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {products.map((product, index) => (
-                <motion.tr
+                <tr
                   key={product.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
                   className="hover:bg-muted-foreground/5"
                 >
                   <td className="px-6 py-4">
@@ -214,7 +211,7 @@ export default function AdminProductsPage() {
                       </button>
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

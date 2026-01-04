@@ -396,12 +396,9 @@ export default function AuditLogPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log, index) => (
-                <motion.tr
+              {filteredLogs.map((log) => (
+                <tr
                   key={log.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.02 }}
                   className="border-b border-border/50 hover:bg-muted/50 transition-colors"
                 >
                   <td className="py-3 px-4">
@@ -463,7 +460,7 @@ export default function AuditLogPage() {
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

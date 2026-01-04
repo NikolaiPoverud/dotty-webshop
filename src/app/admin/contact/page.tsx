@@ -191,12 +191,9 @@ export default function AdminContactPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredSubmissions.map((submission, index) => (
-            <motion.div
+          {filteredSubmissions.map((submission) => (
+            <div
               key={submission.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
               className={`bg-muted rounded-lg overflow-hidden transition-all ${
                 !submission.is_read ? 'border-l-4 border-l-primary' : ''
               }`}
@@ -299,7 +296,7 @@ export default function AdminContactPage() {
                   </div>
                 </motion.div>
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
