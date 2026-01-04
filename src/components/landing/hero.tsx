@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import type { Locale } from '@/types';
 import { Logo } from '@/components/ui/logo';
 
@@ -57,6 +58,29 @@ export function Hero({ lang }: { lang: Locale }) {
           {t.subtitle}
         </motion.p>
       </div>
+
+      {/* Scroll Indicator */}
+      <motion.button
+        onClick={() => {
+          document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
+        }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.8 }}
+        aria-label="Scroll down"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          <ChevronDown className="w-6 h-6" />
+        </motion.div>
+      </motion.button>
     </section>
   );
 }
