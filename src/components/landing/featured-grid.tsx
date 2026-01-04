@@ -134,41 +134,43 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
 
         {/* Product Grid with Navigation */}
         <div className="relative">
-          {/* Left Arrow */}
+          {/* Left Arrow - positioned between grid and screen edge */}
           <AnimatePresence>
             {hasPrevPage && (
               <motion.button
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                exit={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
                 onClick={handlePrevPage}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-20 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-muted/80 backdrop-blur-sm border border-border hover:bg-primary hover:text-background transition-colors"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(50%+1rem)] lg:-translate-x-[calc(50%+2rem)] z-20 hidden sm:flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
               >
                 <motion.div
-                  animate={{ x: [0, -3, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                  animate={{ x: [0, -2, 0] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-6 h-6" />
                 </motion.div>
               </motion.button>
             )}
           </AnimatePresence>
 
-          {/* Right Arrow */}
+          {/* Right Arrow - positioned between grid and screen edge */}
           <AnimatePresence>
             {hasNextPage && (
               <motion.button
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                exit={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
                 onClick={handleNextPage}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-20 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-muted/80 backdrop-blur-sm border border-border hover:bg-primary hover:text-background transition-colors"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(50%+1rem)] lg:translate-x-[calc(50%+2rem)] z-20 hidden sm:flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
               >
                 <motion.div
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                  animate={{ x: [0, 2, 0] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-6 h-6" />
                 </motion.div>
               </motion.button>
             )}
