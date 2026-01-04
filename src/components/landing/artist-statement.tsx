@@ -7,13 +7,19 @@ import type { Locale } from '@/types';
 const artistText = {
   no: {
     title: 'Om Dotty.',
-    statement: 'Pop-art som utfordrer det vanlige og feirer det uventede. Hvert verk er en eksplosjon av farge og energi, skapt for å bringe glede og personlighet til ditt rom.',
-    quote: '"Kunst skal ikke være stille. Den skal rope, danse, og få deg til å smile."',
+    paragraphs: [
+      'Dotty er en Oslo-basert kunstner som jobber med digitale tegninger og maleri på lerret og papir. Uttrykket er fargerikt, direkte og lekent, men tar også for seg mer alvorlige temaer der budskapet er viktig.',
+      'Kunsten er ment å gi energi og karakter til rommet, enten det får deg til å trekke på smilebåndet eller stoppe opp og reflektere over livets oppturer og nedturer. Selv om uttrykket ofte er lekent og fargerikt, tar kunsten ofte utgangspunkt i seriøse temaer.',
+      'Ambisjonen er å utfordre uten å støte, være direkte uten å belære, og formidle erfaringer og perspektiver på en ærlig måte.',
+    ],
   },
   en: {
     title: 'About Dotty.',
-    statement: 'Pop-art that challenges the ordinary and celebrates the unexpected. Each piece is an explosion of color and energy, created to bring joy and personality to your space.',
-    quote: '"Art should not be quiet. It should shout, dance, and make you smile."',
+    paragraphs: [
+      'Dotty is an Oslo-based artist working with digital drawings and paintings on canvas and paper. The expression is colorful, direct and playful, but also addresses more serious themes where the message matters.',
+      'The art is meant to give energy and character to a space, whether it makes you smile or pause to reflect on life\'s ups and downs. Although the expression is often playful and colorful, the art often stems from serious themes.',
+      'The ambition is to challenge without offending, be direct without lecturing, and convey experiences and perspectives in an honest way.',
+    ],
   },
 };
 
@@ -58,25 +64,13 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
               <span className="gradient-text">{t.title}</span>
             </h2>
 
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              {t.statement}
-            </p>
-
-            {/* Quote */}
-            <motion.blockquote
-              className="relative pl-6 border-l-4 border-primary"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <p className="text-xl sm:text-2xl font-medium italic text-foreground/90">
-                {t.quote}
-              </p>
-              <footer className="mt-4 text-primary font-semibold">
-                — Dotty
-              </footer>
-            </motion.blockquote>
+            <div className="space-y-4">
+              {t.paragraphs.map((paragraph, index) => (
+                <p key={index} className="text-lg text-muted-foreground leading-relaxed">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
 
             {/* Signature dots pattern */}
             <motion.div
