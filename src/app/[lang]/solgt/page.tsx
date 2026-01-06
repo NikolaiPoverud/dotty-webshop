@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { Locale, Product, Collection } from '@/types';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { CollectionFilter } from '@/components/shop/collection-filter';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -43,7 +43,7 @@ const pageText = {
 
 async function getSoldProducts(): Promise<Product[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: products, error } = await supabase
       .from('products')
       .select('*')
@@ -64,7 +64,7 @@ async function getSoldProducts(): Promise<Product[]> {
 
 async function getCollections(): Promise<Collection[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: collections, error } = await supabase
       .from('collections')
       .select('*')

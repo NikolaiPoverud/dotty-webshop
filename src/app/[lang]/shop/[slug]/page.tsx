@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { Locale, Product, ProductListItem, CollectionCard } from '@/types';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -22,7 +22,7 @@ type Props = {
 // Check if slug is a collection slug
 async function getCollection(slug: string): Promise<CollectionCard | null> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: collection, error } = await supabase
       .from('collections')
       .select('id, name, slug, description')
@@ -39,7 +39,7 @@ async function getCollection(slug: string): Promise<CollectionCard | null> {
 
 async function getProduct(slug: string): Promise<Product | null> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: product, error } = await supabase
       .from('products')
       .select('*')
@@ -56,7 +56,7 @@ async function getProduct(slug: string): Promise<Product | null> {
 
 async function getProductsForCollection(collectionId: string): Promise<ProductListItem[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: products, error } = await supabase
       .from('products')
       .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
@@ -73,7 +73,7 @@ async function getProductsForCollection(collectionId: string): Promise<ProductLi
 
 async function getAllCollections(): Promise<CollectionCard[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: collections, error } = await supabase
       .from('collections')
       .select('id, name, slug, description')
@@ -89,7 +89,7 @@ async function getAllCollections(): Promise<CollectionCard[]> {
 
 async function getRelatedProducts(productId: string, collectionId: string | null, limit = 4): Promise<ProductListItem[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
 
     // First try to get products from the same collection
     if (collectionId) {
@@ -133,7 +133,7 @@ async function getCollectionInfo(collectionId: string | null): Promise<Collectio
   if (!collectionId) return { name: null, slug: null, shippingCost: 0 };
 
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: collection } = await supabase
       .from('collections')
       .select('name, slug, shipping_cost')

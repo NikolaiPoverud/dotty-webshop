@@ -5,7 +5,7 @@ import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { ArtistStatement } from '@/components/landing/artist-statement';
 import { Testimonials } from '@/components/landing/testimonials';
 import { ContactSection } from '@/components/landing/contact-section';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import { OrganizationJsonLd } from '@/components/seo';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
@@ -19,7 +19,7 @@ type Props = {
 
 async function getFeaturedProducts(): Promise<ProductListItem[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: products, error } = await supabase
       .from('products')
       .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
@@ -41,12 +41,12 @@ async function getFeaturedProducts(): Promise<ProductListItem[]> {
 
 async function getCollections(): Promise<CollectionCard[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
 
     const { data: collections, error } = await supabase
       .from('collections')
       .select('id, name, slug, description')
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('display_order', { ascending: true });
 
     if (error) {
@@ -63,13 +63,13 @@ async function getCollections(): Promise<CollectionCard[]> {
 
 async function getTestimonials(): Promise<TestimonialCard[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
 
     const { data: testimonials, error } = await supabase
       .from('testimonials')
       .select('id, name, feedback, source')
       .eq('is_active', true)
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('display_order', { ascending: true });
 
     if (error) {

@@ -4,7 +4,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CookieConsent } from '@/components/gdpr/cookie-consent';
 import { PasswordGate } from '@/components/auth/password-gate';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 
 // Revalidate every 5 minutes - collections change infrequently
 export const revalidate = 300;
@@ -15,7 +15,7 @@ export async function generateStaticParams() {
 
 async function getCollections(): Promise<Collection[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data: collections, error } = await supabase
       .from('collections')
       .select('*')

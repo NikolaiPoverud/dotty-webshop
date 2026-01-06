@@ -1,19 +1,25 @@
 import type { Metadata } from 'next';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ShopContent } from '@/components/shop/shop-content';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import { BreadcrumbJsonLd } from '@/components/seo';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
+import { locales } from '@/lib/i18n/get-dictionary';
+
 // Revalidate every 60 seconds for fresh product data with caching
 export const revalidate = 60;
 
+// Enable static generation for all locales
+export function generateStaticParams() {
+  return locales.map((lang) => ({ lang }));
+}
+
 type Props = {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ collection?: string; highlight?: string }>;
 };
 
 const pageText = {
@@ -29,12 +35,12 @@ const pageText = {
 
 async function getProducts(): Promise<ProductListItem[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
 
     const { data: products, error } = await supabase
       .from('products')
       .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('display_order', { ascending: true });
 
     if (error) {
@@ -51,12 +57,12 @@ async function getProducts(): Promise<ProductListItem[]> {
 
 async function getCollections(): Promise<CollectionCard[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
 
     const { data: collections, error } = await supabase
       .from('collections')
       .select('id, name, slug, description')
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('display_order', { ascending: true });
 
     if (error) {
@@ -117,9 +123,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ShopPage({ params, searchParams }: Props) {
+export default async function ShopPage({ params }: Props) {
   const { lang } = await params;
-  const { collection: initialCollection, highlight: highlightedProduct } = await searchParams;
   const locale = lang as Locale;
   const t = pageText[locale];
 
@@ -158,8 +163,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
             products={products}
             collections={collections}
             lang={locale}
-            initialCollection={initialCollection}
-            highlightedProduct={highlightedProduct}
           />
         </div>
       </div>
