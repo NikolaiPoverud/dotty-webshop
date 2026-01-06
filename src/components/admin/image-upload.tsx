@@ -23,6 +23,11 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
     setIsUploading(true);
 
     try {
+      // Validate file exists and has content (Safari fix)
+      if (!file || file.size === 0) {
+        throw new Error('No file selected or file is empty');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
 
@@ -31,7 +36,17 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
         body: formData,
       });
 
-      const result = await response.json();
+      // Get response as text first to handle Safari's JSON parsing quirks
+      const responseText = await response.text();
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch {
+        // Safari throws "The string did not match the expected pattern" for non-JSON
+        console.error('Failed to parse response:', responseText);
+        throw new Error('Server returned invalid response');
+      }
 
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed');

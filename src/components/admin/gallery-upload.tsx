@@ -1,14 +1,67 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { Plus, X, Loader2, GripVertical } from 'lucide-react';
 import Image from 'next/image';
 import type { GalleryImage } from '@/types';
 
 interface GalleryUploadProps {
   value: GalleryImage[];
   onChange: (images: GalleryImage[]) => void;
+}
+
+interface DraggableImageItemProps {
+  image: GalleryImage;
+  index: number;
+  onRemove: () => void;
+}
+
+function DraggableImageItem({ image, index, onRemove }: DraggableImageItemProps) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={image}
+      dragListener={false}
+      dragControls={dragControls}
+      className="relative aspect-square rounded-md overflow-hidden bg-muted group cursor-grab active:cursor-grabbing"
+      whileDrag={{ scale: 1.05, zIndex: 10, boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}
+    >
+      <Image
+        src={image.url}
+        alt={`Gallery image ${index + 1}`}
+        fill
+        className="object-cover pointer-events-none"
+      />
+
+      {/* Drag handle */}
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        className="absolute inset-0 flex items-center justify-center bg-background/0 hover:bg-background/40 transition-colors cursor-grab active:cursor-grabbing touch-none"
+      >
+        <GripVertical className="w-6 h-6 text-white drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+
+      {/* Order indicator */}
+      <div className="absolute top-1 left-1 w-5 h-5 bg-background/90 rounded-full flex items-center justify-center text-xs font-medium pointer-events-none">
+        {index + 1}
+      </div>
+
+      {/* Remove button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute top-1 right-1 p-1 bg-error text-background rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/80 z-10"
+        title="Fjern"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </Reorder.Item>
+  );
 }
 
 export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
@@ -21,6 +74,11 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
     setIsUploading(true);
 
     try {
+      // Validate file exists and has content (Safari fix)
+      if (!file || file.size === 0) {
+        throw new Error('No file selected or file is empty');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
 
@@ -29,7 +87,16 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
         body: formData,
       });
 
-      const result = await response.json();
+      // Get response as text first to handle Safari's JSON parsing quirks
+      const responseText = await response.text();
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch {
+        console.error('Failed to parse response:', responseText);
+        throw new Error('Server returned invalid response');
+      }
 
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed');
@@ -82,46 +149,33 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
 
   return (
     <div className="space-y-3">
-      {/* Existing Images */}
+      {/* Draggable Image Grid */}
       <AnimatePresence>
         {value.length > 0 && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="grid grid-cols-4 sm:grid-cols-5 gap-2"
           >
-            {value.map((image, index) => (
-              <motion.div
-                key={image.path || index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="relative aspect-square rounded-md overflow-hidden bg-muted group"
-              >
-                <Image
-                  src={image.url}
-                  alt={`Gallery image ${index + 1}`}
-                  fill
-                  className="object-cover"
+            <Reorder.Group
+              axis="x"
+              values={value}
+              onReorder={onChange}
+              className="grid grid-cols-4 sm:grid-cols-5 gap-2"
+              as="div"
+            >
+              {value.map((image, index) => (
+                <DraggableImageItem
+                  key={image.path || image.url}
+                  image={image}
+                  index={index}
+                  onRemove={() => handleRemove(index)}
                 />
-
-                {/* Order indicator */}
-                <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-background/80 rounded-full flex items-center justify-center text-[10px] font-medium">
-                  {index + 1}
-                </div>
-
-                {/* Remove button */}
-                <button
-                  type="button"
-                  onClick={() => handleRemove(index)}
-                  className="absolute top-0.5 right-0.5 p-0.5 bg-error text-background rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Fjern"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </motion.div>
-            ))}
+              ))}
+            </Reorder.Group>
+            <p className="text-xs text-muted-foreground mt-2">
+              Dra bildene for å endre rekkefølge
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
