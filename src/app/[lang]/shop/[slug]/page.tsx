@@ -62,7 +62,6 @@ async function getProductsForCollection(collectionId: string): Promise<ProductLi
       .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
       .eq('collection_id', collectionId)
       .is('deleted_at', null)
-      .order('is_featured', { ascending: false })
       .order('display_order', { ascending: true });
 
     if (error) return [];
@@ -115,7 +114,7 @@ async function getRelatedProducts(productId: string, collectionId: string | null
       .neq('id', productId)
       .eq('is_available', true)
       .is('deleted_at', null)
-      .order('is_featured', { ascending: false })
+      .order('display_order', { ascending: true })
       .limit(limit);
 
     return otherProducts || [];

@@ -35,7 +35,6 @@ async function getProducts(): Promise<ProductListItem[]> {
       .from('products')
       .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
       .is('deleted_at', null)  // Exclude soft-deleted
-      .order('is_featured', { ascending: false })
       .order('display_order', { ascending: true });
 
     if (error) {
