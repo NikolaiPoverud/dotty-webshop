@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, Reorder, useDragControls } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Loader2, RefreshCw } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { Plus, Pencil, Trash2, Loader2, RefreshCw, GripVertical } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
@@ -15,10 +15,125 @@ const gradients = [
   'from-accent-2 to-accent-3',
 ];
 
+interface DraggableProductRowProps {
+  product: Product;
+  index: number;
+  onDelete: (id: string) => void;
+}
+
+function DraggableProductRow({ product, index, onDelete }: DraggableProductRowProps) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={product}
+      dragListener={false}
+      dragControls={dragControls}
+      className="grid grid-cols-[auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-4 bg-muted hover:bg-muted-foreground/5 border-b border-border cursor-default"
+      whileDrag={{
+        scale: 1.02,
+        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        zIndex: 10,
+      }}
+    >
+      {/* Drag Handle */}
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        className="cursor-grab active:cursor-grabbing touch-none p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
+        title="Dra for å endre rekkefølge"
+      >
+        <GripVertical className="w-5 h-5" />
+      </div>
+
+      {/* Image */}
+      <div>
+        {product.image_url ? (
+          <div className="relative w-12 h-12 rounded overflow-hidden">
+            <Image
+              src={product.image_url}
+              alt={product.title}
+              fill
+              className="object-cover pointer-events-none"
+            />
+          </div>
+        ) : (
+          <div
+            className={`w-12 h-12 rounded bg-gradient-to-br ${gradients[index % gradients.length]}`}
+          />
+        )}
+      </div>
+
+      {/* Title */}
+      <div className="min-w-0">
+        <p className="font-medium truncate">{product.title}</p>
+        <p className="text-sm text-muted-foreground truncate">
+          {product.description}
+        </p>
+      </div>
+
+      {/* Type */}
+      <div>
+        <span className="px-2 py-1 bg-background text-xs uppercase rounded">
+          {product.product_type === 'original' ? 'Maleri' : 'Prints'}
+        </span>
+      </div>
+
+      {/* Price */}
+      <div className="font-medium">
+        {formatPrice(product.price)}
+      </div>
+
+      {/* Stock */}
+      <div>
+        {product.product_type === 'original' ? (
+          <span className="text-muted-foreground">-</span>
+        ) : (
+          <span>{product.stock_quantity}</span>
+        )}
+      </div>
+
+      {/* Status */}
+      <div>
+        <span
+          className={`px-2 py-1 text-xs rounded ${
+            product.is_available
+              ? 'bg-success/10 text-success'
+              : 'bg-error/10 text-error'
+          }`}
+        >
+          {product.is_available ? 'Tilgjengelig' : 'Solgt'}
+        </span>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-2">
+        <Link
+          href={`/admin/products/${product.id}/edit`}
+          className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground transition-colors"
+          title="Rediger"
+        >
+          <Pencil className="w-4 h-4" />
+        </Link>
+        <button
+          onClick={() => onDelete(product.id)}
+          className="p-2 rounded-lg hover:bg-error/10 text-muted-foreground hover:text-error transition-colors"
+          title="Slett"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </Reorder.Item>
+  );
+}
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const originalOrderRef = useRef<string[]>([]);
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
@@ -34,12 +149,52 @@ export default function AdminProductsPage() {
       // Handle both paginated and non-paginated responses
       const productsData = Array.isArray(result) ? result : (result.data || []);
       setProducts(productsData);
+      originalOrderRef.current = productsData.map((p: Product) => p.id);
+      setHasUnsavedChanges(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const handleReorder = (newOrder: Product[]) => {
+    setProducts(newOrder);
+    // Check if order actually changed
+    const newOrderIds = newOrder.map((p) => p.id);
+    const hasChanged = newOrderIds.some((id, i) => id !== originalOrderRef.current[i]);
+    setHasUnsavedChanges(hasChanged);
+  };
+
+  const saveOrder = async () => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      const updates = products.map((product, index) => ({
+        id: product.id,
+        display_order: index + 1,
+      }));
+
+      const response = await adminFetch('/api/admin/products/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: updates }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Failed to save order');
+      }
+
+      // Update original order reference
+      originalOrderRef.current = products.map((p) => p.id);
+      setHasUnsavedChanges(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save order');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -79,6 +234,22 @@ export default function AdminProductsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {hasUnsavedChanges && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={saveOrder}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-4 py-2 bg-success text-background font-medium rounded-lg hover:bg-success/90 transition-colors disabled:opacity-50"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : null}
+              Lagre rekkefølge
+            </motion.button>
+          )}
           <button
             onClick={fetchProducts}
             className="p-2 hover:bg-muted rounded-lg transition-colors"
@@ -124,97 +295,40 @@ export default function AdminProductsPage() {
           </Link>
         </div>
       ) : (
-        <div className="bg-muted rounded-lg overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="bg-muted-foreground/10">
-              <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium">Bilde</th>
-                <th className="text-left px-6 py-3 text-sm font-medium">Tittel</th>
-                <th className="text-left px-6 py-3 text-sm font-medium">Type</th>
-                <th className="text-left px-6 py-3 text-sm font-medium">Pris</th>
-                <th className="text-left px-6 py-3 text-sm font-medium">Lager</th>
-                <th className="text-left px-6 py-3 text-sm font-medium">Status</th>
-                <th className="text-right px-6 py-3 text-sm font-medium w-32">Handlinger</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {products.map((product, index) => (
-                <tr
-                  key={product.id}
-                  className="hover:bg-muted-foreground/5"
-                >
-                  <td className="px-6 py-4">
-                    {product.image_url ? (
-                      <div className="relative w-12 h-12 rounded overflow-hidden">
-                        <Image
-                          src={product.image_url}
-                          alt={product.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className={`w-12 h-12 rounded bg-gradient-to-br ${gradients[index % gradients.length]}`}
-                      />
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-medium">{product.title}</p>
-                      <p className="text-sm text-muted-foreground truncate max-w-xs">
-                        {product.description}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-background text-xs uppercase rounded">
-                      {product.product_type === 'original' ? 'Maleri' : 'Prints'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-medium">
-                    {formatPrice(product.price)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {product.product_type === 'original' ? (
-                      <span className="text-muted-foreground">-</span>
-                    ) : (
-                      <span>{product.stock_quantity}</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 text-xs rounded ${
-                        product.is_available
-                          ? 'bg-success/10 text-success'
-                          : 'bg-error/10 text-error'
-                      }`}
-                    >
-                      {product.is_available ? 'Tilgjengelig' : 'Solgt'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/admin/products/${product.id}/edit`}
-                        className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground transition-colors"
-                        title="Rediger"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Link>
-                      <button
-                        onClick={() => deleteProduct(product.id)}
-                        className="p-2 rounded-lg hover:bg-error/10 text-muted-foreground hover:text-error transition-colors"
-                        title="Slett"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-muted rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-[auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
+            <div className="w-5" /> {/* Drag handle column */}
+            <div>Bilde</div>
+            <div>Tittel</div>
+            <div>Type</div>
+            <div>Pris</div>
+            <div>Lager</div>
+            <div>Status</div>
+            <div className="text-right">Handlinger</div>
+          </div>
+
+          {/* Draggable rows */}
+          <Reorder.Group
+            axis="y"
+            values={products}
+            onReorder={handleReorder}
+            className="divide-y divide-border"
+          >
+            {products.map((product, index) => (
+              <DraggableProductRow
+                key={product.id}
+                product={product}
+                index={index}
+                onDelete={deleteProduct}
+              />
+            ))}
+          </Reorder.Group>
+
+          {/* Help text */}
+          <div className="px-6 py-3 bg-muted-foreground/5 text-xs text-muted-foreground">
+            Dra produktene for å endre rekkefølge i butikken
+          </div>
         </div>
       )}
     </div>
