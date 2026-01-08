@@ -9,11 +9,29 @@ import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo';
 import { CollectionJsonLd } from '@/components/seo/collection-jsonld';
 import { ShopContent } from '@/components/shop/shop-content';
 import { RelatedProducts } from '@/components/shop/related-products';
+import { locales } from '@/lib/i18n/get-dictionary';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
 // Revalidate every 60 seconds - balances freshness with caching
 export const revalidate = 60;
+
+// Pre-render all product and collection pages at build time
+export async function generateStaticParams() {
+  const supabase = createPublicClient();
+
+  const [{ data: products }, { data: collections }] = await Promise.all([
+    supabase.from('products').select('slug').is('deleted_at', null),
+    supabase.from('collections').select('slug').is('deleted_at', null),
+  ]);
+
+  const slugs = [
+    ...(products || []).map(p => p.slug),
+    ...(collections || []).map(c => c.slug),
+  ];
+
+  return locales.flatMap(lang => slugs.map(slug => ({ lang, slug })));
+}
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;

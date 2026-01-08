@@ -23,6 +23,7 @@ interface ProductCardProps {
   index?: number;
   dictionary?: ShopDictionary;
   isHighlighted?: boolean;
+  priority?: boolean;
 }
 
 // Fallback for backwards compatibility
@@ -31,7 +32,7 @@ const fallbackText: Record<Locale, ShopDictionary> = {
   en: { original: 'Painting', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
 };
 
-export const ProductCard = memo(function ProductCard({ product, lang, index = 0, dictionary, isHighlighted }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, lang, index = 0, dictionary, isHighlighted, priority = false }: ProductCardProps) {
   const t = dictionary || fallbackText[lang];
   // Item is sold if not available OR stock is 0
   const isSold = !product.is_available || product.stock_quantity === 0;
@@ -57,7 +58,9 @@ export const ProductCard = memo(function ProductCard({ product, lang, index = 0,
               src={product.image_url}
               alt={product.title}
               fill
+              priority={priority || index < 3}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (
             // Placeholder

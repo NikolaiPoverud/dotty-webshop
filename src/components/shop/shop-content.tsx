@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ProductCard } from './product-card';
 import { FilterTabs, type FilterOption } from './filter-tabs';
+import { staggerContainer, fadeUpItem } from '@/lib/animations';
 
 const filterText = {
   no: {
@@ -19,50 +20,6 @@ const filterText = {
 };
 
 const MAX_DESCRIPTION_CHARS = 150;
-
-// Staggered animation for grid items
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.1,
-    },
-  },
-  exit: {
-    opacity: 0,
-    transition: {
-      staggerChildren: 0.03,
-      staggerDirection: -1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-    scale: 0.95,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: 'spring' as const,
-      stiffness: 300,
-      damping: 24,
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: 0.2,
-    },
-  },
-};
 
 interface ShopContentProps {
   products: ProductListItem[];
@@ -200,7 +157,7 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
             <motion.div
               key={activeFilter}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-              variants={containerVariants}
+              variants={staggerContainer}
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -209,7 +166,7 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
                 <motion.div
                   key={product.id}
                   id={`product-${product.id}`}
-                  variants={itemVariants}
+                  variants={fadeUpItem}
                   layout
                   className="will-change-transform"
                 >
