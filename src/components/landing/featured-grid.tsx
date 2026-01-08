@@ -134,7 +134,7 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
 
         {/* Product Grid with Navigation */}
         <div className="relative">
-          {/* Left Arrow - positioned between grid and screen edge */}
+          {/* Left Arrow */}
           <AnimatePresence>
             {hasPrevPage && (
               <motion.button
@@ -142,21 +142,22 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handlePrevPage}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(50%+0.5rem)] lg:-translate-x-[calc(50%+1.5rem)] z-20 hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
+                className="absolute left-2 sm:left-0 top-1/2 -translate-y-1/2 sm:-translate-x-[calc(50%+0.5rem)] lg:-translate-x-[calc(50%+1.5rem)] z-20 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-background shadow-lg shadow-primary/50 hover:bg-primary-light transition-all"
+                style={{ boxShadow: '0 0 20px rgba(236, 72, 153, 0.6)' }}
               >
                 <motion.div
-                  animate={{ x: [0, -3, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                  animate={{ x: [0, -4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
                 >
-                  <ChevronLeft className="w-8 h-8" />
+                  <ChevronLeft className="w-10 h-10" />
                 </motion.div>
               </motion.button>
             )}
           </AnimatePresence>
 
-          {/* Right Arrow - positioned between grid and screen edge */}
+          {/* Right Arrow */}
           <AnimatePresence>
             {hasNextPage && (
               <motion.button
@@ -164,15 +165,16 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handleNextPage}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(50%+0.5rem)] lg:translate-x-[calc(50%+1.5rem)] z-20 hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
+                className="absolute right-2 sm:right-0 top-1/2 -translate-y-1/2 sm:translate-x-[calc(50%+0.5rem)] lg:translate-x-[calc(50%+1.5rem)] z-20 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-background shadow-lg shadow-primary/50 hover:bg-primary-light transition-all"
+                style={{ boxShadow: '0 0 20px rgba(236, 72, 153, 0.6)' }}
               >
                 <motion.div
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
                 >
-                  <ChevronRight className="w-8 h-8" />
+                  <ChevronRight className="w-10 h-10" />
                 </motion.div>
               </motion.button>
             )}
