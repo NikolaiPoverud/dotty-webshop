@@ -134,36 +134,50 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
 
         {/* Product Grid with Navigation */}
         <div className="relative">
-          {/* Left Arrow - Pill shaped, glassmorphism */}
+          {/* Left Arrow - Bold Pop-Art Style */}
           <AnimatePresence>
             {hasPrevPage && (
               <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                whileHover={{ backgroundColor: 'rgba(236, 72, 153, 0.4)' }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handlePrevPage}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%-8px)] sm:-translate-x-[calc(100%-12px)] z-20 flex items-center justify-center w-10 sm:w-12 h-24 sm:h-32 rounded-r-full bg-primary/25 backdrop-blur-md text-primary border border-primary/30 hover:text-primary-light transition-all"
+                aria-label="Previous products"
+                className="group absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-3 z-20
+                           w-12 h-12 sm:w-14 sm:h-14
+                           bg-background border-[3px] border-primary
+                           flex items-center justify-center
+                           transition-all duration-200
+                           hover:bg-primary hover:translate-x-0
+                           shadow-[4px_4px_0_0_theme(colors.primary)]
+                           hover:shadow-[6px_6px_0_0_theme(colors.primary)]"
               >
-                <ChevronLeft className="w-7 h-7 sm:w-8 sm:h-8" />
+                <ChevronLeft className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
               </motion.button>
             )}
           </AnimatePresence>
 
-          {/* Right Arrow - Pill shaped, glassmorphism */}
+          {/* Right Arrow - Bold Pop-Art Style */}
           <AnimatePresence>
             {hasNextPage && (
               <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                whileHover={{ backgroundColor: 'rgba(236, 72, 153, 0.4)' }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNextPage}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(100%-8px)] sm:translate-x-[calc(100%-12px)] z-20 flex items-center justify-center w-10 sm:w-12 h-24 sm:h-32 rounded-l-full bg-primary/25 backdrop-blur-md text-primary border border-primary/30 hover:text-primary-light transition-all"
+                aria-label="Next products"
+                className="group absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-3 z-20
+                           w-12 h-12 sm:w-14 sm:h-14
+                           bg-background border-[3px] border-primary
+                           flex items-center justify-center
+                           transition-all duration-200
+                           hover:bg-primary hover:-translate-x-0
+                           shadow-[-4px_4px_0_0_theme(colors.primary)]
+                           hover:shadow-[-6px_6px_0_0_theme(colors.primary)]"
               >
-                <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8" />
+                <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
               </motion.button>
             )}
           </AnimatePresence>
