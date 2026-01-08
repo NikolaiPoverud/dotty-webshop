@@ -138,18 +138,19 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
           <AnimatePresence>
             {hasPrevPage && (
               <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                exit={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handlePrevPage}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(50%+1rem)] lg:-translate-x-[calc(50%+2rem)] z-20 hidden sm:flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(50%+0.5rem)] lg:-translate-x-[calc(50%+1.5rem)] z-20 hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
               >
                 <motion.div
-                  animate={{ x: [0, -2, 0] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                  animate={{ x: [0, -3, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-8 h-8" />
                 </motion.div>
               </motion.button>
             )}
@@ -159,18 +160,19 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
           <AnimatePresence>
             {hasNextPage && (
               <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                exit={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleNextPage}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(50%+1rem)] lg:translate-x-[calc(50%+2rem)] z-20 hidden sm:flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(50%+0.5rem)] lg:translate-x-[calc(50%+1.5rem)] z-20 hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
               >
                 <motion.div
-                  animate={{ x: [0, 2, 0] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-8 h-8" />
                 </motion.div>
               </motion.button>
             )}
