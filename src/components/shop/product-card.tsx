@@ -49,6 +49,9 @@ export const ProductCard = memo(function ProductCard({ product, lang, index = 0,
       >
         {/* Image Container */}
         <div className="relative aspect-[4/5] overflow-hidden">
+          {/* Pink shimmer loading background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 animate-shimmer" />
+
           {product.image_url ? (
             <Image
               src={product.image_url}
