@@ -1,36 +1,24 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
-// Use service role to bypass RLS
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const { consent_given } = body;
+    const { consent_given } = await request.json();
 
-    // Get client info
     const forwarded = request.headers.get('x-forwarded-for');
     const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Generate session ID using native crypto
-    const sessionId = crypto.randomUUID();
-
-    // Store consent in database
+    const supabase = createAdminClient();
     const { error } = await supabase.from('cookie_consents').insert({
-      session_id: sessionId,
+      session_id: crypto.randomUUID(),
       consent_given,
       ip_address: ip,
-      user_agent: userAgent.substring(0, 500), // Limit length
+      user_agent: userAgent.substring(0, 500),
     });
 
     if (error) {
       console.error('Failed to store cookie consent:', error);
-      // Don't fail the request - consent is stored locally
     }
 
     return NextResponse.json({ success: true });

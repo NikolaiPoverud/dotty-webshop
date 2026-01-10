@@ -4,19 +4,30 @@ import { getResend, emailConfig } from '@/lib/email/resend';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { gdprDataExportTemplate, gdprDeletionConfirmationTemplate } from '@/lib/email/templates';
 
-// SEC-002: Rate limit config for GDPR verification (10 per hour - slightly higher as users may click multiple times)
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+interface DataRequest {
+  id: string;
+  email: string;
+  request_type: 'export' | 'delete';
+  status: string;
+}
+
 const VERIFY_RATE_LIMIT = {
   maxRequests: 10,
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 60 * 60 * 1000,
 };
 
-export async function GET(request: Request) {
-  // SEC-002: Apply rate limiting
+function redirectTo(request: Request, path: string): NextResponse {
+  return NextResponse.redirect(new URL(path, request.url));
+}
+
+export async function GET(request: Request): Promise<NextResponse> {
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`gdpr-verify:${clientIp}`, VERIFY_RATE_LIMIT);
 
   if (!rateLimitResult.success) {
-    return NextResponse.redirect(new URL('/no/my-data?status=rate-limited', request.url));
+    return redirectTo(request, '/no/my-data?status=rate-limited');
   }
 
   try {
@@ -24,12 +35,11 @@ export async function GET(request: Request) {
     const token = searchParams.get('token');
 
     if (!token) {
-      return NextResponse.redirect(new URL('/no/my-data?status=invalid', request.url));
+      return redirectTo(request, '/no/my-data?status=invalid');
     }
 
     const supabase = createAdminClient();
 
-    // Find the request by verification token
     const { data: dataRequest, error: findError } = await supabase
       .from('data_requests')
       .select('*')
@@ -37,40 +47,29 @@ export async function GET(request: Request) {
       .single();
 
     if (findError || !dataRequest) {
-      return NextResponse.redirect(new URL('/no/my-data?status=invalid', request.url));
+      return redirectTo(request, '/no/my-data?status=invalid');
     }
 
-    // Check if already verified/completed
     if (dataRequest.status !== 'pending') {
-      return NextResponse.redirect(new URL(`/no/my-data?status=${dataRequest.status}`, request.url));
+      return redirectTo(request, `/no/my-data?status=${dataRequest.status}`);
     }
 
-    // Mark as verified and processing
     await supabase
       .from('data_requests')
-      .update({
-        status: 'verified',
-        verified_at: new Date().toISOString(),
-      })
+      .update({ status: 'verified', verified_at: new Date().toISOString() })
       .eq('id', dataRequest.id);
 
-    // Process the request based on type
     if (dataRequest.request_type === 'export') {
       await processExportRequest(supabase, dataRequest);
     } else if (dataRequest.request_type === 'delete') {
       await processDeleteRequest(supabase, dataRequest);
     }
 
-    // Mark as completed
     await supabase
       .from('data_requests')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      })
+      .update({ status: 'completed', completed_at: new Date().toISOString() })
       .eq('id', dataRequest.id);
 
-    // Log to audit
     await supabase.from('audit_log').insert({
       action: `gdpr_${dataRequest.request_type}_completed`,
       entity_type: 'data_request',
@@ -80,26 +79,15 @@ export async function GET(request: Request) {
       details: { email: dataRequest.email, request_type: dataRequest.request_type },
     });
 
-    return NextResponse.redirect(
-      new URL(`/no/my-data?status=completed&type=${dataRequest.request_type}`, request.url)
-    );
+    return redirectTo(request, `/no/my-data?status=completed&type=${dataRequest.request_type}`);
   } catch (error) {
     console.error('Verify request error:', error);
-    return NextResponse.redirect(new URL('/no/my-data?status=error', request.url));
+    return redirectTo(request, '/no/my-data?status=error');
   }
 }
 
-async function processExportRequest(supabase: ReturnType<typeof createAdminClient>, dataRequest: { id: string; email: string }) {
-  const email = dataRequest.email;
-
-  // SEC-017: Collect ALL personal data for this email (complete GDPR coverage)
-  const [
-    ordersResult,
-    newsletterResult,
-    contactResult,
-    cookieConsentsResult,
-    dataRequestsResult,
-  ] = await Promise.all([
+async function fetchUserData(supabase: AdminClient, email: string) {
+  const [orders, newsletter, contact, cookies, requests] = await Promise.all([
     supabase.from('orders').select('*').eq('customer_email', email),
     supabase.from('newsletter_subscribers').select('*').eq('email', email),
     supabase.from('contact_submissions').select('*').eq('email', email),
@@ -107,36 +95,43 @@ async function processExportRequest(supabase: ReturnType<typeof createAdminClien
     supabase.from('data_requests').select('id, request_type, status, created_at, completed_at').eq('email', email),
   ]);
 
+  return {
+    orders: orders.data || [],
+    newsletter_subscription: newsletter.data?.[0] || null,
+    contact_submissions: contact.data || [],
+    cookie_consents: cookies.data || [],
+    data_request_history: requests.data || [],
+  };
+}
+
+async function processExportRequest(supabase: AdminClient, dataRequest: DataRequest): Promise<void> {
+  const { email, id } = dataRequest;
+  const userData = await fetchUserData(supabase, email);
+
   const exportData = {
     export_date: new Date().toISOString(),
-    email: email,
-    orders: ordersResult.data || [],
-    newsletter_subscription: newsletterResult.data?.[0] || null,
-    contact_submissions: contactResult.data || [],
-    cookie_consents: cookieConsentsResult.data || [],
-    data_request_history: dataRequestsResult.data || [],
+    email,
+    ...userData,
   };
 
-  // Store result in the request
-  await supabase
-    .from('data_requests')
-    .update({ result_data: exportData })
-    .eq('id', dataRequest.id);
+  await supabase.from('data_requests').update({ result_data: exportData }).eq('id', id);
 
-  // Send email with data
   try {
     const resend = getResend();
     await resend.emails.send({
       from: emailConfig.from,
       to: email,
       subject: 'Din dataeksport | Your data export - Dotty',
-      html: gdprDataExportTemplate({
-        ordersCount: exportData.orders.length,
-        isSubscribed: !!exportData.newsletter_subscription,
-        contactCount: exportData.contact_submissions.length,
-        cookieConsentsCount: exportData.cookie_consents.length,
-        requestsCount: exportData.data_request_history.length,
-      }, emailConfig.artistEmail),
+      html: gdprDataExportTemplate(
+        {
+          ordersCount: exportData.orders.length,
+          isSubscribed: !!exportData.newsletter_subscription,
+          contactCount: exportData.contact_submissions.length,
+          cookieConsentsCount: exportData.cookie_consents.length,
+          requestsCount: exportData.data_request_history.length,
+        },
+        emailConfig.artistEmail
+      ),
       attachments: [
         {
           filename: 'dotty-data-export.json',
@@ -149,59 +144,42 @@ async function processExportRequest(supabase: ReturnType<typeof createAdminClien
   }
 }
 
-async function processDeleteRequest(supabase: ReturnType<typeof createAdminClient>, dataRequest: { id: string; email: string }) {
-  const email = dataRequest.email;
-
-  // SEC-018: Create pre-deletion backup for compliance and potential restoration
-  const [
-    ordersResult,
-    newsletterResult,
-    contactResult,
-    cookieConsentsResult,
-  ] = await Promise.all([
-    supabase.from('orders').select('*').eq('customer_email', email),
-    supabase.from('newsletter_subscribers').select('*').eq('email', email),
-    supabase.from('contact_submissions').select('*').eq('email', email),
-    supabase.from('cookie_consents').select('*').eq('email', email),
-  ]);
+async function processDeleteRequest(supabase: AdminClient, dataRequest: DataRequest): Promise<void> {
+  const { email, id } = dataRequest;
+  const userData = await fetchUserData(supabase, email);
 
   const backupData = {
     backup_date: new Date().toISOString(),
-    email: email,
+    email,
     reason: 'GDPR deletion request',
-    orders: ordersResult.data || [],
-    newsletter_subscription: newsletterResult.data?.[0] || null,
-    contact_submissions: contactResult.data || [],
-    cookie_consents: cookieConsentsResult.data || [],
+    orders: userData.orders,
+    newsletter_subscription: userData.newsletter_subscription,
+    contact_submissions: userData.contact_submissions,
+    cookie_consents: userData.cookie_consents,
   };
 
-  // Store backup in audit log (retained per legal requirements)
   await supabase.from('audit_log').insert({
     action: 'gdpr_pre_deletion_backup',
     entity_type: 'data_request',
-    entity_id: dataRequest.id,
+    entity_id: id,
     actor_type: 'system',
     details: backupData,
   });
 
-  // Delete newsletter subscription
-  await supabase.from('newsletter_subscribers').delete().eq('email', email);
+  await Promise.all([
+    supabase.from('newsletter_subscribers').delete().eq('email', email),
+    supabase.from('contact_submissions').delete().eq('email', email),
+    supabase
+      .from('orders')
+      .update({
+        customer_email: 'deleted@gdpr.request',
+        customer_name: 'GDPR Deleted',
+        customer_phone: 'DELETED',
+        shipping_address: { deleted: true, reason: 'GDPR request', date: new Date().toISOString() },
+      })
+      .eq('customer_email', email),
+  ]);
 
-  // Delete contact submissions
-  await supabase.from('contact_submissions').delete().eq('email', email);
-
-  // Anonymize orders (keep for legal/accounting purposes but remove PII)
-  await supabase
-    .from('orders')
-    .update({
-      customer_email: 'deleted@gdpr.request',
-      customer_name: 'GDPR Deleted',
-      customer_phone: 'DELETED',
-      shipping_address: { deleted: true, reason: 'GDPR request', date: new Date().toISOString() },
-    })
-    .eq('customer_email', email);
-
-  // Send confirmation email
   try {
     const resend = getResend();
     await resend.emails.send({

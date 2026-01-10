@@ -2,181 +2,116 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
-// GET /api/admin/gdpr-stats - Get GDPR compliance statistics
-export async function GET() {
+function calculateRate(numerator: number, denominator: number): number {
+  return denominator > 0 ? Math.round((numerator / denominator) * 100) : 0;
+}
+
+export async function GET(): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
-  try {
-    const supabase = createAdminClient();
+  const supabase = createAdminClient();
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
-    // Get date ranges
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const countQuery = (table: string) =>
+    supabase.from(table).select('*', { count: 'exact', head: true });
 
-    // Cookie consent stats
-    const { count: totalCookieConsents } = await supabase
-      .from('cookie_consents')
-      .select('*', { count: 'exact', head: true });
+  const [
+    totalCookieConsentsResult,
+    cookieAcceptedResult,
+    cookieDeclinedResult,
+    recentCookieConsentsResult,
+    totalSubscribersResult,
+    confirmedSubscribersResult,
+    unconfirmedSubscribersResult,
+    unsubscribedResult,
+    recentSubscribersResult,
+    totalDataRequestsResult,
+    pendingRequestsResult,
+    completedRequestsResult,
+    requestsByTypeResult,
+    recentRequestsResult,
+    totalOrdersResult,
+    ordersWithPrivacyConsentResult,
+    ordersWithNewsletterOptInResult,
+    totalContactsResult,
+    totalAuditLogsResult,
+    recentAuditLogsResult,
+  ] = await Promise.all([
+    countQuery('cookie_consents'),
+    countQuery('cookie_consents').eq('consent_given', true),
+    countQuery('cookie_consents').eq('consent_given', false),
+    countQuery('cookie_consents').gte('created_at', thirtyDaysAgoISO),
+    countQuery('newsletter_subscribers'),
+    countQuery('newsletter_subscribers').eq('is_confirmed', true).is('unsubscribed_at', null),
+    countQuery('newsletter_subscribers').eq('is_confirmed', false).is('unsubscribed_at', null),
+    countQuery('newsletter_subscribers').not('unsubscribed_at', 'is', null),
+    countQuery('newsletter_subscribers').gte('created_at', thirtyDaysAgoISO),
+    countQuery('data_requests'),
+    countQuery('data_requests').eq('status', 'pending'),
+    countQuery('data_requests').eq('status', 'completed'),
+    supabase.from('data_requests').select('request_type').order('request_type'),
+    supabase.from('data_requests').select('*').order('created_at', { ascending: false }).limit(5),
+    countQuery('orders'),
+    countQuery('orders').not('privacy_accepted_at', 'is', null),
+    countQuery('orders').eq('newsletter_opted_in', true),
+    countQuery('contact_submissions'),
+    countQuery('audit_log'),
+    countQuery('audit_log').gte('created_at', thirtyDaysAgoISO),
+  ]);
 
-    const { count: cookieAccepted } = await supabase
-      .from('cookie_consents')
-      .select('*', { count: 'exact', head: true })
-      .eq('consent_given', true);
+  const totalCookieConsents = totalCookieConsentsResult.count || 0;
+  const cookieAccepted = cookieAcceptedResult.count || 0;
+  const cookieDeclined = cookieDeclinedResult.count || 0;
+  const totalSubscribers = totalSubscribersResult.count || 0;
+  const confirmedSubscribers = confirmedSubscribersResult.count || 0;
+  const totalOrders = totalOrdersResult.count || 0;
+  const ordersWithPrivacyConsent = ordersWithPrivacyConsentResult.count || 0;
 
-    const { count: cookieDeclined } = await supabase
-      .from('cookie_consents')
-      .select('*', { count: 'exact', head: true })
-      .eq('consent_given', false);
+  const requestTypes = requestsByTypeResult.data || [];
+  const exportRequests = requestTypes.filter((r) => r.request_type === 'export').length;
+  const deleteRequests = requestTypes.filter((r) => r.request_type === 'delete').length;
 
-    const { count: recentCookieConsents } = await supabase
-      .from('cookie_consents')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', thirtyDaysAgo.toISOString());
-
-    // Newsletter stats
-    const { count: totalSubscribers } = await supabase
-      .from('newsletter_subscribers')
-      .select('*', { count: 'exact', head: true });
-
-    const { count: confirmedSubscribers } = await supabase
-      .from('newsletter_subscribers')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_confirmed', true)
-      .is('unsubscribed_at', null);
-
-    const { count: unconfirmedSubscribers } = await supabase
-      .from('newsletter_subscribers')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_confirmed', false)
-      .is('unsubscribed_at', null);
-
-    const { count: unsubscribed } = await supabase
-      .from('newsletter_subscribers')
-      .select('*', { count: 'exact', head: true })
-      .not('unsubscribed_at', 'is', null);
-
-    const { count: recentSubscribers } = await supabase
-      .from('newsletter_subscribers')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', thirtyDaysAgo.toISOString());
-
-    // Data requests stats
-    const { count: totalDataRequests } = await supabase
-      .from('data_requests')
-      .select('*', { count: 'exact', head: true });
-
-    const { count: pendingRequests } = await supabase
-      .from('data_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
-
-    const { count: completedRequests } = await supabase
-      .from('data_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'completed');
-
-    const { data: requestsByType } = await supabase
-      .from('data_requests')
-      .select('request_type')
-      .order('request_type');
-
-    const exportRequests = requestsByType?.filter(r => r.request_type === 'export').length || 0;
-    const deleteRequests = requestsByType?.filter(r => r.request_type === 'delete').length || 0;
-
-    // Recent data requests
-    const { data: recentRequests } = await supabase
-      .from('data_requests')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    // Order consent stats
-    const { count: totalOrders } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true });
-
-    const { count: ordersWithPrivacyConsent } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .not('privacy_accepted_at', 'is', null);
-
-    const { count: ordersWithNewsletterOptIn } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('newsletter_opted_in', true);
-
-    // Contact submissions
-    const { count: totalContacts } = await supabase
-      .from('contact_submissions')
-      .select('*', { count: 'exact', head: true });
-
-    // Audit log stats
-    const { count: totalAuditLogs } = await supabase
-      .from('audit_log')
-      .select('*', { count: 'exact', head: true });
-
-    const { count: recentAuditLogs } = await supabase
-      .from('audit_log')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', thirtyDaysAgo.toISOString());
-
-    // Calculate consent rate
-    const cookieConsentRate = totalCookieConsents
-      ? Math.round(((cookieAccepted || 0) / totalCookieConsents) * 100)
-      : 0;
-
-    const newsletterConfirmRate = totalSubscribers
-      ? Math.round(((confirmedSubscribers || 0) / (totalSubscribers || 1)) * 100)
-      : 0;
-
-    return NextResponse.json({
-      cookieConsent: {
-        total: totalCookieConsents || 0,
-        accepted: cookieAccepted || 0,
-        declined: cookieDeclined || 0,
-        acceptRate: cookieConsentRate,
-        last30Days: recentCookieConsents || 0,
-      },
-      newsletter: {
-        total: totalSubscribers || 0,
-        confirmed: confirmedSubscribers || 0,
-        unconfirmed: unconfirmedSubscribers || 0,
-        unsubscribed: unsubscribed || 0,
-        confirmRate: newsletterConfirmRate,
-        last30Days: recentSubscribers || 0,
-      },
-      dataRequests: {
-        total: totalDataRequests || 0,
-        pending: pendingRequests || 0,
-        completed: completedRequests || 0,
-        exportRequests,
-        deleteRequests,
-        recent: recentRequests || [],
-      },
-      orders: {
-        total: totalOrders || 0,
-        withPrivacyConsent: ordersWithPrivacyConsent || 0,
-        withNewsletterOptIn: ordersWithNewsletterOptIn || 0,
-        privacyConsentRate: totalOrders
-          ? Math.round(((ordersWithPrivacyConsent || 0) / totalOrders) * 100)
-          : 0,
-      },
-      contacts: {
-        total: totalContacts || 0,
-      },
-      auditLog: {
-        total: totalAuditLogs || 0,
-        last30Days: recentAuditLogs || 0,
-      },
-      lastUpdated: now.toISOString(),
-    });
-  } catch (error) {
-    console.error('Failed to fetch GDPR stats:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch GDPR stats' },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({
+    cookieConsent: {
+      total: totalCookieConsents,
+      accepted: cookieAccepted,
+      declined: cookieDeclined,
+      acceptRate: calculateRate(cookieAccepted, totalCookieConsents),
+      last30Days: recentCookieConsentsResult.count || 0,
+    },
+    newsletter: {
+      total: totalSubscribers,
+      confirmed: confirmedSubscribers,
+      unconfirmed: unconfirmedSubscribersResult.count || 0,
+      unsubscribed: unsubscribedResult.count || 0,
+      confirmRate: calculateRate(confirmedSubscribers, totalSubscribers),
+      last30Days: recentSubscribersResult.count || 0,
+    },
+    dataRequests: {
+      total: totalDataRequestsResult.count || 0,
+      pending: pendingRequestsResult.count || 0,
+      completed: completedRequestsResult.count || 0,
+      exportRequests,
+      deleteRequests,
+      recent: recentRequestsResult.data || [],
+    },
+    orders: {
+      total: totalOrders,
+      withPrivacyConsent: ordersWithPrivacyConsent,
+      withNewsletterOptIn: ordersWithNewsletterOptInResult.count || 0,
+      privacyConsentRate: calculateRate(ordersWithPrivacyConsent, totalOrders),
+    },
+    contacts: {
+      total: totalContactsResult.count || 0,
+    },
+    auditLog: {
+      total: totalAuditLogsResult.count || 0,
+      last30Days: recentAuditLogsResult.count || 0,
+    },
+    lastUpdated: now.toISOString(),
+  });
 }

@@ -14,23 +14,18 @@ export async function generateStaticParams() {
 }
 
 async function getCollections(): Promise<Collection[]> {
-  try {
-    const supabase = createPublicClient();
-    const { data: collections, error } = await supabase
-      .from('collections')
-      .select('*')
-      .order('display_order', { ascending: true });
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('collections')
+    .select('*')
+    .order('display_order', { ascending: true });
 
-    if (error) {
-      console.error('Failed to fetch collections:', error);
-      return [];
-    }
-
-    return collections || [];
-  } catch (error) {
+  if (error) {
     console.error('Failed to fetch collections:', error);
     return [];
   }
+
+  return data ?? [];
 }
 
 export default async function LangLayout({

@@ -1,15 +1,30 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, GripVertical, Loader2, RefreshCw, Eye, EyeOff, Instagram, Facebook, MessageCircle } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import {
+  Eye,
+  EyeOff,
+  Facebook,
+  GripVertical,
+  Loader2,
+  MessageCircle,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react';
+import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
+import type { ReactNode } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { adminFetch, adminFetchJson } from '@/lib/admin-fetch';
 import type { Testimonial } from '@/types';
-import { adminFetch } from '@/lib/admin-fetch';
 
-const sourceOptions = ['Instagram', 'Facebook', 'Google', 'Email', 'Other'];
+const SOURCE_OPTIONS = ['Instagram', 'TikTok', 'Facebook', 'Google', 'Email', 'Other'] as const;
 
-const sourceIcons: Record<string, React.ReactNode> = {
-  Instagram: <Instagram className="w-4 h-4" />,
+const SOURCE_ICONS: Record<string, ReactNode> = {
+  Instagram: <SiInstagram className="w-4 h-4" />,
+  TikTok: <SiTiktok className="w-4 h-4" />,
   Facebook: <Facebook className="w-4 h-4" />,
   default: <MessageCircle className="w-4 h-4" />,
 };
@@ -31,29 +46,26 @@ export default function AdminTestimonialsPage() {
   const fetchTestimonials = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await adminFetch('/api/admin/testimonials');
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+    const result = await adminFetchJson<Testimonial[]>('/api/admin/testimonials');
+    if (result.error) {
+      setError(result.error);
+    } else {
       setTestimonials(result.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchTestimonials();
   }, [fetchTestimonials]);
 
-  const openNewModal = () => {
+  function openNewModal(): void {
     setEditingTestimonial(null);
     setFormData({ feedback: '', name: '', source: 'Instagram', is_active: true });
     setIsModalOpen(true);
-  };
+  }
 
-  const openEditModal = (testimonial: Testimonial) => {
+  function openEditModal(testimonial: Testimonial): void {
     setEditingTestimonial(testimonial);
     setFormData({
       feedback: testimonial.feedback,
@@ -62,68 +74,57 @@ export default function AdminTestimonialsPage() {
       is_active: testimonial.is_active,
     });
     setIsModalOpen(true);
-  };
+  }
 
-  const handleSave = async () => {
+  async function handleSave(): Promise<void> {
     if (!formData.feedback || !formData.name) return;
     setIsSaving(true);
 
-    try {
-      const url = editingTestimonial
-        ? `/api/admin/testimonials/${editingTestimonial.id}`
-        : '/api/admin/testimonials';
+    const url = editingTestimonial
+      ? `/api/admin/testimonials/${editingTestimonial.id}`
+      : '/api/admin/testimonials';
 
-      const response = await adminFetch(url, {
-        method: editingTestimonial ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          feedback: formData.feedback,
-          name: formData.name,
-          source: formData.source,
-          is_active: formData.is_active,
-        }),
-      });
+    const response = await adminFetch(url, {
+      method: editingTestimonial ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      if (!response.ok) throw new Error('Failed to save');
-
-      setIsModalOpen(false);
-      fetchTestimonials();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setIsSaving(false);
+    setIsSaving(false);
+    if (!response.ok) {
+      setError('Failed to save');
+      return;
     }
-  };
 
-  const deleteTestimonial = async (id: string) => {
+    setIsModalOpen(false);
+    fetchTestimonials();
+  }
+
+  async function deleteTestimonial(id: string): Promise<void> {
     if (!confirm('Er du sikker på at du vil slette denne tilbakemeldingen?')) return;
 
-    try {
-      const response = await adminFetch(`/api/admin/testimonials/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete');
-      setTestimonials((prev) => prev.filter((t) => t.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
+    const response = await adminFetch(`/api/admin/testimonials/${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      setError('Failed to delete');
+      return;
     }
-  };
+    setTestimonials((prev) => prev.filter((t) => t.id !== id));
+  }
 
-  const toggleActive = async (testimonial: Testimonial) => {
-    try {
-      const response = await adminFetch(`/api/admin/testimonials/${testimonial.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !testimonial.is_active }),
-      });
-      if (!response.ok) throw new Error('Failed to update');
-      setTestimonials((prev) =>
-        prev.map((t) => (t.id === testimonial.id ? { ...t, is_active: !t.is_active } : t))
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update');
+  async function toggleActive(testimonial: Testimonial): Promise<void> {
+    const response = await adminFetch(`/api/admin/testimonials/${testimonial.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !testimonial.is_active }),
+    });
+    if (!response.ok) {
+      setError('Failed to update');
+      return;
     }
-  };
+    setTestimonials((prev) =>
+      prev.map((t) => (t.id === testimonial.id ? { ...t, is_active: !t.is_active } : t))
+    );
+  }
 
   if (isLoading) {
     return (
@@ -188,13 +189,13 @@ export default function AdminTestimonialsPage() {
 
                 <div className="flex-1 min-w-0">
                   {/* Feedback */}
-                  <p className="text-foreground mb-2 line-clamp-2">"{testimonial.feedback}"</p>
+                  <p className="text-foreground mb-2 line-clamp-2">&ldquo;{testimonial.feedback}&rdquo;</p>
 
                   {/* Name and Source */}
                   <div className="flex items-center gap-3 text-sm">
                     <span className="font-medium">{testimonial.name}</span>
                     <span className="flex items-center gap-1 text-muted-foreground">
-                      {sourceIcons[testimonial.source] || sourceIcons.default}
+                      {SOURCE_ICONS[testimonial.source] || SOURCE_ICONS.default}
                       {testimonial.source}
                     </span>
                     {!testimonial.is_active && (
@@ -280,7 +281,7 @@ export default function AdminTestimonialsPage() {
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    {sourceOptions.map((source) => (
+                    {SOURCE_OPTIONS.map((source) => (
                       <option key={source} value={source}>
                         {source}
                       </option>

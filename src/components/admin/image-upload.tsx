@@ -1,15 +1,48 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
-  value?: string; // Current image URL
-  path?: string; // Current image path in storage
+  value?: string;
+  path?: string;
   onChange: (url: string, path: string) => void;
   onRemove?: () => void;
+}
+
+interface DropZoneContentProps {
+  isDragging: boolean;
+}
+
+function UploadingState(): React.ReactElement {
+  return (
+    <>
+      <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      <p className="text-sm text-muted-foreground">Laster opp...</p>
+    </>
+  );
+}
+
+function DropZoneContent({ isDragging }: DropZoneContentProps): React.ReactElement {
+  const Icon = isDragging ? Upload : ImageIcon;
+  const iconClass = isDragging ? 'text-primary' : 'text-muted-foreground';
+  const promptText = isDragging ? 'Slipp for å laste opp' : 'Dra og slipp bilde her';
+
+  return (
+    <>
+      <div className="p-4 rounded-full bg-muted">
+        <Icon className={cn('w-8 h-8', iconClass)} />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-medium">{promptText}</p>
+        <p className="text-xs text-muted-foreground mt-1">eller klikk for å velge</p>
+      </div>
+      <p className="text-xs text-muted-foreground">JPEG, PNG, WebP, GIF (maks 10MB)</p>
+    </>
+  );
 }
 
 export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProps) {
@@ -18,16 +51,16 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (file: File) => {
+  async function handleUpload(file: File): Promise<void> {
+    if (!file || file.size === 0) {
+      setError('No file selected or file is empty');
+      return;
+    }
+
     setError(null);
     setIsUploading(true);
 
     try {
-      // Validate file exists and has content (Safari fix)
-      if (!file || file.size === 0) {
-        throw new Error('No file selected or file is empty');
-      }
-
       const formData = new FormData();
       formData.append('file', file);
 
@@ -36,14 +69,12 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
         body: formData,
       });
 
-      // Get response as text first to handle Safari's JSON parsing quirks
       const responseText = await response.text();
 
       let result;
       try {
         result = JSON.parse(responseText);
       } catch {
-        // Safari throws "The string did not match the expected pattern" for non-JSON
         console.error('Failed to parse response:', responseText);
         throw new Error('Server returned invalid response');
       }
@@ -58,16 +89,16 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
     } finally {
       setIsUploading(false);
     }
-  };
+  }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>): void {
     const file = e.target.files?.[0];
     if (file) {
       handleUpload(file);
     }
-  };
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  function handleDrop(e: React.DragEvent): void {
     e.preventDefault();
     setIsDragging(false);
 
@@ -75,19 +106,19 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
     if (file && file.type.startsWith('image/')) {
       handleUpload(file);
     }
-  }, []);
+  }
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  function handleDragOver(e: React.DragEvent): void {
     e.preventDefault();
     setIsDragging(true);
-  }, []);
+  }
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  function handleDragLeave(e: React.DragEvent): void {
     e.preventDefault();
     setIsDragging(false);
-  }, []);
+  }
 
-  const handleRemove = async () => {
+  async function handleRemove(): Promise<void> {
     if (path) {
       try {
         await fetch('/api/admin/upload', {
@@ -100,7 +131,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
       }
     }
     onRemove?.();
-  };
+  }
 
   return (
     <div className="space-y-2">
@@ -133,12 +164,11 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`
-              relative aspect-[4/3] max-h-64 rounded-lg border-2 border-dashed
-              transition-colors cursor-pointer
-              ${isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}
-              ${isUploading ? 'pointer-events-none' : ''}
-            `}
+            className={cn(
+              'relative aspect-[4/3] max-h-64 rounded-lg border-2 border-dashed transition-colors cursor-pointer',
+              isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50',
+              isUploading && 'pointer-events-none'
+            )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -154,31 +184,9 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
 
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
               {isUploading ? (
-                <>
-                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Laster opp...</p>
-                </>
+                <UploadingState />
               ) : (
-                <>
-                  <div className="p-4 rounded-full bg-muted">
-                    {isDragging ? (
-                      <Upload className="w-8 h-8 text-primary" />
-                    ) : (
-                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium">
-                      {isDragging ? 'Slipp for å laste opp' : 'Dra og slipp bilde her'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      eller klikk for å velge
-                    </p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    JPEG, PNG, WebP, GIF (maks 10MB)
-                  </p>
-                </>
+                <DropZoneContent isDragging={isDragging} />
               )}
             </div>
           </motion.div>

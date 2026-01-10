@@ -1,28 +1,36 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'hero';
 }
 
-const sizes = {
-  sm: { width: 80, height: 40, textClass: 'text-lg' },
-  md: { width: 120, height: 60, textClass: 'text-2xl' },
-  lg: { width: 160, height: 80, textClass: 'text-3xl' },
-  hero: { width: 600, height: 200, textClass: 'text-7xl sm:text-8xl lg:text-9xl' },
-};
+const IMAGE_SIZES = {
+  sm: { width: 80, height: 40 },
+  md: { width: 120, height: 60 },
+  lg: { width: 160, height: 80 },
+  hero: { width: 600, height: 200 },
+} as const;
 
-export function Logo({ className = '', size = 'md' }: LogoProps) {
+const TEXT_CLASSES = {
+  sm: 'text-lg',
+  md: 'text-2xl',
+  lg: 'text-3xl',
+  hero: 'text-7xl sm:text-8xl lg:text-9xl',
+} as const;
+
+export function Logo({ className, size = 'md' }: LogoProps): ReactNode {
   const [imageError, setImageError] = useState(false);
-  const { width, height, textClass } = sizes[size];
+  const { width, height } = IMAGE_SIZES[size];
 
   if (imageError) {
-    // Fallback to text logo
     return (
-      <span className={`font-bold tracking-tight ${textClass} ${className}`}>
+      <span className={cn('font-bold tracking-tight', TEXT_CLASSES[size], className)}>
         <span className="text-primary">Dotty</span>
         <span className="text-foreground">.</span>
       </span>
@@ -35,8 +43,8 @@ export function Logo({ className = '', size = 'md' }: LogoProps) {
       alt="Dotty."
       width={width}
       height={height}
-      className={`h-auto w-auto ${className}`}
-      style={{ maxHeight: size === 'hero' ? undefined : height * 0.7 }}
+      className={cn('h-auto w-auto', className)}
+      style={size !== 'hero' ? { maxHeight: height * 0.7 } : undefined}
       onError={() => setImageError(true)}
       priority
     />

@@ -1,23 +1,22 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Shield,
-  Search,
-  Loader2,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  Calendar,
-  User,
-  Package,
-  Mail,
-  ShoppingCart,
-  Database,
   Clock,
+  Database,
+  Filter,
+  Loader2,
+  Mail,
+  Package,
+  RefreshCw,
+  Search,
+  Shield,
+  ShoppingCart,
+  User,
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
 import { adminFetch } from '@/lib/admin-fetch';
 
 interface AuditLogEntry {
@@ -77,7 +76,33 @@ const actorColors: Record<string, string> = {
   system: 'bg-purple-500/10 text-purple-500',
 };
 
-export default function AuditLogPage() {
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const diff = Date.now() - date.getTime();
+
+  if (diff < MINUTE) return 'Na';
+  if (diff < HOUR) return `${Math.round(diff / MINUTE)} min`;
+  if (diff < DAY) return `${Math.round(diff / HOUR)}t`;
+  if (diff < WEEK) return `${Math.round(diff / DAY)}d`;
+  return formatFullDate(dateStr);
+}
+
+function formatFullDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleString('nb-NO', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export default function AuditLogPage(): React.ReactElement {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
@@ -162,29 +187,6 @@ export default function AuditLogPage() {
     setDateFrom('');
     setDateTo('');
     setSearch('');
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleString('nb-NO', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const formatRelativeTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-
-    if (diff < 60 * 1000) return 'Nå';
-    if (diff < 60 * 60 * 1000) return `${Math.round(diff / (60 * 1000))} min`;
-    if (diff < 24 * 60 * 60 * 1000) return `${Math.round(diff / (60 * 60 * 1000))}t`;
-    if (diff < 7 * 24 * 60 * 60 * 1000) return `${Math.round(diff / (24 * 60 * 60 * 1000))}d`;
-    return formatDate(dateStr);
   };
 
   const getEntityIcon = (entityType: string) => {
@@ -407,7 +409,7 @@ export default function AuditLogPage() {
                         {formatRelativeTime(log.created_at)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(log.created_at)}
+                        {formatFullDate(log.created_at)}
                       </span>
                     </div>
                   </td>

@@ -1,29 +1,18 @@
 import { Heading, Hr, Section, Text } from '@react-email/components';
-import * as React from 'react';
+
 import type { Order } from '@/types';
-import { EmailLayout } from './components/layout';
-import { EmailHeader } from './components/header';
+
 import { EmailFooter } from './components/footer';
+import { EmailHeader } from './components/header';
+import { EmailLayout } from './components/layout';
 import { OrderItems } from './components/order-items';
+import { formatDate, formatPrice } from './utils';
 
 interface OrderConfirmationEmailProps {
   order: Order;
 }
 
-function formatPrice(priceInOre: number): string {
-  return `${(priceInOre / 100).toLocaleString('no-NO')} kr`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('no-NO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
-  // Calculate shipping from order if available
+export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): React.ReactElement {
   const shippingCost = order.shipping_cost || 14900;
 
   return (
@@ -31,7 +20,6 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
         <EmailHeader subtitle="Ordrebekreftelse" />
 
-        {/* Success Message */}
         <Section className="px-8 pb-8 text-center">
           <Text className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/20 text-3xl">
             ✓
@@ -49,7 +37,6 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
 
         <Hr className="mx-8 border-border" />
 
-        {/* Order Items */}
         <Section className="px-8 py-6">
           <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
             Din ordre
@@ -57,7 +44,6 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
           <OrderItems items={order.items} />
         </Section>
 
-        {/* Price Breakdown */}
         <Section className="mx-8 mb-6 rounded-xl bg-muted p-4">
           <table width="100%" cellSpacing="0" cellPadding="0">
             <tbody>
@@ -106,7 +92,6 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps) {
           </table>
         </Section>
 
-        {/* Shipping Address */}
         <Section className="px-8 pb-8">
           <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
             Leveringsadresse

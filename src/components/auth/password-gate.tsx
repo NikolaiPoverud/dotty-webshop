@@ -1,38 +1,44 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 const SITE_PASSWORD = '1996';
 const STORAGE_KEY = 'dotty-site-unlocked';
 
-export function PasswordGate({ children }: { children: React.ReactNode }) {
+interface PasswordGateProps {
+  children: ReactNode;
+}
+
+export function PasswordGate({ children }: PasswordGateProps): ReactNode {
   const [isUnlocked, setIsUnlocked] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
-    // Check if already unlocked
-    const unlocked = localStorage.getItem(STORAGE_KEY) === 'true';
-    setIsUnlocked(unlocked);
+    setIsUnlocked(localStorage.getItem(STORAGE_KEY) === 'true');
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent): void {
     e.preventDefault();
+
     if (password === SITE_PASSWORD) {
       localStorage.setItem(STORAGE_KEY, 'true');
       setIsUnlocked(true);
-      setError(false);
-    } else {
-      setError(true);
-      setShake(true);
-      setPassword('');
-      // Remove shake after animation
-      setTimeout(() => setShake(false), 500);
+      return;
     }
-  };
 
-  // Show nothing while checking localStorage (prevents flash)
+    setError(true);
+    setShake(true);
+    setPassword('');
+    setTimeout(() => setShake(false), 500);
+  }
+
+  function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    setPassword(e.target.value);
+    setError(false);
+  }
+
   if (isUnlocked === null) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -41,12 +47,10 @@ export function PasswordGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Show content if unlocked
   if (isUnlocked) {
-    return <>{children}</>;
+    return children;
   }
 
-  // Show password gate
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
@@ -62,18 +66,12 @@ export function PasswordGate({ children }: { children: React.ReactNode }) {
             <input
               type="password"
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError(false);
-              }}
+              onChange={handlePasswordChange}
               placeholder="Password"
               autoFocus
               className={`w-full px-4 py-3 bg-gray-900 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all ${
                 error ? 'border-red-500' : 'border-gray-700'
               } ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
-              style={shake ? {
-                animation: 'shake 0.5s ease-in-out'
-              } : undefined}
             />
             {error && (
               <p className="mt-2 text-red-400 text-sm">Incorrect password</p>

@@ -19,15 +19,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const supabase = createAdminClient();
 
-    const updateData: { is_read: boolean; read_at?: string | null } = {
+    const updateData = {
       is_read,
+      read_at: is_read ? new Date().toISOString() : null,
     };
-
-    if (is_read) {
-      updateData.read_at = new Date().toISOString();
-    } else {
-      updateData.read_at = null;
-    }
 
     const { data, error } = await supabase
       .from('contact_submissions')
@@ -36,12 +31,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       .select()
       .single();
 
-    if (error) {
-      console.error('Error updating contact submission:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    // Log audit with user ID
     await logAudit({
       action: 'contact_mark_read',
       entity_type: 'contact_submission',
@@ -52,7 +43,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       ip_address: getIpFromRequest(request),
     });
 
-    return NextResponse.json(data);
+    return NextResponse.json({ data });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
@@ -85,12 +76,8 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting contact submission:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    // Log audit with user ID
     await logAudit({
       action: 'contact_delete',
       entity_type: 'contact_submission',

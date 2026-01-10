@@ -4,7 +4,11 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import type { Locale } from '@/types';
 
-const artistText = {
+interface Props {
+  lang: Locale;
+}
+
+const artistText: Record<Locale, { title: string; paragraphs: string[] }> = {
   no: {
     title: 'Om Dotty.',
     paragraphs: [
@@ -23,34 +27,30 @@ const artistText = {
   },
 };
 
-export function ArtistStatement({ lang }: { lang: Locale }) {
+export function ArtistStatement({ lang }: Props): React.ReactElement {
   const t = artistText[lang];
 
   return (
     <section id="about" className="py-20 sm:py-32 relative overflow-hidden scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Artist Image Placeholder */}
+          {/* Artist Image */}
           <motion.div
-            className="relative aspect-square max-w-md mx-auto lg:mx-0"
+            className="relative aspect-square max-w-md mx-auto lg:mx-0 bg-muted overflow-hidden rounded-lg"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Main image container */}
-            <div className="relative bg-muted w-full h-full overflow-hidden rounded-lg">
-              <Image
-                src="/artist.jpg"
-                alt="Dotty - Artist"
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              {/* Subtle pink overlay */}
-              <div className="absolute inset-0 bg-primary/10" />
-            </div>
+            <Image
+              src="/artist.jpg"
+              alt="Dotty - Artist"
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-primary/10" />
           </motion.div>
 
           {/* Text Content */}
@@ -72,25 +72,19 @@ export function ArtistStatement({ lang }: { lang: Locale }) {
               ))}
             </div>
 
-            {/* Signature dots pattern */}
-            <motion.div
-              className="mt-8 flex gap-2"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.6 }}
-            >
-              {[...Array(5)].map((_, i) => (
+            {/* Signature dots */}
+            <div className="mt-8 flex gap-2">
+              {[0, 1, 2, 3, 4].map((i) => (
                 <motion.div
                   key={i}
                   className="w-3 h-3 rounded-full bg-primary"
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: 0.7 + i * 0.1 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
                 />
               ))}
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>

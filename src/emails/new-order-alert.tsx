@@ -1,35 +1,22 @@
 import { Heading, Hr, Link, Section, Text } from '@react-email/components';
-import * as React from 'react';
-import type { Order } from '@/types';
-import { EmailLayout } from './components/layout';
-import { EmailFooter } from './components/footer';
-import { OrderItems } from './components/order-items';
-import { Button } from './components/button';
+
 import { emailConfig } from '@/lib/email/resend';
+import type { Order } from '@/types';
+
+import { Button } from './components/button';
+import { EmailFooter } from './components/footer';
+import { EmailLayout } from './components/layout';
+import { OrderItems } from './components/order-items';
+import { formatDateTime, formatPrice } from './utils';
 
 interface NewOrderAlertEmailProps {
   order: Order;
 }
 
-function formatPrice(priceInOre: number): string {
-  return `${(priceInOre / 100).toLocaleString('no-NO')} kr`;
-}
-
-function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleString('no-NO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
+export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.ReactElement {
   return (
     <EmailLayout preview={`Ny ordre ${order.order_number} - ${formatPrice(order.total)}`}>
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
-        {/* Header with Alert Badge */}
         <Section className="bg-muted px-8 py-8">
           <table width="100%" cellSpacing="0" cellPadding="0">
             <tbody>
@@ -50,7 +37,6 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
           </table>
         </Section>
 
-        {/* Order Summary */}
         <Section className="px-8 py-8 text-center">
           <Heading className="m-0 text-xl font-bold text-foreground">
             Ny bestilling mottatt
@@ -68,7 +54,6 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
 
         <Hr className="mx-8 border-border" />
 
-        {/* Customer Info */}
         <Section className="px-8 py-6">
           <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
             Kunde
@@ -88,7 +73,6 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
           </Section>
         </Section>
 
-        {/* Order Items */}
         <Section className="px-8 pb-6">
           <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
             Produkter
@@ -96,7 +80,6 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
           <OrderItems items={order.items} />
         </Section>
 
-        {/* Shipping Address */}
         <Section className="px-8 pb-8">
           <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
             Leveringsadresse
@@ -114,7 +97,6 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps) {
           </Section>
         </Section>
 
-        {/* CTA Button */}
         <Section className="px-8 pb-8 text-center">
           <Button href={`${emailConfig.baseUrl}/admin/orders`}>
             Se ordre i admin-panel

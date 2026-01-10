@@ -2,25 +2,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ExternalLink,
+  FileImage,
+  FileText,
+  FolderOpen,
   LayoutDashboard,
+  Mail,
+  MessageSquareQuote,
   Package,
+  Send,
+  Shield,
   ShoppingCart,
   Tag,
-  FolderOpen,
-  ExternalLink,
-  MessageSquareQuote,
-  Mail,
-  Shield,
-  FileText,
-  Send,
   Users,
-  FileImage,
 } from 'lucide-react';
+
+import { adminFetch } from '@/lib/admin-fetch';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/admin/user-menu';
-import { adminFetch } from '@/lib/admin-fetch';
+
+const THROTTLE_MS = 30000;
+const POLL_INTERVAL_MS = 60000;
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Oversikt', icon: LayoutDashboard },
@@ -37,15 +41,16 @@ const navItems = [
   { href: '/admin/audit-log', label: 'Aktivitetslogg', icon: FileText },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar(): React.ReactNode {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const lastFetchRef = useRef<number>(0);
 
   const fetchUnreadCount = useCallback(async () => {
-    // Throttle: skip if fetched within last 30 seconds
     const now = Date.now();
-    if (now - lastFetchRef.current < 30000) return;
+    const isThrottled = now - lastFetchRef.current < THROTTLE_MS;
+    if (isThrottled) return;
+
     lastFetchRef.current = now;
 
     try {
@@ -62,30 +67,31 @@ export function AdminSidebar() {
   useEffect(() => {
     fetchUnreadCount();
 
-    // Only poll when document is visible, every 60 seconds
-    const interval = setInterval(() => {
+    function handleVisibilityChange(): void {
       if (document.visibilityState === 'visible') {
         fetchUnreadCount();
       }
-    }, 60000);
+    }
 
-    // Also fetch when page becomes visible again
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        fetchUnreadCount();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
+    const interval = setInterval(handleVisibilityChange, POLL_INTERVAL_MS);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibility);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchUnreadCount]);
 
+  function isActiveRoute(href: string): boolean {
+    return pathname === href || pathname?.startsWith(`${href}/`) || false;
+  }
+
+  function formatBadgeCount(count: number): string {
+    return count > 99 ? '99+' : String(count);
+  }
+
   return (
     <aside className="w-64 min-w-64 h-screen sticky top-0 bg-muted border-r border-border flex flex-col">
-      {/* Logo */}
       <div className="p-6 border-b border-border">
         <Link href="/admin/dashboard" className="text-xl font-bold">
           <span className="text-primary">Dotty</span>
@@ -94,11 +100,10 @@ export function AdminSidebar() {
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+          const isActive = isActiveRoute(item.href);
           const showBadge = item.href === '/admin/contact' && unreadCount > 0;
 
           return (
@@ -115,11 +120,13 @@ export function AdminSidebar() {
               <Icon className="w-5 h-5" />
               <span className="flex-1">{item.label}</span>
               {showBadge && (
-                <span className={cn(
-                  'flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full',
-                  isActive ? 'bg-background text-primary' : 'bg-primary text-background'
-                )}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                <span
+                  className={cn(
+                    'flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full',
+                    isActive ? 'bg-background text-primary' : 'bg-primary text-background'
+                  )}
+                >
+                  {formatBadgeCount(unreadCount)}
                 </span>
               )}
             </Link>
@@ -127,9 +134,7 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="p-4 border-t border-border space-y-3">
-        {/* View Shop Link */}
         <Link
           href="/no"
           target="_blank"
@@ -139,7 +144,6 @@ export function AdminSidebar() {
           <span>Se shop</span>
         </Link>
 
-        {/* User Menu */}
         <div className="pt-3 border-t border-border">
           <UserMenu />
         </div>

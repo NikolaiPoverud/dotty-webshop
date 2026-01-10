@@ -13,79 +13,61 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 // Revalidate every 60 seconds for fresh data with caching benefits
 export const revalidate = 60;
 
-type Props = {
-  params: Promise<{ lang: string }>;
-};
-
 async function getFeaturedProducts(): Promise<ProductListItem[]> {
-  try {
-    const supabase = createPublicClient();
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
-      .is('deleted_at', null)
-      .order('display_order', { ascending: true })
-      .limit(12);
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
+    .is('deleted_at', null)
+    .order('display_order', { ascending: true })
+    .limit(12);
 
-    if (error) {
-      console.error('Failed to fetch featured products:', error);
-      return [];
-    }
-
-    return products || [];
-  } catch (error) {
+  if (error) {
     console.error('Failed to fetch featured products:', error);
     return [];
   }
+
+  return data ?? [];
 }
 
 async function getCollections(): Promise<CollectionCard[]> {
-  try {
-    const supabase = createPublicClient();
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('collections')
+    .select('id, name, slug, description')
+    .is('deleted_at', null)
+    .order('display_order', { ascending: true });
 
-    const { data: collections, error } = await supabase
-      .from('collections')
-      .select('id, name, slug, description')
-      .is('deleted_at', null)
-      .order('display_order', { ascending: true });
-
-    if (error) {
-      console.error('Failed to fetch collections:', error);
-      return [];
-    }
-
-    return collections || [];
-  } catch (error) {
+  if (error) {
     console.error('Failed to fetch collections:', error);
     return [];
   }
+
+  return data ?? [];
 }
 
 async function getTestimonials(): Promise<TestimonialCard[]> {
-  try {
-    const supabase = createPublicClient();
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('id, name, feedback, source')
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('display_order', { ascending: true });
 
-    const { data: testimonials, error } = await supabase
-      .from('testimonials')
-      .select('id, name, feedback, source')
-      .eq('is_active', true)
-      .is('deleted_at', null)
-      .order('display_order', { ascending: true });
-
-    if (error) {
-      console.error('Failed to fetch testimonials:', error);
-      return [];
-    }
-
-    return testimonials || [];
-  } catch (error) {
+  if (error) {
     console.error('Failed to fetch testimonials:', error);
     return [];
   }
+
+  return data ?? [];
 }
 
-// Generate metadata for SEO
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
   const { lang } = await params;
   const isNorwegian = lang === 'no';
 
@@ -131,7 +113,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function HomePage({ params }: Props) {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<React.ReactElement> {
   const { lang } = await params;
   const locale = lang as Locale;
 

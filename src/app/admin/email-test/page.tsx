@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Mail, Send, Loader2, CheckCircle, AlertCircle, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { AlertCircle, CheckCircle, ChevronDown, Loader2, Mail, Send } from 'lucide-react';
 
 interface EmailType {
   id: string;
@@ -10,12 +10,17 @@ interface EmailType {
   subject: string;
 }
 
-export default function EmailTestPage() {
+interface SendResult {
+  success: boolean;
+  message: string;
+}
+
+export default function EmailTestPage(): React.ReactElement {
   const [emailTypes, setEmailTypes] = useState<EmailType[]>([]);
   const [selectedType, setSelectedType] = useState<string>('test');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<SendResult | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {

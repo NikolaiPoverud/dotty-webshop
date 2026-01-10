@@ -2,22 +2,37 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, Download, Loader2, X, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Download, FileText, Loader2, Upload, X } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import JSZip from 'jszip';
 
-// Configure PDF.js worker - use local copy for speed
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+
+type ConversionStatus = 'pending' | 'converting' | 'done' | 'error';
 
 interface ConvertedFile {
   id: string;
   originalName: string;
-  status: 'pending' | 'converting' | 'done' | 'error';
+  status: ConversionStatus;
   pngDataUrl?: string;
   error?: string;
 }
 
-export default function PdfConverterPage() {
+const STATUS_LABELS: Record<ConversionStatus, string> = {
+  pending: 'Venter...',
+  converting: 'Konverterer...',
+  done: 'Ferdig',
+  error: '',
+};
+
+function getStatusLabel(file: ConvertedFile): string {
+  if (file.status === 'error') {
+    return file.error || 'Feil';
+  }
+  return STATUS_LABELS[file.status];
+}
+
+export default function PdfConverterPage(): React.ReactElement {
   const [files, setFiles] = useState<ConvertedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
@@ -58,11 +73,10 @@ export default function PdfConverterPage() {
 
     if (pdfFiles.length === 0) return;
 
-    // Add files to state
     const newFiles: ConvertedFile[] = pdfFiles.map((f) => ({
       id: `${f.name}-${Date.now()}-${Math.random()}`,
       originalName: f.name,
-      status: 'pending' as const,
+      status: 'pending',
     }));
 
     setFiles((prev) => [...prev, ...newFiles]);
@@ -77,16 +91,15 @@ export default function PdfConverterPage() {
         batch.map(async (file, idx) => {
           const fileId = batchIds[idx].id;
 
-          // Update status to converting
           setFiles((prev) =>
-            prev.map((f) => (f.id === fileId ? { ...f, status: 'converting' as const } : f))
+            prev.map((f) => (f.id === fileId ? { ...f, status: 'converting' } : f))
           );
 
           try {
             const pngDataUrl = await convertPdfToPng(file);
             setFiles((prev) =>
               prev.map((f) =>
-                f.id === fileId ? { ...f, status: 'done' as const, pngDataUrl } : f
+                f.id === fileId ? { ...f, status: 'done', pngDataUrl } : f
               )
             );
           } catch (error) {
@@ -94,7 +107,7 @@ export default function PdfConverterPage() {
             setFiles((prev) =>
               prev.map((f) =>
                 f.id === fileId
-                  ? { ...f, status: 'error' as const, error: 'Kunne ikke konvertere' }
+                  ? { ...f, status: 'error', error: 'Kunne ikke konvertere' }
                   : f
               )
             );
@@ -282,10 +295,7 @@ export default function PdfConverterPage() {
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{file.originalName}</p>
               <p className="text-sm text-muted-foreground">
-                {file.status === 'pending' && 'Venter...'}
-                {file.status === 'converting' && 'Konverterer...'}
-                {file.status === 'done' && 'Ferdig'}
-                {file.status === 'error' && file.error}
+                {getStatusLabel(file)}
               </p>
             </div>
 

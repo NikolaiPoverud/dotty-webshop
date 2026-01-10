@@ -1,28 +1,27 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import {
-  Shield,
-  Cookie,
-  Mail,
-  Database,
-  ShoppingCart,
-  FileText,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  RefreshCw,
-  Loader2,
-  TrendingUp,
-  Users,
-  Trash2,
-  Download,
-  ExternalLink,
-  Play,
-} from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Cookie,
+  Database,
+  Download,
+  ExternalLink,
+  FileText,
+  Loader2,
+  Mail,
+  Play,
+  RefreshCw,
+  Shield,
+  ShoppingCart,
+  Trash2,
+  TrendingUp,
+  XCircle,
+} from 'lucide-react';
 import { adminFetch } from '@/lib/admin-fetch';
 
 interface GDPRStats {
@@ -71,6 +70,15 @@ interface GDPRStats {
   lastUpdated: string;
 }
 
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: typeof Shield;
+  trend?: { value: number; label: string };
+  color?: 'primary' | 'success' | 'warning' | 'error';
+}
+
 function StatCard({
   title,
   value,
@@ -78,14 +86,7 @@ function StatCard({
   icon: Icon,
   trend,
   color = 'primary',
-}: {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: typeof Shield;
-  trend?: { value: number; label: string };
-  color?: 'primary' | 'success' | 'warning' | 'error';
-}) {
+}: StatCardProps): React.ReactElement {
   const colorClasses = {
     primary: 'bg-primary/10 text-primary',
     success: 'bg-green-500/10 text-green-500',
@@ -123,15 +124,22 @@ function StatCard({
   );
 }
 
-function ProgressBar({
-  value,
-  label,
-  color = 'primary',
-}: {
+const progressBarColors: Record<string, string> = {
+  primary: 'bg-primary',
+  success: 'bg-green-500',
+  warning: 'bg-yellow-500',
+  error: 'bg-red-500',
+};
+
+interface ProgressBarProps {
   value: number;
   label: string;
-  color?: string;
-}) {
+  color?: keyof typeof progressBarColors;
+}
+
+function ProgressBar({ value, label, color = 'primary' }: ProgressBarProps): React.ReactElement {
+  const barColorClass = progressBarColors[color] || progressBarColors.primary;
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
@@ -143,18 +151,32 @@ function ProgressBar({
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           transition={{ duration: 0.5 }}
-          className={`h-full rounded-full ${
-            color === 'primary' ? 'bg-primary' :
-            color === 'success' ? 'bg-green-500' :
-            color === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-          }`}
+          className={`h-full rounded-full ${barColorClass}`}
         />
       </div>
     </div>
   );
 }
 
-export default function GDPRDashboardPage() {
+const requestStatusStyles: Record<string, string> = {
+  completed: 'bg-green-500/10 text-green-500',
+  pending: 'bg-yellow-500/10 text-yellow-500',
+};
+
+const requestStatusLabels: Record<string, string> = {
+  completed: 'Fullfort',
+  pending: 'Venter',
+};
+
+function getRequestStatusStyle(status: string): string {
+  return requestStatusStyles[status] || 'bg-muted-foreground/10 text-muted-foreground';
+}
+
+function getRequestStatusLabel(status: string): string {
+  return requestStatusLabels[status] || status;
+}
+
+export default function GDPRDashboardPage(): React.ReactElement | null {
   const [stats, setStats] = useState<GDPRStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -418,15 +440,9 @@ export default function GDPRDashboardPage() {
                       <span className="truncate max-w-[150px]">{req.email}</span>
                     </div>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${
-                        req.status === 'completed'
-                          ? 'bg-green-500/10 text-green-500'
-                          : req.status === 'pending'
-                          ? 'bg-yellow-500/10 text-yellow-500'
-                          : 'bg-muted-foreground/10 text-muted-foreground'
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-xs ${getRequestStatusStyle(req.status)}`}
                     >
-                      {req.status === 'completed' ? 'Fullført' : req.status === 'pending' ? 'Venter' : req.status}
+                      {getRequestStatusLabel(req.status)}
                     </span>
                   </div>
                 ))}

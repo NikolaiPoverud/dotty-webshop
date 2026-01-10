@@ -1,24 +1,25 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
 import {
-  Users,
-  Mail,
-  Send,
-  Loader2,
-  CheckCircle,
   AlertCircle,
   Bold,
+  CheckCircle,
+  Edit3,
+  Eye,
+  Heading2,
   Italic,
   Link as LinkIcon,
   List,
-  Heading2,
-  Eye,
-  Edit3,
-  ShoppingBag,
+  Loader2,
+  Mail,
   Newspaper,
+  Send,
+  ShoppingBag,
+  Users,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
 import { adminFetch } from '@/lib/admin-fetch';
 
 interface Customer {
@@ -27,15 +28,20 @@ interface Customer {
   name?: string;
 }
 
-interface Stats {
+interface CustomerStats {
   total: number;
   newsletterOnly: number;
   orderCustomers: number;
 }
 
+interface SendResult {
+  success: boolean;
+  message: string;
+}
+
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<CustomerStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Email composer state
@@ -43,118 +49,90 @@ export default function CustomersPage() {
   const [content, setContent] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [sendResult, setSendResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [sendResult, setSendResult] = useState<SendResult | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
-    try {
+    async function loadCustomers(): Promise<void> {
       const response = await adminFetch('/api/admin/customers');
       if (response.ok) {
         const data = await response.json();
         setCustomers(data.customers || []);
         setStats(data.stats);
       }
-    } catch (error) {
-      console.error('Failed to fetch customers:', error);
-    } finally {
       setIsLoading(false);
     }
-  };
+    loadCustomers();
+  }, []);
 
-  const applyFormatting = (command: string, value?: string) => {
+  function applyFormatting(command: string, value?: string): void {
     document.execCommand(command, false, value);
     editorRef.current?.focus();
-  };
+  }
 
-  const handleEditorInput = () => {
+  function handleEditorInput(): void {
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
     }
-  };
+  }
 
-  const handleSendTest = async () => {
+  async function handleSendTest(): Promise<void> {
     if (!testEmail || !subject || !content) return;
 
     setIsSending(true);
     setSendResult(null);
 
-    try {
-      const response = await adminFetch('/api/admin/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, content, testEmail }),
-      });
+    const response = await adminFetch('/api/admin/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, content, testEmail }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
+    setIsSending(false);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send test email');
-      }
-
-      setSendResult({
-        success: true,
-        message: data.message,
-      });
-    } catch (error) {
-      setSendResult({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send',
-      });
-    } finally {
-      setIsSending(false);
+    if (!response.ok) {
+      setSendResult({ success: false, message: data.error || 'Failed to send test email' });
+      return;
     }
-  };
 
-  const handleSendToAll = async () => {
+    setSendResult({ success: true, message: data.message });
+  }
+
+  async function handleSendToAll(): Promise<void> {
     if (!subject || !content) return;
 
     setIsSending(true);
     setSendResult(null);
     setShowConfirmDialog(false);
 
-    try {
-      const response = await adminFetch('/api/admin/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, content }),
-      });
+    const response = await adminFetch('/api/admin/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, content }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
+    setIsSending(false);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send newsletter');
-      }
-
-      setSendResult({
-        success: true,
-        message: `${data.message}${data.failed > 0 ? ` (${data.failed} feilet)` : ''}`,
-      });
-
-      // Clear form on success
-      setSubject('');
-      setContent('');
-      if (editorRef.current) {
-        editorRef.current.innerHTML = '';
-      }
-    } catch (error) {
-      setSendResult({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send',
-      });
-    } finally {
-      setIsSending(false);
+    if (!response.ok) {
+      setSendResult({ success: false, message: data.error || 'Failed to send newsletter' });
+      return;
     }
-  };
+
+    const failedNote = data.failed > 0 ? ` (${data.failed} feilet)` : '';
+    setSendResult({ success: true, message: `${data.message}${failedNote}` });
+
+    // Clear form on success
+    setSubject('');
+    setContent('');
+    if (editorRef.current) {
+      editorRef.current.innerHTML = '';
+    }
+  }
 
   return (
     <div className="space-y-6">

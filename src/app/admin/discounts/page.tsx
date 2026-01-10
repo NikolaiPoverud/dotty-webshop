@@ -1,10 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Copy, Check, Loader2, RefreshCw } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { Check, Copy, Loader2, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { adminFetch, adminFetchJson } from '@/lib/admin-fetch';
 import type { DiscountCode } from '@/types';
-import { adminFetch } from '@/lib/admin-fetch';
 
 export default function AdminDiscountsPage() {
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
@@ -25,23 +26,20 @@ export default function AdminDiscountsPage() {
   const fetchDiscounts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await adminFetch('/api/admin/discounts');
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+    const result = await adminFetchJson<DiscountCode[]>('/api/admin/discounts');
+    if (result.error) {
+      setError(result.error);
+    } else {
       setDiscounts(result.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchDiscounts();
   }, [fetchDiscounts]);
 
-  const openNewModal = () => {
+  function openNewModal(): void {
     setEditingDiscount(null);
     setFormData({
       code: '',
@@ -51,106 +49,102 @@ export default function AdminDiscountsPage() {
       expiresAt: '',
     });
     setIsModalOpen(true);
-  };
+  }
 
-  const openEditModal = (discount: DiscountCode) => {
+  function openEditModal(discount: DiscountCode): void {
     setEditingDiscount(discount);
+    const discountValue = discount.discount_percent
+      ? discount.discount_percent.toString()
+      : discount.discount_amount
+        ? (discount.discount_amount / 100).toString()
+        : '';
     setFormData({
       code: discount.code,
       discountType: discount.discount_percent ? 'percent' : 'amount',
-      discountValue: discount.discount_percent?.toString() || (discount.discount_amount ? (discount.discount_amount / 100).toString() : ''),
+      discountValue,
       usesRemaining: discount.uses_remaining?.toString() || '',
       expiresAt: discount.expires_at ? discount.expires_at.split('T')[0] : '',
     });
     setIsModalOpen(true);
-  };
+  }
 
-  const handleSave = async () => {
+  async function handleSave(): Promise<void> {
     if (!formData.code || !formData.discountValue) return;
     setIsSaving(true);
 
-    try {
-      const discountData = {
-        code: formData.code.toUpperCase(),
-        discount_percent: formData.discountType === 'percent' ? parseInt(formData.discountValue) : null,
-        discount_amount: formData.discountType === 'amount' ? parseInt(formData.discountValue) * 100 : null,
-        is_active: editingDiscount?.is_active ?? true,
-        uses_remaining: formData.usesRemaining ? parseInt(formData.usesRemaining) : null,
-        expires_at: formData.expiresAt ? `${formData.expiresAt}T23:59:59Z` : null,
-      };
+    const discountData = {
+      code: formData.code.toUpperCase(),
+      discount_percent: formData.discountType === 'percent' ? parseInt(formData.discountValue) : null,
+      discount_amount: formData.discountType === 'amount' ? parseInt(formData.discountValue) * 100 : null,
+      is_active: editingDiscount?.is_active ?? true,
+      uses_remaining: formData.usesRemaining ? parseInt(formData.usesRemaining) : null,
+      expires_at: formData.expiresAt ? `${formData.expiresAt}T23:59:59Z` : null,
+    };
 
-      const url = editingDiscount
-        ? `/api/admin/discounts/${editingDiscount.id}`
-        : '/api/admin/discounts';
+    const url = editingDiscount
+      ? `/api/admin/discounts/${editingDiscount.id}`
+      : '/api/admin/discounts';
 
-      const response = await adminFetch(url, {
-        method: editingDiscount ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(discountData),
-      });
+    const response = await adminFetch(url, {
+      method: editingDiscount ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(discountData),
+    });
 
-      if (!response.ok) throw new Error('Failed to save');
-
-      setIsModalOpen(false);
-      fetchDiscounts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setIsSaving(false);
+    setIsSaving(false);
+    if (!response.ok) {
+      setError('Failed to save');
+      return;
     }
-  };
 
-  const toggleActive = async (id: string, currentValue: boolean) => {
-    try {
-      const response = await adminFetch(`/api/admin/discounts/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !currentValue }),
-      });
-      if (response.ok) {
-        setDiscounts((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, is_active: !currentValue } : d))
-        );
-      }
-    } catch (err) {
-      console.error('Failed to toggle active:', err);
+    setIsModalOpen(false);
+    fetchDiscounts();
+  }
+
+  async function toggleActive(id: string, currentValue: boolean): Promise<void> {
+    const response = await adminFetch(`/api/admin/discounts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !currentValue }),
+    });
+    if (response.ok) {
+      setDiscounts((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, is_active: !currentValue } : d))
+      );
     }
-  };
+  }
 
-  const deleteDiscount = async (id: string) => {
+  async function deleteDiscount(id: string): Promise<void> {
     if (!confirm('Er du sikker på at du vil slette denne rabattkoden?')) return;
 
-    try {
-      const response = await adminFetch(`/api/admin/discounts/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete');
-      setDiscounts((prev) => prev.filter((d) => d.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
+    const response = await adminFetch(`/api/admin/discounts/${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      setError('Failed to delete');
+      return;
     }
-  };
+    setDiscounts((prev) => prev.filter((d) => d.id !== id));
+  }
 
-  const copyCode = (id: string, code: string) => {
+  function copyCode(id: string, code: string): void {
     navigator.clipboard.writeText(code);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
+  }
 
-  const formatDiscount = (discount: DiscountCode) => {
+  function formatDiscount(discount: DiscountCode): string {
     if (discount.discount_percent) return `${discount.discount_percent}%`;
     if (discount.discount_amount) return `${(discount.discount_amount / 100).toLocaleString('no-NO')} kr`;
     return '—';
-  };
+  }
 
-  const formatDate = (dateString: string | null) => {
+  function formatDate(dateString: string | null): string {
     if (!dateString) return 'Ingen';
     return new Date(dateString).toLocaleDateString('no-NO', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
     });
-  };
+  }
 
   if (isLoading) {
     return (

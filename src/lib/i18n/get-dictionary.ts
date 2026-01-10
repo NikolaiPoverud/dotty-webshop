@@ -1,19 +1,17 @@
-import type { Locale } from '@/types';
+import type { Dictionary, Locale } from '@/types';
 
-// Dictionary imports
-const dictionaries = {
-  no: () => import('./dictionaries/no.json').then((module) => module.default),
-  en: () => import('./dictionaries/en.json').then((module) => module.default),
+const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
+  no: () => import('./dictionaries/no.json').then((m) => m.default),
+  en: () => import('./dictionaries/en.json').then((m) => m.default),
 };
 
-export const getDictionary = async (locale: Locale) => {
+export async function getDictionary(locale: Locale): Promise<Dictionary> {
   return dictionaries[locale]();
-};
+}
 
-export const locales: Locale[] = ['no', 'en'];
+export const locales = Object.keys(dictionaries) as Locale[];
 export const defaultLocale: Locale = 'no';
 
-// Route mapping per language
 export const routes = {
   no: {
     shop: 'shop',
@@ -33,11 +31,9 @@ export const routes = {
 
 export type RouteKey = keyof typeof routes.no;
 
-// Helper to get localized path
-export function getLocalizedPath(locale: Locale, routeKey: RouteKey, slug?: string) {
+export function getLocalizedPath(locale: Locale, routeKey: RouteKey, slug?: string): string {
   const route = routes[locale][routeKey];
 
-  // Handle success as nested under checkout
   if (routeKey === 'success') {
     const checkoutRoute = routes[locale]['checkout'];
     return `/${locale}/${checkoutRoute}/${route}`;
@@ -47,7 +43,6 @@ export function getLocalizedPath(locale: Locale, routeKey: RouteKey, slug?: stri
   return slug ? `${basePath}/${slug}` : basePath;
 }
 
-// Helper to get the opposite locale
 export function getAlternateLocale(locale: Locale): Locale {
   return locale === 'no' ? 'en' : 'no';
 }

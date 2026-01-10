@@ -9,7 +9,7 @@ import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
 
-const gradients = [
+const PLACEHOLDER_GRADIENTS = [
   'from-primary to-accent',
   'from-accent to-accent-2',
   'from-accent-2 to-accent-3',
@@ -17,12 +17,13 @@ const gradients = [
 
 interface DraggableProductRowProps {
   product: Product;
-  index: number;
+  gradientIndex: number;
   onDelete: (id: string) => void;
 }
 
-function DraggableProductRow({ product, index, onDelete }: DraggableProductRowProps) {
+function DraggableProductRow({ product, gradientIndex, onDelete }: DraggableProductRowProps) {
   const dragControls = useDragControls();
+  const gradient = PLACEHOLDER_GRADIENTS[gradientIndex % PLACEHOLDER_GRADIENTS.length];
 
   return (
     <Reorder.Item
@@ -37,7 +38,6 @@ function DraggableProductRow({ product, index, onDelete }: DraggableProductRowPr
         zIndex: 10,
       }}
     >
-      {/* Drag Handle */}
       <div
         onPointerDown={(e) => dragControls.start(e)}
         className="cursor-grab active:cursor-grabbing touch-none p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -46,7 +46,6 @@ function DraggableProductRow({ product, index, onDelete }: DraggableProductRowPr
         <GripVertical className="w-5 h-5" />
       </div>
 
-      {/* Image */}
       <div>
         {product.image_url ? (
           <div className="relative w-12 h-12 rounded overflow-hidden">
@@ -58,33 +57,23 @@ function DraggableProductRow({ product, index, onDelete }: DraggableProductRowPr
             />
           </div>
         ) : (
-          <div
-            className={`w-12 h-12 rounded bg-gradient-to-br ${gradients[index % gradients.length]}`}
-          />
+          <div className={`w-12 h-12 rounded bg-gradient-to-br ${gradient}`} />
         )}
       </div>
 
-      {/* Title */}
       <div className="min-w-0">
         <p className="font-medium truncate">{product.title}</p>
-        <p className="text-sm text-muted-foreground truncate">
-          {product.description}
-        </p>
+        <p className="text-sm text-muted-foreground truncate">{product.description}</p>
       </div>
 
-      {/* Type */}
       <div>
         <span className="px-2 py-1 bg-background text-xs uppercase rounded">
           {product.product_type === 'original' ? 'Maleri' : 'Prints'}
         </span>
       </div>
 
-      {/* Price */}
-      <div className="font-medium">
-        {formatPrice(product.price)}
-      </div>
+      <div className="font-medium">{formatPrice(product.price)}</div>
 
-      {/* Stock */}
       <div>
         {product.product_type === 'original' ? (
           <span className="text-muted-foreground">-</span>
@@ -93,20 +82,16 @@ function DraggableProductRow({ product, index, onDelete }: DraggableProductRowPr
         )}
       </div>
 
-      {/* Status */}
       <div>
         <span
           className={`px-2 py-1 text-xs rounded ${
-            product.is_available
-              ? 'bg-success/10 text-success'
-              : 'bg-error/10 text-error'
+            product.is_available ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
           }`}
         >
           {product.is_available ? 'Tilgjengelig' : 'Solgt'}
         </span>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center justify-end gap-2">
         <Link
           href={`/admin/products/${product.id}/edit`}
@@ -244,9 +229,7 @@ export default function AdminProductsPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : null}
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               Lagre rekkefølge
             </motion.button>
           )}
@@ -296,9 +279,8 @@ export default function AdminProductsPage() {
         </div>
       ) : (
         <div className="bg-muted rounded-lg overflow-hidden">
-          {/* Header */}
           <div className="grid grid-cols-[auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
-            <div className="w-5" /> {/* Drag handle column */}
+            <div className="w-5" />
             <div>Bilde</div>
             <div>Tittel</div>
             <div>Type</div>
@@ -308,7 +290,6 @@ export default function AdminProductsPage() {
             <div className="text-right">Handlinger</div>
           </div>
 
-          {/* Draggable rows */}
           <Reorder.Group
             axis="y"
             values={products}
@@ -319,13 +300,12 @@ export default function AdminProductsPage() {
               <DraggableProductRow
                 key={product.id}
                 product={product}
-                index={index}
+                gradientIndex={index}
                 onDelete={deleteProduct}
               />
             ))}
           </Reorder.Group>
 
-          {/* Help text */}
           <div className="px-6 py-3 bg-muted-foreground/5 text-xs text-muted-foreground">
             Dra produktene for å endre rekkefølge i butikken
           </div>

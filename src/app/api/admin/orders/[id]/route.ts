@@ -5,10 +5,26 @@ import type { Order } from '@/types';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
+const STATUS_EMAIL_HANDLERS: Record<string, (order: Order) => Promise<{ success: boolean; error?: string }>> = {
+  shipped: sendShippingNotification,
+  delivered: sendDeliveryConfirmation,
+};
+
+function sendStatusChangeEmail(order: Order, previousStatus: string | undefined): void {
+  if (previousStatus === order.status) return;
+
+  const handler = STATUS_EMAIL_HANDLERS[order.status];
+  if (!handler) return;
+
+  handler(order).catch((err) => {
+    console.error(`Failed to send ${order.status} email for order ${order.id}:`, err);
+  });
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
@@ -17,16 +33,14 @@ export async function PUT(
     const body = await request.json();
     const supabase = createAdminClient();
 
-    // Get the current order to check status change
     const { data: currentOrder } = await supabase
       .from('orders')
-      .select('*')
+      .select('status')
       .eq('id', id)
       .single();
 
     const previousStatus = currentOrder?.status;
 
-    // Update the order
     const { data, error } = await supabase
       .from('orders')
       .update(body)
@@ -38,34 +52,8 @@ export async function PUT(
 
     const updatedOrder = data as Order;
 
-    // Send emails based on status changes
-    if (previousStatus !== updatedOrder.status) {
-      if (updatedOrder.status === 'shipped') {
-        // Send shipping notification to customer
-        sendShippingNotification(updatedOrder).then((result) => {
-          if (!result.success) {
-            console.error('Failed to send shipping notification:', result.error);
-          } else {
-            console.log(`Shipping notification sent for order ${id}`);
-          }
-        }).catch((err) => {
-          console.error('Shipping notification failed:', err);
-        });
-      } else if (updatedOrder.status === 'delivered') {
-        // Send delivery confirmation to customer
-        sendDeliveryConfirmation(updatedOrder).then((result) => {
-          if (!result.success) {
-            console.error('Failed to send delivery confirmation:', result.error);
-          } else {
-            console.log(`Delivery confirmation sent for order ${id}`);
-          }
-        }).catch((err) => {
-          console.error('Delivery confirmation failed:', err);
-        });
-      }
-    }
+    sendStatusChangeEmail(updatedOrder, previousStatus);
 
-    // Log audit with user ID
     await logAudit({
       action: 'order_update',
       entity_type: 'order',
@@ -84,9 +72,6 @@ export async function PUT(
     return NextResponse.json({ data });
   } catch (error) {
     console.error('Failed to update order:', error);
-    return NextResponse.json(
-      { error: 'Failed to update order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
   }
 }

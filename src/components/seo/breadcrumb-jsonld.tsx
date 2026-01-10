@@ -1,4 +1,6 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+import type { ReactElement } from 'react';
+
+import { BASE_URL, JsonLd } from './json-ld';
 
 interface BreadcrumbItem {
   name: string;
@@ -9,7 +11,7 @@ interface BreadcrumbJsonLdProps {
   items: BreadcrumbItem[];
 }
 
-export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
+export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps): ReactElement {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -21,10 +23,5 @@ export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
+  return <JsonLd data={structuredData} />;
 }

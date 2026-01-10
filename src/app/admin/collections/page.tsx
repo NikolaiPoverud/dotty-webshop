@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Loader2, RefreshCw, Truck } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
-import type { Collection } from '@/types';
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, RefreshCw, Trash2, Truck } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { adminFetch, adminFetchJson } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
-import { adminFetch } from '@/lib/admin-fetch';
+import type { Collection } from '@/types';
 
 // Shipping cost options in øre
 const SHIPPING_OPTIONS = [
@@ -28,29 +29,26 @@ export default function AdminCollectionsPage() {
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await adminFetch('/api/admin/collections');
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+    const result = await adminFetchJson<Collection[]>('/api/admin/collections');
+    if (result.error) {
+      setError(result.error);
+    } else {
       setCollections(result.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
 
-  const openNewModal = () => {
+  function openNewModal(): void {
     setEditingCollection(null);
     setFormData({ name: '', slug: '', description: '', shipping_cost: 0 });
     setIsModalOpen(true);
-  };
+  }
 
-  const openEditModal = (collection: Collection) => {
+  function openEditModal(collection: Collection): void {
     setEditingCollection(collection);
     setFormData({
       name: collection.name,
@@ -59,55 +57,50 @@ export default function AdminCollectionsPage() {
       shipping_cost: collection.shipping_cost || 0,
     });
     setIsModalOpen(true);
-  };
+  }
 
-  const handleSave = async () => {
+  async function handleSave(): Promise<void> {
     if (!formData.name || !formData.slug) return;
     setIsSaving(true);
 
-    try {
-      const url = editingCollection
-        ? `/api/admin/collections/${editingCollection.id}`
-        : '/api/admin/collections';
+    const url = editingCollection
+      ? `/api/admin/collections/${editingCollection.id}`
+      : '/api/admin/collections';
 
-      const response = await adminFetch(url, {
-        method: editingCollection ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          slug: formData.slug,
-          description: formData.description || null,
-          shipping_cost: formData.shipping_cost,
-          display_order: editingCollection?.display_order || collections.length + 1,
-        }),
-      });
+    const response = await adminFetch(url, {
+      method: editingCollection ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description || null,
+        shipping_cost: formData.shipping_cost,
+        display_order: editingCollection?.display_order || collections.length + 1,
+      }),
+    });
 
-      if (!response.ok) throw new Error('Failed to save');
-
-      setIsModalOpen(false);
-      fetchCollections();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setIsSaving(false);
+    setIsSaving(false);
+    if (!response.ok) {
+      setError('Failed to save');
+      return;
     }
-  };
 
-  const deleteCollection = async (id: string) => {
+    setIsModalOpen(false);
+    fetchCollections();
+  }
+
+  async function deleteCollection(id: string): Promise<void> {
     if (!confirm('Er du sikker på at du vil slette denne samlingen?')) return;
 
-    try {
-      const response = await adminFetch(`/api/admin/collections/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete');
-      setCollections((prev) => prev.filter((c) => c.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
+    const response = await adminFetch(`/api/admin/collections/${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      setError('Failed to delete');
+      return;
     }
-  };
+    setCollections((prev) => prev.filter((c) => c.id !== id));
+  }
 
-  const generateSlug = (name: string) => {
+  function generateSlug(name: string): string {
     return name
       .toLowerCase()
       .replace(/[æ]/g, 'ae')
@@ -115,9 +108,9 @@ export default function AdminCollectionsPage() {
       .replace(/[å]/g, 'a')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
-  };
+  }
 
-  const moveCollection = async (index: number, direction: 'up' | 'down') => {
+  async function moveCollection(index: number, direction: 'up' | 'down'): Promise<void> {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= collections.length) return;
 
@@ -127,27 +120,26 @@ export default function AdminCollectionsPage() {
     setCollections(newCollections);
 
     // Update display_order for both collections
-    try {
-      const updates = [
-        { id: newCollections[index].id, display_order: index + 1 },
-        { id: newCollections[newIndex].id, display_order: newIndex + 1 },
-      ];
+    const updates = [
+      { id: newCollections[index].id, display_order: index + 1 },
+      { id: newCollections[newIndex].id, display_order: newIndex + 1 },
+    ];
 
-      await Promise.all(
-        updates.map((update) =>
-          adminFetch(`/api/admin/collections/${update.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ display_order: update.display_order }),
-          })
-        )
-      );
-    } catch (err) {
-      // Revert on error
+    const results = await Promise.all(
+      updates.map((update) =>
+        adminFetch(`/api/admin/collections/${update.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ display_order: update.display_order }),
+        })
+      )
+    );
+
+    if (results.some((r) => !r.ok)) {
       setError('Kunne ikke endre rekkefølge');
       fetchCollections();
     }
-  };
+  }
 
   if (isLoading) {
     return (

@@ -1,121 +1,84 @@
-import { getResend, emailConfig } from './resend';
-import { OrderConfirmationEmail } from '@/emails/order-confirmation';
-import { NewOrderAlertEmail } from '@/emails/new-order-alert';
-import { ShippingNotificationEmail } from '@/emails/shipping-notification';
+import type { ReactElement } from 'react';
+
+import { emailConfig, getResend } from './resend.js';
 import { DeliveryConfirmationEmail } from '@/emails/delivery-confirmation';
+import { NewOrderAlertEmail } from '@/emails/new-order-alert';
+import { OrderConfirmationEmail } from '@/emails/order-confirmation';
+import { ShippingNotificationEmail } from '@/emails/shipping-notification';
 import type { Order } from '@/types';
+import { formatPrice } from '@/lib/utils';
 
-function formatPrice(priceInOre: number): string {
-  return `${(priceInOre / 100).toLocaleString('no-NO')} kr`;
+type EmailResult = { success: boolean; error?: string };
+
+interface EmailOptions {
+  to: string;
+  subject: string;
+  react: ReactElement;
+  logMessage: string;
 }
 
-/**
- * Send order confirmation email to customer
- */
-export async function sendOrderConfirmation(order: Order): Promise<{ success: boolean; error?: string }> {
+async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   try {
     const { error } = await getResend().emails.send({
       from: emailConfig.from,
-      to: order.customer_email,
-      subject: `Ordrebekreftelse ${order.order_number} – Dotty.`,
-      react: OrderConfirmationEmail({ order }),
+      to: options.to,
+      subject: options.subject,
+      react: options.react,
     });
 
     if (error) {
-      console.error('Failed to send order confirmation:', error);
+      console.error(`Failed to send email: ${options.logMessage}`, error);
       return { success: false, error: error.message };
     }
 
-    console.log(`Order confirmation sent to ${order.customer_email}`);
+    console.log(options.logMessage);
     return { success: true };
-  } catch (error) {
-    console.error('Failed to send order confirmation:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`Failed to send email: ${options.logMessage}`, err);
+    return { success: false, error: message };
   }
 }
 
-/**
- * Send new order alert to artist
- */
-export async function sendNewOrderAlert(order: Order): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await getResend().emails.send({
-      from: emailConfig.from,
-      to: emailConfig.artistEmail,
-      subject: `Ny ordre ${order.order_number} – ${formatPrice(order.total)}`,
-      react: NewOrderAlertEmail({ order }),
-    });
-
-    if (error) {
-      console.error('Failed to send new order alert:', error);
-      return { success: false, error: error.message };
-    }
-
-    console.log(`New order alert sent to ${emailConfig.artistEmail}`);
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to send new order alert:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
+export function sendOrderConfirmation(order: Order): Promise<EmailResult> {
+  return sendEmail({
+    to: order.customer_email,
+    subject: `Ordrebekreftelse ${order.order_number} – Dotty.`,
+    react: OrderConfirmationEmail({ order }),
+    logMessage: `Order confirmation sent to ${order.customer_email}`,
+  });
 }
 
-/**
- * Send shipping notification to customer
- */
-export async function sendShippingNotification(order: Order): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await getResend().emails.send({
-      from: emailConfig.from,
-      to: order.customer_email,
-      subject: `Pakken din er på vei! – Ordre ${order.order_number}`,
-      react: ShippingNotificationEmail({ order }),
-    });
-
-    if (error) {
-      console.error('Failed to send shipping notification:', error);
-      return { success: false, error: error.message };
-    }
-
-    console.log(`Shipping notification sent to ${order.customer_email}`);
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to send shipping notification:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
+export function sendNewOrderAlert(order: Order): Promise<EmailResult> {
+  return sendEmail({
+    to: emailConfig.artistEmail,
+    subject: `Ny ordre ${order.order_number} – ${formatPrice(order.total)}`,
+    react: NewOrderAlertEmail({ order }),
+    logMessage: `New order alert sent to ${emailConfig.artistEmail}`,
+  });
 }
 
-/**
- * Send delivery confirmation to customer
- */
-export async function sendDeliveryConfirmation(order: Order): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await getResend().emails.send({
-      from: emailConfig.from,
-      to: order.customer_email,
-      subject: `Pakken din er levert! – Ordre ${order.order_number}`,
-      react: DeliveryConfirmationEmail({ order }),
-    });
-
-    if (error) {
-      console.error('Failed to send delivery confirmation:', error);
-      return { success: false, error: error.message };
-    }
-
-    console.log(`Delivery confirmation sent to ${order.customer_email}`);
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to send delivery confirmation:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
+export function sendShippingNotification(order: Order): Promise<EmailResult> {
+  return sendEmail({
+    to: order.customer_email,
+    subject: `Pakken din er på vei! – Ordre ${order.order_number}`,
+    react: ShippingNotificationEmail({ order }),
+    logMessage: `Shipping notification sent to ${order.customer_email}`,
+  });
 }
 
-/**
- * Send both order confirmation to customer and alert to artist
- * Used when a new order is created
- */
+export function sendDeliveryConfirmation(order: Order): Promise<EmailResult> {
+  return sendEmail({
+    to: order.customer_email,
+    subject: `Pakken din er levert! – Ordre ${order.order_number}`,
+    react: DeliveryConfirmationEmail({ order }),
+    logMessage: `Delivery confirmation sent to ${order.customer_email}`,
+  });
+}
+
 export async function sendOrderEmails(order: Order): Promise<{
-  confirmation: { success: boolean; error?: string };
-  alert: { success: boolean; error?: string };
+  confirmation: EmailResult;
+  alert: EmailResult;
 }> {
   const [confirmation, alert] = await Promise.all([
     sendOrderConfirmation(order),

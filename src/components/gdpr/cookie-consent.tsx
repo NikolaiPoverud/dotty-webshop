@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cookie, X } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 import Link from 'next/link';
 import type { Locale } from '@/types';
 
@@ -13,7 +13,6 @@ const text = {
     accept: 'Godta',
     decline: 'Avslå',
     learnMore: 'Les mer',
-    settings: 'Innstillinger',
   },
   en: {
     title: 'We use cookies',
@@ -21,7 +20,6 @@ const text = {
     accept: 'Accept',
     decline: 'Decline',
     learnMore: 'Learn more',
-    settings: 'Settings',
   },
 };
 
@@ -31,22 +29,19 @@ interface CookieConsentProps {
   lang: Locale;
 }
 
-export function CookieConsent({ lang }: CookieConsentProps) {
+export function CookieConsent({ lang }: CookieConsentProps): React.ReactElement | null {
   const [showBanner, setShowBanner] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const t = text[lang];
 
   useEffect(() => {
-    // Check if consent has been given
     const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!consent) {
-      // Small delay before showing banner for better UX
       const timer = setTimeout(() => setShowBanner(true), 1000);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const saveConsent = async (accepted: boolean) => {
+  function saveConsent(accepted: boolean): void {
     const consentData = {
       accepted,
       timestamp: new Date().toISOString(),
@@ -55,20 +50,14 @@ export function CookieConsent({ lang }: CookieConsentProps) {
     localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(consentData));
     setShowBanner(false);
 
-    // Log consent to database (fire and forget)
-    try {
-      await fetch('/api/gdpr/cookie-consent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consent_given: accepted }),
-      });
-    } catch {
+    fetch('/api/gdpr/cookie-consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ consent_given: accepted }),
+    }).catch(() => {
       // Silently fail - consent is already saved locally
-    }
-  };
-
-  const handleAccept = () => saveConsent(true);
-  const handleDecline = () => saveConsent(false);
+    });
+  }
 
   return (
     <AnimatePresence>
@@ -103,16 +92,15 @@ export function CookieConsent({ lang }: CookieConsentProps) {
                   </div>
                 </div>
 
-                {/* Buttons */}
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
-                    onClick={handleDecline}
+                    onClick={() => saveConsent(false)}
                     className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-background transition-colors"
                   >
                     {t.decline}
                   </button>
                   <button
-                    onClick={handleAccept}
+                    onClick={() => saveConsent(true)}
                     className="flex-1 sm:flex-none px-6 py-2 text-sm font-medium bg-primary text-background rounded-lg hover:bg-primary-light transition-colors"
                   >
                     {t.accept}
@@ -121,36 +109,6 @@ export function CookieConsent({ lang }: CookieConsentProps) {
               </div>
             </div>
 
-            {/* Settings Panel (if expanded) */}
-            <AnimatePresence>
-              {showSettings && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="border-t border-border"
-                >
-                  <div className="p-4 sm:p-6 space-y-4">
-                    {/* Essential Cookies */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">
-                          {lang === 'no' ? 'Nødvendige' : 'Essential'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {lang === 'no'
-                            ? 'Handlekurv og innlogging'
-                            : 'Cart and authentication'}
-                        </p>
-                      </div>
-                      <div className="px-3 py-1 bg-muted-foreground/10 text-muted-foreground text-xs rounded">
-                        {lang === 'no' ? 'Alltid på' : 'Always on'}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </motion.div>
       )}

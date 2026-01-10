@@ -1,9 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Instagram, Send, Loader2 } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
+import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import { useState } from 'react';
 import type { Locale } from '@/types';
+
+interface ContactSectionProps {
+  lang: Locale;
+}
+
+type FormState = 'idle' | 'loading' | 'success' | 'error';
 
 const contactText = {
   no: {
@@ -34,61 +41,77 @@ const contactText = {
     privacyNotice: 'By sending this message, you agree that we store and process your information according to our',
     privacyLink: 'privacy policy',
   },
+} as const;
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
 };
 
-export function ContactSection({ lang }: { lang: Locale }) {
-  const t = contactText[lang];
-  const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
+const inputClassName =
+  'w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+function getButtonContent(state: FormState, t: (typeof contactText)[Locale]): React.ReactNode {
+  switch (state) {
+    case 'loading':
+      return (
+        <>
+          <Loader2 className="w-5 h-5 animate-spin" />
+          {t.sending}
+        </>
+      );
+    case 'success':
+      return t.success;
+    case 'error':
+      return t.error;
+    default:
+      return (
+        <>
+          <Send className="w-5 h-5" />
+          {t.send}
+        </>
+      );
+  }
+}
+
+const emptyFormData = { name: '', email: '', message: '' };
+
+export function ContactSection({ lang }: ContactSectionProps): React.ReactElement {
+  const t = contactText[lang];
+  const [formState, setFormState] = useState<FormState>('idle');
+  const [formData, setFormData] = useState(emptyFormData);
+
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setFormState('loading');
 
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
+    if (response.ok) {
       setFormState('success');
-      setFormData({ name: '', email: '', message: '' });
-
-      // Reset after 3 seconds
-      setTimeout(() => setFormState('idle'), 3000);
-    } catch {
+      setFormData(emptyFormData);
+    } else {
       setFormState('error');
-      setTimeout(() => setFormState('idle'), 3000);
     }
-  };
+
+    setTimeout(() => setFormState('idle'), 3000);
+  }
 
   return (
     <section id="contact" className="py-16 sm:py-24 relative scroll-mt-20 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Personal Greeting */}
-        <motion.p
-          className="text-primary font-medium text-lg mb-2 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+        <motion.p className="text-primary font-medium text-lg mb-2 text-center" {...fadeInUp}>
           {t.greeting}
         </motion.p>
 
         <motion.h2
           className="text-4xl sm:text-5xl font-bold mb-6 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          {...fadeInUp}
           transition={{ delay: 0.05 }}
         >
           <span className="gradient-text">{t.title}</span>
@@ -96,21 +119,16 @@ export function ContactSection({ lang }: { lang: Locale }) {
 
         <motion.p
           className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          {...fadeInUp}
           transition={{ delay: 0.1 }}
         >
           {t.subtitle}
         </motion.p>
 
-        {/* Contact Form */}
         <motion.form
           onSubmit={handleSubmit}
           className="max-w-xl mx-auto space-y-4 mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          {...fadeInUp}
           transition={{ delay: 0.15 }}
         >
           <div className="grid sm:grid-cols-2 gap-4">
@@ -120,7 +138,7 @@ export function ContactSection({ lang }: { lang: Locale }) {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder={t.namePlaceholder}
-              className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              className={inputClassName}
             />
             <input
               type="email"
@@ -128,7 +146,7 @@ export function ContactSection({ lang }: { lang: Locale }) {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder={t.emailPlaceholder}
-              className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              className={inputClassName}
             />
           </div>
           <textarea
@@ -137,7 +155,7 @@ export function ContactSection({ lang }: { lang: Locale }) {
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
             placeholder={t.messagePlaceholder}
-            className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
+            className={`${inputClassName} resize-none`}
           />
 
           <motion.button
@@ -147,24 +165,9 @@ export function ContactSection({ lang }: { lang: Locale }) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {formState === 'loading' ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {t.sending}
-              </>
-            ) : formState === 'success' ? (
-              t.success
-            ) : formState === 'error' ? (
-              t.error
-            ) : (
-              <>
-                <Send className="w-5 h-5" />
-                {t.send}
-              </>
-            )}
+            {getButtonContent(formState, t)}
           </motion.button>
 
-          {/* Privacy Notice */}
           <p className="text-xs text-muted-foreground text-center">
             {t.privacyNotice}{' '}
             <a href={`/${lang}/privacy`} className="text-primary hover:underline">
@@ -174,21 +177,31 @@ export function ContactSection({ lang }: { lang: Locale }) {
           </p>
         </motion.form>
 
-        {/* Instagram */}
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-3">
           <motion.a
             href="https://instagram.com/dottyartwork"
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 px-5 py-3 bg-muted rounded-full hover:bg-primary/20 transition-colors"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            {...fadeInUp}
             transition={{ delay: 0.2 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Instagram className="w-5 h-5 text-primary" />
+            <SiInstagram className="w-5 h-5 text-primary" />
+            <span className="font-medium group-hover:text-primary transition-colors">@dottyartwork</span>
+          </motion.a>
+          <motion.a
+            href="https://tiktok.com/@dottyartwork"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 px-5 py-3 bg-muted rounded-full hover:bg-primary/20 transition-colors"
+            {...fadeInUp}
+            transition={{ delay: 0.25 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <SiTiktok className="w-5 h-5 text-primary" />
             <span className="font-medium group-hover:text-primary transition-colors">@dottyartwork</span>
           </motion.a>
         </div>

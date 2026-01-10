@@ -1,6 +1,8 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+import type { ReactElement } from 'react';
 
-export function OrganizationJsonLd() {
+import { BASE_URL, JsonLd } from './json-ld';
+
+export function OrganizationJsonLd(): ReactElement {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -19,10 +21,5 @@ export function OrganizationJsonLd() {
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
+  return <JsonLd data={structuredData} />;
 }

@@ -1,50 +1,57 @@
+import type { ReactElement } from 'react';
+
 import type { Product } from '@/types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+import { BASE_URL, JsonLd } from './json-ld';
+
+const BRAND = { '@type': 'Brand', name: 'Dotty.' } as const;
+const ORGANIZATION = { '@type': 'Organization', name: 'Dotty.' } as const;
+
+const PRODUCT_TYPE_INFO = {
+  original: {
+    label: 'Original',
+    category: 'Original Artwork',
+    material: 'Canvas',
+  },
+  print: {
+    label: 'Print',
+    category: 'Art Print',
+    material: 'Fine Art Paper',
+  },
+} as const;
 
 interface ProductJsonLdProps {
   product: Product;
   lang: 'no' | 'en';
 }
 
-export function ProductJsonLd({ product, lang }: ProductJsonLdProps) {
+export function ProductJsonLd({ product, lang }: ProductJsonLdProps): ReactElement {
+  const typeInfo = PRODUCT_TYPE_INFO[product.product_type];
+  const availability = product.is_available
+    ? 'https://schema.org/InStock'
+    : 'https://schema.org/OutOfStock';
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
-    description: product.description || `${product.product_type === 'original' ? 'Original' : 'Print'} pop-art by Dotty.`,
+    description: product.description || `${typeInfo.label} pop-art by Dotty.`,
     image: product.image_url,
     sku: product.id,
-    brand: {
-      '@type': 'Brand',
-      name: 'Dotty.',
-    },
-    manufacturer: {
-      '@type': 'Organization',
-      name: 'Dotty.',
-    },
+    brand: BRAND,
+    manufacturer: ORGANIZATION,
+    category: typeInfo.category,
+    material: typeInfo.material,
     offers: {
       '@type': 'Offer',
       url: `${BASE_URL}/${lang}/shop/${product.slug}`,
       priceCurrency: 'NOK',
       price: (product.price / 100).toFixed(2),
-      availability: product.is_available
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
+      availability,
       itemCondition: 'https://schema.org/NewCondition',
-      seller: {
-        '@type': 'Organization',
-        name: 'Dotty.',
-      },
+      seller: ORGANIZATION,
     },
-    category: product.product_type === 'original' ? 'Original Artwork' : 'Art Print',
-    material: product.product_type === 'original' ? 'Canvas' : 'Fine Art Paper',
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
+  return <JsonLd data={structuredData} />;
 }

@@ -71,10 +71,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    // Add your verification codes here when available
-    // google: 'your-google-verification-code',
-  },
+  verification: {},
 };
 
 export default function RootLayout({
@@ -88,7 +85,6 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        {/* Preconnect to Supabase for faster data fetching */}
         <link rel="preconnect" href="https://qjnqwpbhxcnbfypvdwip.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://qjnqwpbhxcnbfypvdwip.supabase.co" />
       </head>

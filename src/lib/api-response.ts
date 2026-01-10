@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server';
 
-/**
- * Standardized API response format
- * All API responses follow this structure for consistency
- */
-
 export interface ApiSuccessResponse<T = unknown> {
   success: true;
   data?: T;
@@ -19,32 +14,29 @@ export interface ApiErrorResponse {
 
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-/**
- * Create a success response
- */
 export function success<T>(data?: T, message?: string): NextResponse<ApiSuccessResponse<T>> {
-  const body: ApiSuccessResponse<T> = { success: true };
-  if (data !== undefined) body.data = data;
-  if (message) body.message = message;
-  return NextResponse.json(body);
+  return NextResponse.json({
+    success: true,
+    ...(data !== undefined && { data }),
+    ...(message && { message }),
+  } as ApiSuccessResponse<T>);
 }
 
-/**
- * Create an error response
- */
 export function error(
   message: string,
-  status: number = 500,
+  status = 500,
   code?: string
 ): NextResponse<ApiErrorResponse> {
-  const body: ApiErrorResponse = { success: false, error: message };
-  if (code) body.code = code;
-  return NextResponse.json(body, { status });
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+      ...(code && { code }),
+    } as ApiErrorResponse,
+    { status }
+  );
 }
 
-/**
- * Common error responses
- */
 export const errors = {
   unauthorized: (message = 'Unauthorized') => error(message, 401, 'UNAUTHORIZED'),
   forbidden: (message = 'Forbidden') => error(message, 403, 'FORBIDDEN'),
@@ -55,19 +47,15 @@ export const errors = {
   internal: (message = 'Internal server error') => error(message, 500, 'INTERNAL_ERROR'),
 };
 
-/**
- * Create a paginated success response
- */
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export function paginated<T>(
-  data: T[],
-  pagination: { page: number; limit: number; total: number }
-): NextResponse<ApiSuccessResponse<{ items: T[]; pagination: typeof pagination }>> {
-  return success({
-    items: data,
-    pagination: {
-      page: pagination.page,
-      limit: pagination.limit,
-      total: pagination.total,
-    },
-  });
+  items: T[],
+  pagination: Pagination
+): NextResponse<ApiSuccessResponse<{ items: T[]; pagination: Pagination }>> {
+  return success({ items, pagination });
 }

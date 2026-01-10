@@ -29,20 +29,14 @@ export function useToast() {
   return context;
 }
 
-const icons = {
-  success: Check,
-  error: AlertCircle,
-  info: Info,
-};
-
-const styles = {
-  success: 'bg-success text-white',
-  error: 'bg-error text-white',
-  info: 'bg-primary text-white',
-};
+const toastConfig = {
+  success: { icon: Check, style: 'bg-success text-white' },
+  error: { icon: AlertCircle, style: 'bg-error text-white' },
+  info: { icon: Info, style: 'bg-primary text-white' },
+} as const;
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
-  const Icon = icons[toast.type];
+  const { icon: Icon, style } = toastConfig[toast.type];
 
   return (
     <motion.div
@@ -50,7 +44,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${styles[toast.type]}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${style}`}
     >
       <Icon className="w-5 h-5 flex-shrink-0" />
       <span className="text-sm font-medium">{toast.message}</span>
@@ -75,7 +69,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
 
-    // Auto-remove after 3 seconds
     setTimeout(() => removeToast(id), 3000);
   }, [removeToast]);
 
@@ -87,7 +80,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast, success, error, info }}>
       {children}
 
-      {/* Toast container - fixed at top right */}
       <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
         <AnimatePresence mode="popLayout">
           {toasts.map((toast) => (

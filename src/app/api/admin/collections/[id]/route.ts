@@ -1,63 +1,53 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const auth = await verifyAdminAuth();
-  if (!auth.authorized) return auth.response;
-
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const supabase = createAdminClient();
-
-    const { data, error } = await supabase
-      .from('collections')
-      .update(body)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({ data });
-  } catch (error) {
-    console.error('Failed to update collection:', error);
-    return NextResponse.json(
-      { error: 'Failed to update collection' },
-      { status: 500 }
-    );
-  }
+interface RouteParams {
+  params: Promise<{ id: string }>;
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
-  try {
-    const { id } = await params;
-    const supabase = createAdminClient();
+  const { id } = await params;
+  const supabase = createAdminClient();
+  const body = await request.json();
 
-    // Soft delete
-    const { error } = await supabase
-      .from('collections')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+  const { data, error } = await supabase
+    .from('collections')
+    .update(body)
+    .eq('id', id)
+    .select()
+    .single();
 
-    if (error) throw error;
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to delete collection:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete collection' },
-      { status: 500 }
-    );
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+    console.error('Failed to update collection:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  return NextResponse.json({ data });
+}
+
+export async function DELETE(_request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
+  const { id } = await params;
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from('collections')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Failed to delete collection:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

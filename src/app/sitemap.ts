@@ -1,142 +1,69 @@
-import { createAdminClient } from '@/lib/supabase/admin';
 import type { MetadataRoute } from 'next';
 
-// Domain configuration for sitemap
+import { createAdminClient } from '@/lib/supabase/admin';
+
 const DOMAIN_NO = process.env.NEXT_PUBLIC_DOMAIN_NO || 'https://dotty.no';
 const DOMAIN_EN = process.env.NEXT_PUBLIC_DOMAIN_EN || 'https://dottyartwork.com';
 
+interface SitemapItem {
+  slug: string;
+  updated_at: string | null;
+}
+
+function createLocalizedUrls(
+  path: string,
+  lastModified: Date,
+  changeFrequency: 'daily' | 'weekly' | 'monthly',
+  priorityNo: number,
+  priorityEn: number
+): MetadataRoute.Sitemap {
+  return [
+    { url: `${DOMAIN_NO}/no${path}`, lastModified, changeFrequency, priority: priorityNo },
+    { url: `${DOMAIN_EN}/en${path}`, lastModified, changeFrequency, priority: priorityEn },
+  ];
+}
+
+function createItemUrls(
+  items: SitemapItem[],
+  pathPrefix: string,
+  now: Date,
+  priorityNo: number,
+  priorityEn: number
+): MetadataRoute.Sitemap {
+  return items.flatMap((item) => {
+    const lastModified = item.updated_at ? new Date(item.updated_at) : now;
+    return createLocalizedUrls(`${pathPrefix}/${item.slug}`, lastModified, 'weekly', priorityNo, priorityEn);
+  });
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let products: { slug: string; updated_at: string | null }[] = [];
-  let collections: { slug: string; updated_at: string | null }[] = [];
+  let products: SitemapItem[] = [];
+  let collections: SitemapItem[] = [];
 
   try {
     const supabase = createAdminClient();
 
-    // Fetch all available products
-    const { data: productsData } = await supabase
-      .from('products')
-      .select('slug, updated_at')
-      .eq('is_available', true);
+    const [productsResult, collectionsResult] = await Promise.all([
+      supabase.from('products').select('slug, updated_at').eq('is_available', true),
+      supabase.from('collections').select('slug, updated_at'),
+    ]);
 
-    // Fetch all collections
-    const { data: collectionsData } = await supabase
-      .from('collections')
-      .select('slug, updated_at');
-
-    products = productsData || [];
-    collections = collectionsData || [];
+    products = productsResult.data ?? [];
+    collections = collectionsResult.data ?? [];
   } catch (error) {
     console.warn('Could not fetch data for sitemap:', error);
   }
 
   const now = new Date();
 
-  // Product URLs for both domains/languages
-  const productUrls = (products || []).flatMap((product) => [
-    {
-      url: `${DOMAIN_NO}/no/shop/${product.slug}`,
-      lastModified: product.updated_at ? new Date(product.updated_at) : now,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${DOMAIN_EN}/en/shop/${product.slug}`,
-      lastModified: product.updated_at ? new Date(product.updated_at) : now,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    },
-  ]);
-
-  // Collection URLs - now with dedicated SEO-friendly pages
-  const collectionUrls = (collections || []).flatMap((collection) => [
-    {
-      url: `${DOMAIN_NO}/no/shop/${collection.slug}`,
-      lastModified: collection.updated_at ? new Date(collection.updated_at) : now,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${DOMAIN_EN}/en/shop/${collection.slug}`,
-      lastModified: collection.updated_at ? new Date(collection.updated_at) : now,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    },
-  ]);
-
   return [
-    // Homepage - highest priority (Norwegian on dotty.no)
-    {
-      url: `${DOMAIN_NO}/no`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    // English homepage on dottyartwork.com
-    {
-      url: `${DOMAIN_EN}/en`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-
-    // Shop pages
-    {
-      url: `${DOMAIN_NO}/no/shop`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${DOMAIN_EN}/en/shop`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-
-    // Sold artworks
-    {
-      url: `${DOMAIN_NO}/no/solgt`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.5,
-    },
-    {
-      url: `${DOMAIN_EN}/en/sold`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.5,
-    },
-
-    // Products
-    ...productUrls,
-
-    // Collections
-    ...collectionUrls,
-
-    // Legal pages (both languages)
-    {
-      url: `${DOMAIN_NO}/no/privacy`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${DOMAIN_NO}/no/terms`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${DOMAIN_EN}/en/privacy`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${DOMAIN_EN}/en/terms`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
+    ...createLocalizedUrls('', now, 'daily', 1.0, 1.0),
+    ...createLocalizedUrls('/shop', now, 'daily', 0.9, 0.9),
+    { url: `${DOMAIN_NO}/no/solgt`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
+    { url: `${DOMAIN_EN}/en/sold`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
+    ...createItemUrls(products, '/shop', now, 0.8, 0.7),
+    ...createItemUrls(collections, '/shop', now, 0.8, 0.7),
+    ...createLocalizedUrls('/privacy', now, 'monthly', 0.3, 0.3),
+    ...createLocalizedUrls('/terms', now, 'monthly', 0.3, 0.3),
   ];
 }

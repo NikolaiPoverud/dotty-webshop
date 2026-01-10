@@ -1,10 +1,8 @@
-import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { success, errors } from '@/lib/api-response';
 
-export async function POST(request: NextRequest) {
+export async function POST(): Promise<Response> {
   const supabase = await createClient();
-
   const { error } = await supabase.auth.signOut();
 
   if (error) {

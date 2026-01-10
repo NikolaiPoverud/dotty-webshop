@@ -17,8 +17,12 @@ export interface PaginationResult<T> {
 }
 
 export function parsePaginationParams(searchParams: URLSearchParams): PaginationParams {
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+  const rawPage = parseInt(searchParams.get('page') ?? '1', 10);
+  const rawLimit = parseInt(searchParams.get('limit') ?? '20', 10);
+
+  const page = Math.max(1, Number.isNaN(rawPage) ? 1 : rawPage);
+  const limit = Math.min(100, Math.max(1, Number.isNaN(rawLimit) ? 20 : rawLimit));
+
   return { page, limit };
 }
 
@@ -33,7 +37,7 @@ export function buildPaginationResult<T>(
   count: number | null,
   params: PaginationParams
 ): PaginationResult<T> {
-  const total = count || 0;
+  const total = count ?? 0;
   const totalPages = Math.ceil(total / params.limit);
 
   return {

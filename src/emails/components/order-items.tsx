@@ -1,13 +1,10 @@
 import { Column, Img, Row, Section, Text } from '@react-email/components';
-import * as React from 'react';
+
+import { formatPrice } from '@/lib/utils';
 import type { OrderItem } from '@/types';
 
 interface OrderItemsProps {
   items: OrderItem[];
-}
-
-function formatPrice(priceInOre: number): string {
-  return `${(priceInOre / 100).toLocaleString('no-NO')} kr`;
 }
 
 export function OrderItems({ items }: OrderItemsProps) {

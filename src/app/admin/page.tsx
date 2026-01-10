@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 
-// Redirect /admin to /admin/dashboard (middleware handles auth check)
-export default function AdminPage() {
+export default function AdminPage(): never {
   redirect('/admin/dashboard');
 }

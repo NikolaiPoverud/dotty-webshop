@@ -6,19 +6,16 @@ import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 
 // GET /api/admin/products - List all products with pagination
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
   try {
     const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
-
-    // DB-010: Parse pagination params
     const paginationParams = parsePaginationParams(searchParams);
     const { from, to } = getPaginationRange(paginationParams);
 
-    // Optional filters
     const collectionId = searchParams.get('collection_id');
     const productType = searchParams.get('product_type');
     const isAvailable = searchParams.get('is_available');
@@ -26,19 +23,13 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('products')
       .select('*', { count: 'exact' })
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('display_order', { ascending: true })
       .range(from, to);
 
-    if (collectionId) {
-      query = query.eq('collection_id', collectionId);
-    }
-    if (productType) {
-      query = query.eq('product_type', productType);
-    }
-    if (isAvailable !== null) {
-      query = query.eq('is_available', isAvailable === 'true');
-    }
+    if (collectionId) query = query.eq('collection_id', collectionId);
+    if (productType) query = query.eq('product_type', productType);
+    if (isAvailable !== null) query = query.eq('is_available', isAvailable === 'true');
 
     const { data: products, error, count } = await query;
 
@@ -47,19 +38,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(buildPaginationResult(products || [], count, paginationParams));
+    return NextResponse.json(buildPaginationResult(products ?? [], count, paginationParams));
   } catch (error) {
     console.error('Failed to fetch products:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch products';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
   }
 }
 
 // POST /api/admin/products - Create new product
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
@@ -67,46 +54,19 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     const body = await request.json();
 
-    const {
-      title,
-      description,
-      price,
-      image_url,
-      image_path,
-      product_type,
-      stock_quantity,
-      collection_id,
-      is_available,
-      is_featured,
-      sizes,
-      gallery_images,
-      shipping_cost,
-      shipping_size,
-      requires_inquiry,
-    } = body;
-
-    // Validate required fields
-    if (!title || !price) {
-      return NextResponse.json(
-        { error: 'Title and price are required' },
-        { status: 400 }
-      );
+    if (!body.title || !body.price) {
+      return NextResponse.json({ error: 'Title and price are required' }, { status: 400 });
     }
 
-    // Generate slug from title
-    const slug = slugify(title);
-
-    // Check if slug already exists
+    const slug = slugify(body.title);
     const { data: existing } = await supabase
       .from('products')
       .select('id')
       .eq('slug', slug)
       .single();
 
-    // SEC-016: Use random suffix instead of predictable timestamp
     const finalSlug = existing ? `${slug}-${generateRandomSuffix()}` : slug;
 
-    // Get max display_order
     const { data: maxOrder } = await supabase
       .from('products')
       .select('display_order')
@@ -114,28 +74,26 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single();
 
-    const display_order = (maxOrder?.display_order || 0) + 1;
-
     const { data: product, error } = await supabase
       .from('products')
       .insert({
-        title,
-        description: description || null,
+        title: body.title,
+        description: body.description ?? null,
         slug: finalSlug,
-        price: Math.round(price), // Ensure integer (øre)
-        image_url: image_url || '',
-        image_path: image_path || '',
-        product_type: product_type || 'original',
-        stock_quantity: stock_quantity ?? 1, // Default to 1 (originals have 1, prints start with 1)
-        collection_id: collection_id || null,
-        is_available: is_available ?? true,
-        is_featured: is_featured ?? false,
-        sizes: sizes || [],
-        gallery_images: gallery_images || [],
-        display_order,
-        shipping_cost: shipping_cost ?? null,
-        shipping_size: shipping_size ?? null,
-        requires_inquiry: requires_inquiry ?? false,
+        price: Math.round(body.price),
+        image_url: body.image_url ?? '',
+        image_path: body.image_path ?? '',
+        product_type: body.product_type ?? 'original',
+        stock_quantity: body.stock_quantity ?? 1,
+        collection_id: body.collection_id ?? null,
+        is_available: body.is_available ?? true,
+        is_featured: body.is_featured ?? false,
+        sizes: body.sizes ?? [],
+        gallery_images: body.gallery_images ?? [],
+        display_order: (maxOrder?.display_order ?? 0) + 1,
+        shipping_cost: body.shipping_cost ?? null,
+        shipping_size: body.shipping_size ?? null,
+        requires_inquiry: body.requires_inquiry ?? false,
       })
       .select()
       .single();
@@ -144,7 +102,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Log audit with user ID
     await logAudit({
       action: 'product_create',
       entity_type: 'product',
@@ -157,9 +114,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: product }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to create product' },
-      { status: 500 }
-    );
+    console.error('Failed to create product:', error);
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }

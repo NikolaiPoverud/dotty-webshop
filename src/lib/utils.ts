@@ -28,12 +28,8 @@ export function slugify(text: string): string {
 // SEC-016: Generate random alphanumeric suffix for unique slugs
 export function generateRandomSuffix(length: number = 6): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
   const randomValues = crypto.getRandomValues(new Uint8Array(length));
-  for (let i = 0; i < length; i++) {
-    result += chars[randomValues[i] % chars.length];
-  }
-  return result;
+  return Array.from(randomValues, (byte) => chars[byte % chars.length]).join('');
 }
 
 // Norwegian artist levy (kunsteravgift) - 5% for items priced over 2500 NOK
@@ -61,10 +57,8 @@ export function calculateArtistLevy(items: { id: string; title: string; price: n
   let totalLevy = 0;
 
   for (const item of items) {
-    // Only apply to items over the threshold (2500 NOK = 250000 øre)
     if (item.price > ARTIST_LEVY_THRESHOLD) {
-      const levyPerItem = Math.round(item.price * ARTIST_LEVY_RATE);
-      const levyAmount = levyPerItem * item.quantity;
+      const levyAmount = Math.round(item.price * ARTIST_LEVY_RATE) * item.quantity;
 
       levyItems.push({
         productId: item.id,

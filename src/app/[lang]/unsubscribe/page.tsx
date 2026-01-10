@@ -88,30 +88,35 @@ export default function UnsubscribePage({
     loading: {
       icon: Loader2,
       iconClass: 'animate-spin text-primary',
+      bgClass: 'bg-primary/10',
       title: t.processing,
       message: '',
     },
     success: {
       icon: CheckCircle,
       iconClass: 'text-success',
+      bgClass: 'bg-success/10',
       title: t.success,
       message: t.successMessage,
     },
     already: {
       icon: MailX,
       iconClass: 'text-muted-foreground',
+      bgClass: 'bg-primary/10',
       title: t.alreadyUnsubscribed,
       message: t.alreadyMessage,
     },
     error: {
       icon: XCircle,
       iconClass: 'text-error',
+      bgClass: 'bg-error/10',
       title: t.error,
       message: t.errorMessage,
     },
     invalid: {
       icon: XCircle,
       iconClass: 'text-warning',
+      bgClass: 'bg-error/10',
       title: t.invalidLink,
       message: t.invalidMessage,
     },
@@ -129,13 +134,7 @@ export default function UnsubscribePage({
       >
         <div className="bg-muted rounded-2xl p-8 sm:p-12">
           <div
-            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 ${
-              status === 'success'
-                ? 'bg-success/10'
-                : status === 'error' || status === 'invalid'
-                ? 'bg-error/10'
-                : 'bg-primary/10'
-            }`}
+            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 ${config.bgClass}`}
           >
             <Icon className={`w-8 h-8 ${config.iconClass}`} />
           </div>

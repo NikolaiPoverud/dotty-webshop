@@ -4,19 +4,15 @@ import { sendOrderEmails } from '@/lib/email/send';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
   try {
     const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
-
-    // DB-010: Parse pagination params
     const paginationParams = parsePaginationParams(searchParams);
     const { from, to } = getPaginationRange(paginationParams);
-
-    // Optional filters
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
@@ -30,7 +26,6 @@ export async function GET(request: NextRequest) {
       query = query.eq('status', status);
     }
 
-    // Server-side search on customer name, email, or order number
     if (search) {
       query = query.or(`customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,order_number.ilike.%${search}%`);
     }
@@ -42,14 +37,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(buildPaginationResult(data || [], count, paginationParams));
   } catch (error) {
     console.error('Failed to fetch orders:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch orders' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+interface OrderItem {
+  price: number;
+  quantity: number;
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
@@ -69,19 +66,14 @@ export async function POST(request: NextRequest) {
       status,
     } = body;
 
-    // Validate required fields
-    if (!customer_email || !customer_name || !customer_phone || !shipping_address || !items || items.length === 0) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    if (!customer_email || !customer_name || !customer_phone || !shipping_address || !items?.length) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Calculate totals
-    const subtotal = items.reduce((sum: number, item: any) => {
-      return sum + (item.price * item.quantity);
-    }, 0);
-
+    const subtotal = items.reduce(
+      (sum: number, item: OrderItem) => sum + item.price * item.quantity,
+      0
+    );
     const total = subtotal - (discount_amount || 0);
 
     const { data: order, error } = await supabase
@@ -102,31 +94,15 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    // Send order emails (confirmation to customer, alert to artist)
-    // Run in background - don't block response
-    sendOrderEmails(order).then((result) => {
-      if (!result.confirmation.success) {
-        console.error('Failed to send order confirmation email:', result.confirmation.error);
-      }
-      if (!result.alert.success) {
-        console.error('Failed to send new order alert email:', result.alert.error);
-      }
-    }).catch((err) => {
+    sendOrderEmails(order).catch((err) => {
       console.error('Email sending failed:', err);
     });
 
     return NextResponse.json({ data: order }, { status: 201 });
   } catch (error) {
     console.error('Failed to create order:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
   }
 }

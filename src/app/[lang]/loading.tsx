@@ -1,45 +1,36 @@
 import { Skeleton, ProductGridSkeleton, FilterTabsSkeleton } from '@/components/ui/skeleton';
 
-// Hero skeleton
-function HeroSkeleton() {
+function HeroSkeleton(): React.ReactElement {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       <div className="relative z-10 text-center px-4">
-        {/* Main title skeleton */}
         <div className="flex flex-col items-center gap-4 mb-8">
           <Skeleton className="h-16 sm:h-24 w-48 sm:w-72" />
         </div>
-        {/* Subtitle */}
         <Skeleton className="h-6 w-64 mx-auto mb-8" />
-        {/* CTA Button */}
         <Skeleton className="h-14 w-40 mx-auto rounded-none" />
       </div>
     </section>
   );
 }
 
-// Featured grid skeleton
-function FeaturedGridSkeleton() {
+function FeaturedGridSkeleton(): React.ReactElement {
   return (
     <section className="py-20 sm:py-32 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* View all link */}
         <div className="flex justify-center mb-4">
           <Skeleton className="h-4 w-24" />
         </div>
-        {/* Filter tabs */}
         <div className="mb-8">
           <FilterTabsSkeleton />
         </div>
-        {/* Product grid */}
         <ProductGridSkeleton count={3} />
       </div>
     </section>
   );
 }
 
-// Artist statement skeleton
-function ArtistStatementSkeleton() {
+function ArtistStatementSkeleton(): React.ReactElement {
   return (
     <section className="py-20 sm:py-32 bg-muted/30">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -55,8 +46,7 @@ function ArtistStatementSkeleton() {
   );
 }
 
-// Testimonials skeleton
-function TestimonialsSkeleton() {
+function TestimonialsSkeleton(): React.ReactElement {
   return (
     <section className="py-20 sm:py-32 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,8 +65,7 @@ function TestimonialsSkeleton() {
   );
 }
 
-// Contact section skeleton
-function ContactSkeleton() {
+function ContactSkeleton(): React.ReactElement {
   return (
     <section className="py-20 sm:py-32 bg-muted/30">
       <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,7 +84,7 @@ function ContactSkeleton() {
   );
 }
 
-export default function HomeLoading() {
+export default function HomeLoading(): React.ReactElement {
   return (
     <>
       <HeroSkeleton />

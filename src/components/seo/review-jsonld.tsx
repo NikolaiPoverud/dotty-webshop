@@ -1,4 +1,6 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+import type { ReactElement } from 'react';
+
+import { BASE_URL, JsonLd } from './json-ld';
 
 interface Review {
   author: string;
@@ -12,13 +14,21 @@ interface ReviewJsonLdProps {
   itemName?: string;
 }
 
-export function ReviewJsonLd({ reviews, itemName = 'Dotty. Pop-Art' }: ReviewJsonLdProps) {
-  // Calculate aggregate rating
+function calculateAverageRating(reviews: Review[]): number {
   const reviewsWithRatings = reviews.filter((r) => r.rating !== undefined);
-  const averageRating =
-    reviewsWithRatings.length > 0
-      ? reviewsWithRatings.reduce((sum, r) => sum + (r.rating || 5), 0) / reviewsWithRatings.length
-      : 5;
+  if (reviewsWithRatings.length === 0) {
+    return 5;
+  }
+  const sum = reviewsWithRatings.reduce((acc, r) => acc + (r.rating ?? 5), 0);
+  return sum / reviewsWithRatings.length;
+}
+
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+export function ReviewJsonLd({ reviews, itemName = 'Dotty. Pop-Art' }: ReviewJsonLdProps): ReactElement {
+  const averageRating = calculateAverageRating(reviews);
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -44,11 +54,11 @@ export function ReviewJsonLd({ reviews, itemName = 'Dotty. Pop-Art' }: ReviewJso
       reviewBody: review.reviewBody,
       reviewRating: {
         '@type': 'Rating',
-        ratingValue: review.rating || 5,
+        ratingValue: review.rating ?? 5,
         bestRating: '5',
         worstRating: '1',
       },
-      datePublished: review.datePublished || new Date().toISOString().split('T')[0],
+      datePublished: review.datePublished ?? getTodayDateString(),
       publisher: {
         '@type': 'Organization',
         name: 'Dotty.',
@@ -57,10 +67,5 @@ export function ReviewJsonLd({ reviews, itemName = 'Dotty. Pop-Art' }: ReviewJso
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
+  return <JsonLd data={structuredData} />;
 }

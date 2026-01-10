@@ -2,58 +2,50 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product, OrderItem } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { adminFetch } from '@/lib/admin-fetch';
+
+type OrderStatus = 'pending' | 'paid';
+type PaymentProvider = 'stripe' | 'vipps' | null;
 
 export default function NewOrderPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
-  // Customer info
+
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  
-  // Shipping address
+
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Norge');
-  
-  // Order items
+
   const [items, setItems] = useState<OrderItem[]>([]);
-  
-  // Payment & status
-  const [status, setStatus] = useState<'pending' | 'paid'>('pending');
-  const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'vipps' | null>(null);
-  
-  // Discount
+  const [status, setStatus] = useState<OrderStatus>('pending');
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
   useEffect(() => {
+    async function fetchProducts(): Promise<void> {
+      const response = await adminFetch('/api/admin/products');
+      if (response.ok) {
+        const result = await response.json();
+        setProducts(result.data || []);
+      }
+    }
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch('/api/admin/products');
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
-      setProducts(result.data || []);
-    } catch (err) {
-      console.error('Failed to fetch products:', err);
-    }
-  };
-
-  const addItem = () => {
+  function addItem(): void {
     if (products.length === 0) return;
-    
+
     const firstProduct = products[0];
     setItems([
       ...items,
@@ -65,15 +57,15 @@ export default function NewOrderPage() {
         image_url: firstProduct.image_url,
       },
     ]);
-  };
+  }
 
-  const removeItem = (index: number) => {
+  function removeItem(index: number): void {
     setItems(items.filter((_, i) => i !== index));
-  };
+  }
 
-  const updateItem = (index: number, field: keyof OrderItem, value: any) => {
+  function updateItem(index: number, field: keyof OrderItem, value: string | number): void {
     const newItems = [...items];
-    
+
     if (field === 'product_id') {
       const product = products.find((p) => p.id === value);
       if (product) {
@@ -88,21 +80,21 @@ export default function NewOrderPage() {
     } else {
       newItems[index] = { ...newItems[index], [field]: value };
     }
-    
+
     setItems(newItems);
-  };
+  }
 
-  const calculateSubtotal = () => {
+  function calculateSubtotal(): number {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  };
+  }
 
-  const calculateTotal = () => {
+  function calculateTotal(): number {
     return calculateSubtotal() - discountAmount;
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
-    
+
     if (items.length === 0) {
       setError('Legg til minst ett produkt');
       return;
@@ -112,7 +104,7 @@ export default function NewOrderPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/orders', {
+      const response = await adminFetch('/api/admin/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -145,15 +137,13 @@ export default function NewOrderPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/orders">
-          <button className="p-2 hover:bg-muted rounded-lg transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+        <Link href="/admin/orders" className="p-2 hover:bg-muted rounded-lg transition-colors">
+          <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-3xl font-bold">Ny ordre</h1>
@@ -329,28 +319,27 @@ export default function NewOrderPage() {
           )}
         </div>
 
-        {/* Payment & Status */}
         <div className="bg-muted rounded-lg p-6 space-y-4">
           <h2 className="text-xl font-semibold">Betaling og status</h2>
-          
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Status *</label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) => setStatus(e.target.value as OrderStatus)}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="pending">Venter</option>
                 <option value="paid">Betalt</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Betalingsmetode</label>
               <select
                 value={paymentProvider || ''}
-                onChange={(e) => setPaymentProvider(e.target.value as any || null)}
+                onChange={(e) => setPaymentProvider((e.target.value || null) as PaymentProvider)}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Ingen</option>
@@ -359,7 +348,7 @@ export default function NewOrderPage() {
               </select>
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">Rabatt (øre)</label>
             <input
@@ -372,29 +361,27 @@ export default function NewOrderPage() {
           </div>
         </div>
 
-        {/* Order Summary */}
         <div className="bg-muted rounded-lg p-6 space-y-3">
           <h2 className="text-xl font-semibold mb-4">Sammendrag</h2>
-          
+
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Delsum</span>
             <span>{formatPrice(calculateSubtotal())}</span>
           </div>
-          
+
           {discountAmount > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Rabatt</span>
               <span className="text-error">-{formatPrice(discountAmount)}</span>
             </div>
           )}
-          
+
           <div className="flex justify-between text-lg font-bold pt-3 border-t border-border">
             <span>Total</span>
             <span>{formatPrice(calculateTotal())}</span>
           </div>
         </div>
 
-        {/* Submit */}
         <div className="flex gap-4">
           <button
             type="submit"
@@ -410,14 +397,12 @@ export default function NewOrderPage() {
               'Opprett ordre'
             )}
           </button>
-          
-          <Link href="/admin/orders" className="flex-none">
-            <button
-              type="button"
-              className="px-8 py-3 bg-muted hover:bg-muted-foreground/10 rounded-lg transition-colors"
-            >
-              Avbryt
-            </button>
+
+          <Link
+            href="/admin/orders"
+            className="flex-none px-8 py-3 bg-muted hover:bg-muted-foreground/10 rounded-lg transition-colors"
+          >
+            Avbryt
           </Link>
         </div>
       </form>

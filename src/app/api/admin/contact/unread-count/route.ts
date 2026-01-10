@@ -15,12 +15,9 @@ export async function GET() {
       .eq('is_read', false)
       .is('deleted_at', null);
 
-    if (error) {
-      console.error('Error fetching unread count:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    return NextResponse.json({ count: count || 0 });
+    return NextResponse.json({ count: count ?? 0 });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Failed to fetch unread count' }, { status: 500 });

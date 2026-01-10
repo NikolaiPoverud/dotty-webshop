@@ -1,19 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export async function GET(request: Request) {
+function redirectToStatus(request: NextRequest, status: string): NextResponse {
+  return NextResponse.redirect(new URL(`/no/newsletter-confirmed?status=${status}`, request.url));
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const { searchParams } = new URL(request.url);
-    const token = searchParams.get('token');
+    const token = request.nextUrl.searchParams.get('token');
 
     if (!token) {
-      // Redirect to error page
-      return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=invalid', request.url));
+      return redirectToStatus(request, 'invalid');
     }
 
     const supabase = createAdminClient();
 
-    // Find subscriber by confirmation token
     const { data: subscriber, error: findError } = await supabase
       .from('newsletter_subscribers')
       .select('*')
@@ -21,33 +22,27 @@ export async function GET(request: Request) {
       .single();
 
     if (findError || !subscriber) {
-      return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=invalid', request.url));
+      return redirectToStatus(request, 'invalid');
     }
 
-    // Check if already confirmed
     if (subscriber.is_confirmed) {
-      return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=already', request.url));
+      return redirectToStatus(request, 'already');
     }
 
-    // Check if unsubscribed
     if (subscriber.unsubscribed_at) {
-      return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=unsubscribed', request.url));
+      return redirectToStatus(request, 'unsubscribed');
     }
 
-    // Confirm the subscription
     const { error: updateError } = await supabase
       .from('newsletter_subscribers')
-      .update({
-        is_confirmed: true,
-      })
+      .update({ is_confirmed: true })
       .eq('id', subscriber.id);
 
     if (updateError) {
       console.error('Failed to confirm subscription:', updateError);
-      return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=error', request.url));
+      return redirectToStatus(request, 'error');
     }
 
-    // Log to audit
     await supabase.from('audit_log').insert({
       action: 'newsletter_confirmed',
       entity_type: 'newsletter_subscriber',
@@ -57,10 +52,9 @@ export async function GET(request: Request) {
       details: { email: subscriber.email },
     });
 
-    // Redirect to success page
-    return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=success', request.url));
+    return redirectToStatus(request, 'success');
   } catch (error) {
     console.error('Newsletter confirmation error:', error);
-    return NextResponse.redirect(new URL('/no/newsletter-confirmed?status=error', request.url));
+    return redirectToStatus(request, 'error');
   }
 }

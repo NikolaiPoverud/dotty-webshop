@@ -1,5 +1,4 @@
 import { Heading, Section, Text } from '@react-email/components';
-import * as React from 'react';
 
 interface EmailHeaderProps {
   subtitle?: string;

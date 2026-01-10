@@ -1,13 +1,23 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { TrendingUp, ShoppingCart, Package, Users, Loader2, RefreshCw, Plus, ExternalLink, Send, Tag } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import {
+  ExternalLink,
+  Loader2,
+  Package,
+  Plus,
+  RefreshCw,
+  Send,
+  ShoppingCart,
+  Tag,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import { adminFetch } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
 import type { Order } from '@/types';
-import { adminFetch } from '@/lib/admin-fetch';
 
 interface DashboardStats {
   salesThisMonth: number;
@@ -35,8 +45,23 @@ const statusLabels: Record<string, string> = {
   delivered: 'Levert',
 };
 
-export default function AdminDashboardPage() {
-  const router = useRouter();
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+function formatRelativeDate(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+
+  if (diff < HOUR) {
+    return `${Math.round(diff / MINUTE)} min siden`;
+  }
+  if (diff < DAY) {
+    return `${Math.round(diff / HOUR)} timer siden`;
+  }
+  return `${Math.round(diff / DAY)} dager siden`;
+}
+
+export default function AdminDashboardPage(): React.ReactElement {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,20 +84,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-
-    if (diff < 60 * 60 * 1000) {
-      return `${Math.round(diff / (60 * 1000))} min siden`;
-    } else if (diff < 24 * 60 * 60 * 1000) {
-      return `${Math.round(diff / (60 * 60 * 1000))} timer siden`;
-    } else {
-      return `${Math.round(diff / (24 * 60 * 60 * 1000))} dager siden`;
-    }
-  };
 
   if (isLoading) {
     return (
@@ -232,7 +243,7 @@ export default function AdminDashboardPage() {
                     {order.customer_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatDate(order.created_at!)}
+                    {formatRelativeDate(order.created_at!)}
                   </p>
                 </div>
                 <div className="text-right">

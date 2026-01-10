@@ -2,35 +2,65 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
+import { cn } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
-import { formatPrice } from '@/lib/utils';
+import { ProductCard } from '@/components/shop/product-card';
 
 const sectionText = {
   no: {
-    title: 'Nyeste verk',
     viewAll: 'Se alle',
-    original: 'Maleri',
-    print: 'Prints',
     empty: 'Kommer snart...',
     all: 'Alle',
-    sold: 'Solgt',
   },
   en: {
-    title: 'Latest works',
     viewAll: 'View all',
-    original: 'Painting',
-    print: 'Print',
     empty: 'Coming soon...',
     all: 'All',
-    sold: 'Sold',
   },
-};
+} as const;
 
+const PRODUCTS_PER_PAGE = 3;
+
+interface CarouselArrowProps {
+  direction: 'left' | 'right';
+  onClick: () => void;
+}
+
+function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactElement {
+  const isLeft = direction === 'left';
+  const Icon = isLeft ? ChevronLeft : ChevronRight;
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: isLeft ? -20 : 20 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      aria-label={isLeft ? 'Previous products' : 'Next products'}
+      className={`group absolute top-1/2 -translate-y-1/2 z-20
+                  w-12 h-12 sm:w-14 sm:h-14
+                  bg-background border-[3px] border-primary
+                  flex items-center justify-center
+                  transition-all duration-200
+                  hover:bg-primary
+                  ${isLeft
+                    ? 'left-0 -translate-x-2 sm:-translate-x-3 hover:translate-x-0 shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[6px_6px_0_0_theme(colors.primary)]'
+                    : 'right-0 translate-x-2 sm:translate-x-3 hover:-translate-x-0 shadow-[-4px_4px_0_0_theme(colors.primary)] hover:shadow-[-6px_6px_0_0_theme(colors.primary)]'
+                  }`}
+    >
+      <Icon
+        className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors"
+        strokeWidth={3}
+      />
+    </motion.button>
+  );
+}
 
 interface FeaturedGridProps {
   lang: Locale;
@@ -39,51 +69,36 @@ interface FeaturedGridProps {
   showFilters?: boolean;
 }
 
-export function FeaturedGrid({ lang, products, collections, showFilters = true }: FeaturedGridProps) {
+export function FeaturedGrid({
+  lang,
+  products,
+  collections,
+  showFilters = true,
+}: FeaturedGridProps): React.ReactElement {
   const t = sectionText[lang];
   const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
-  const productsPerPage = 3;
 
   const filterOptions: FilterOption[] = useMemo(() => {
-    const options: FilterOption[] = [{ id: 'all', label: t.all }];
-
-    // Add all collections
-    collections.forEach((collection) => {
-      options.push({ id: collection.id, label: collection.name });
-    });
-
-    return options;
+    const collectionOptions = collections.map((c) => ({ id: c.id, label: c.name }));
+    return [{ id: 'all', label: t.all }, ...collectionOptions];
   }, [collections, t.all]);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === 'all') return products;
-    return products.filter(p => p.collection_id === activeFilter);
+    return products.filter((p) => p.collection_id === activeFilter);
   }, [products, activeFilter]);
 
-  // Reset page when filter changes
-  const handleFilterChange = (filter: string) => {
+  function handleFilterChange(filter: string): void {
     setActiveFilter(filter);
     setCurrentPage(0);
-  };
+  }
 
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
   const hasNextPage = currentPage < totalPages - 1;
   const hasPrevPage = currentPage > 0;
-  const startIndex = currentPage * productsPerPage;
-  const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
-
-  const handleNextPage = () => {
-    if (hasNextPage) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (hasPrevPage) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
+  const startIndex = currentPage * PRODUCTS_PER_PAGE;
+  const visibleProducts = filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
 
   if (products.length === 0) {
     return (
@@ -134,163 +149,64 @@ export function FeaturedGrid({ lang, products, collections, showFilters = true }
 
         {/* Product Grid with Navigation */}
         <div className="relative">
-          {/* Left Arrow - Bold Pop-Art Style */}
           <AnimatePresence>
             {hasPrevPage && (
-              <motion.button
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handlePrevPage}
-                aria-label="Previous products"
-                className="group absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-3 z-20
-                           w-12 h-12 sm:w-14 sm:h-14
-                           bg-background border-[3px] border-primary
-                           flex items-center justify-center
-                           transition-all duration-200
-                           hover:bg-primary hover:translate-x-0
-                           shadow-[4px_4px_0_0_theme(colors.primary)]
-                           hover:shadow-[6px_6px_0_0_theme(colors.primary)]"
-              >
-                <ChevronLeft className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
-              </motion.button>
+              <CarouselArrow
+                direction="left"
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+              />
             )}
           </AnimatePresence>
 
-          {/* Right Arrow - Bold Pop-Art Style */}
           <AnimatePresence>
             {hasNextPage && (
-              <motion.button
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleNextPage}
-                aria-label="Next products"
-                className="group absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-3 z-20
-                           w-12 h-12 sm:w-14 sm:h-14
-                           bg-background border-[3px] border-primary
-                           flex items-center justify-center
-                           transition-all duration-200
-                           hover:bg-primary hover:-translate-x-0
-                           shadow-[-4px_4px_0_0_theme(colors.primary)]
-                           hover:shadow-[-6px_6px_0_0_theme(colors.primary)]"
-              >
-                <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
-              </motion.button>
+              <CarouselArrow
+                direction="right"
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              />
             )}
           </AnimatePresence>
 
-          {/* Grid */}
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
             layout
           >
             <AnimatePresence mode="popLayout">
-              {visibleProducts.map((product, index) => {
-                const isSold = !product.is_available || product.stock_quantity === 0;
-
-                return (
-                  <motion.div
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{
-                      opacity: { duration: 0.3 },
-                      scale: { duration: 0.3 },
-                      layout: { type: 'spring', stiffness: 300, damping: 30 }
-                    }}
-                  >
-                    <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
-                      <motion.article
-                        className="group relative bg-muted rounded-lg overflow-hidden"
-                        whileHover={isSold ? undefined : { y: -8 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                      >
-                        {/* Image Container */}
-                        <div className="relative aspect-[4/5] overflow-hidden">
-                          {/* Pink shimmer loading background */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 animate-shimmer" />
-
-                          {product.image_url ? (
-                            <Image
-                              src={product.image_url}
-                              alt={product.title}
-                              fill
-                              priority={index < 2}
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-primary" />
-                          )}
-
-                          {/* Sold Overlay */}
-                          {isSold && (
-                            <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                              <span className="px-6 py-2 bg-foreground text-background text-lg font-bold uppercase tracking-widest">
-                                {t.sold}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Hover Overlay (only if not sold) */}
-                          {!isSold && (
-                            <motion.div
-                              className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            />
-                          )}
-
-                          {/* Product Type Badge */}
-                          <div className="absolute top-4 left-4">
-                            <span className="px-3 py-1 bg-background/90 text-xs uppercase tracking-wider font-medium rounded">
-                              {product.product_type === 'original' ? t.original : t.print}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="p-4">
-                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                            {product.title}
-                          </h3>
-                          <p className="text-muted-foreground mt-1">
-                            {formatPrice(product.price)}
-                          </p>
-                        </div>
-
-                        {/* Glow Effect (only if not sold) */}
-                        {!isSold && (
-                          <motion.div
-                            className="absolute inset-0 rounded-lg pointer-events-none"
-                            initial={{ boxShadow: 'none' }}
-                            whileHover={{
-                              boxShadow: '0 0 30px rgba(254, 32, 106, 0.3)',
-                            }}
-                            transition={{ duration: 0.3 }}
-                          />
-                        )}
-                      </motion.article>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+              {visibleProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    scale: { duration: 0.3 },
+                    layout: { type: 'spring', stiffness: 300, damping: 30 },
+                  }}
+                >
+                  <ProductCard
+                    product={product}
+                    lang={lang}
+                    index={index}
+                    priority={index < 2}
+                  />
+                </motion.div>
+              ))}
             </AnimatePresence>
           </motion.div>
 
-          {/* Mobile Navigation Dots */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6 sm:hidden">
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentPage(i)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
+                  aria-label={`Go to page ${i + 1}`}
+                  className={cn(
+                    'w-2 h-2 rounded-full transition-colors',
                     i === currentPage ? 'bg-primary' : 'bg-muted-foreground/30'
-                  }`}
+                  )}
                 />
               ))}
             </div>

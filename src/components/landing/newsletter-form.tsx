@@ -1,9 +1,17 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Send, Check, Loader2 } from 'lucide-react';
+
+import { motion } from 'framer-motion';
+import { Check, Loader2, Send } from 'lucide-react';
+
 import type { Locale } from '@/types';
+
+interface NewsletterFormProps {
+  lang: Locale;
+}
+
+type FormStatus = 'idle' | 'loading' | 'success' | 'already' | 'error';
 
 const newsletterText = {
   no: {
@@ -28,12 +36,12 @@ const newsletterText = {
   },
 };
 
-export function NewsletterForm({ lang }: { lang: Locale }) {
+export function NewsletterForm({ lang }: NewsletterFormProps): React.ReactElement {
   const t = newsletterText[lang];
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'already' | 'error'>('idle');
+  const [status, setStatus] = useState<FormStatus>('idle');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     if (!email) return;
 
@@ -51,27 +59,17 @@ export function NewsletterForm({ lang }: { lang: Locale }) {
       }
 
       const data = await response.json();
+      const newStatus = data.message === 'Already subscribed' ? 'already' : 'success';
 
-      if (data.needs_confirmation) {
-        setStatus('success');
-      } else if (data.message === 'Already subscribed') {
-        setStatus('already');
-      } else {
-        setStatus('success');
-      }
-
+      setStatus(newStatus);
       setEmail('');
-
-      // Reset after 5 seconds
       setTimeout(() => setStatus('idle'), 5000);
     } catch (error) {
       console.error('Newsletter subscription error:', error);
       setStatus('error');
-
-      // Reset after 3 seconds
       setTimeout(() => setStatus('idle'), 3000);
     }
-  };
+  }
 
   return (
     <div className="text-center max-w-xl mx-auto">

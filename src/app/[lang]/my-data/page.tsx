@@ -85,22 +85,25 @@ export default function MyDataPage({
 
   // Show status message if redirected from verification
   if (status) {
-    const statusConfig: Record<string, { icon: typeof CheckCircle; iconClass: string; title: string; message: string }> = {
+    const statusConfig: Record<string, { icon: typeof CheckCircle; iconClass: string; bgClass: string; title: string; message: string }> = {
       completed: {
         icon: CheckCircle,
         iconClass: 'text-success',
+        bgClass: 'bg-success/10',
         title: type === 'export' ? t.completedExportTitle : t.completedDeleteTitle,
         message: type === 'export' ? t.completedExportMessage : t.completedDeleteMessage,
       },
       invalid: {
         icon: AlertCircle,
         iconClass: 'text-warning',
+        bgClass: 'bg-error/10',
         title: t.invalidTitle,
         message: t.invalidMessage,
       },
       error: {
         icon: AlertCircle,
         iconClass: 'text-error',
+        bgClass: 'bg-error/10',
         title: t.errorTitle,
         message: t.errorMessage,
       },
@@ -117,9 +120,7 @@ export default function MyDataPage({
           className="max-w-md w-full text-center"
         >
           <div className="bg-muted rounded-2xl p-8 sm:p-12">
-            <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 ${
-              status === 'completed' ? 'bg-success/10' : 'bg-error/10'
-            }`}>
+            <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 ${config.bgClass}`}>
               <Icon className={`w-8 h-8 ${config.iconClass}`} />
             </div>
 

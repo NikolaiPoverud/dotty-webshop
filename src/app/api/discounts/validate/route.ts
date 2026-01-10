@@ -57,13 +57,10 @@ export async function POST(request: Request) {
     }
 
     // Calculate discount amount
-    let discountAmount = 0;
-    if (discount.discount_percent) {
-      discountAmount = Math.round((subtotal || 0) * (discount.discount_percent / 100));
-    } else if (discount.discount_amount) {
-      // Fixed amount in ore, cap at subtotal
-      discountAmount = Math.min(discount.discount_amount, subtotal || 0);
-    }
+    const effectiveSubtotal = subtotal || 0;
+    const discountAmount = discount.discount_percent
+      ? Math.round(effectiveSubtotal * (discount.discount_percent / 100))
+      : Math.min(discount.discount_amount || 0, effectiveSubtotal);
 
     return NextResponse.json({
       valid: true,

@@ -1,3 +1,7 @@
+import type { ReactElement } from 'react';
+
+import { JsonLd } from './json-ld';
+
 interface FAQItem {
   question: string;
   answer: string;
@@ -7,7 +11,7 @@ interface FAQJsonLdProps {
   items: FAQItem[];
 }
 
-export function FAQJsonLd({ items }: FAQJsonLdProps) {
+export function FAQJsonLd({ items }: FAQJsonLdProps): ReactElement {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -21,10 +25,5 @@ export function FAQJsonLd({ items }: FAQJsonLdProps) {
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
+  return <JsonLd data={structuredData} />;
 }

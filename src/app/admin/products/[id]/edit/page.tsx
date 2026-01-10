@@ -9,8 +9,18 @@ import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
 import { GalleryUpload } from '@/components/admin/gallery-upload';
 import { useToast } from '@/components/admin/toast';
+import { adminFetch } from '@/lib/admin-fetch';
 import type { Product, ProductSize, Collection, GalleryImage, ShippingSize } from '@/types';
 import { SHIPPING_SIZE_INFO } from '@/types';
+
+const SHIPPING_SIZE_OPTIONS = Object.keys(SHIPPING_SIZE_INFO) as ShippingSize[];
+
+function parseGalleryImages(value: unknown): GalleryImage[] {
+  if (typeof value === 'string') {
+    return JSON.parse(value);
+  }
+  return (value as GalleryImage[]) || [];
+}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -22,7 +32,6 @@ export default function EditProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
 
-  // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -30,7 +39,7 @@ export default function EditProductPage() {
   const [imagePath, setImagePath] = useState('');
   const [productType, setProductType] = useState<'original' | 'print'>('original');
   const [stockQuantity, setStockQuantity] = useState('');
-  const [collectionId, setCollectionId] = useState<string>('');
+  const [collectionId, setCollectionId] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
@@ -41,16 +50,15 @@ export default function EditProductPage() {
   const [year, setYear] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchData(): Promise<void> {
       try {
-        // Fetch collections and product in parallel
         const [collectionsRes, productRes] = await Promise.all([
-          fetch('/api/admin/collections'),
-          fetch(`/api/admin/products/${productId}`),
+          adminFetch('/api/admin/collections'),
+          adminFetch(`/api/admin/products/${productId}`),
         ]);
 
-        const collectionsResult = await collectionsRes.json();
         if (collectionsRes.ok) {
+          const collectionsResult = await collectionsRes.json();
           setCollections(collectionsResult.data || []);
         }
 
@@ -62,7 +70,7 @@ export default function EditProductPage() {
         const product: Product = productResult.data;
         setTitle(product.title);
         setDescription(product.description || '');
-        setPrice(String(product.price / 100)); // Convert from ore to NOK
+        setPrice(String(product.price / 100));
         setImageUrl(product.image_url || '');
         setImagePath(product.image_path || '');
         setProductType(product.product_type);
@@ -71,12 +79,7 @@ export default function EditProductPage() {
         setIsAvailable(product.is_available);
         setIsFeatured(product.is_featured);
         setSizes(product.sizes || []);
-        // Parse gallery_images - handle both array and string from JSONB
-        const gallery = typeof product.gallery_images === 'string'
-          ? JSON.parse(product.gallery_images)
-          : (product.gallery_images || []);
-        setGalleryImages(gallery);
-        // Load shipping fields
+        setGalleryImages(parseGalleryImages(product.gallery_images));
         setShippingCost(product.shipping_cost ? String(product.shipping_cost / 100) : '');
         setShippingSize(product.shipping_size || '');
         setRequiresInquiry(product.requires_inquiry || false);
@@ -86,12 +89,12 @@ export default function EditProductPage() {
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
     fetchData();
   }, [productId, toast]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -99,7 +102,7 @@ export default function EditProductPage() {
       const priceInOre = Math.round(parseFloat(price) * 100);
       const shippingCostInOre = shippingCost ? Math.round(parseFloat(shippingCost) * 100) : null;
 
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await adminFetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,17 +139,17 @@ export default function EditProductPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
-  const handleImageChange = (url: string, path: string) => {
+  function handleImageChange(url: string, path: string): void {
     setImageUrl(url);
     setImagePath(path);
-  };
+  }
 
-  const handleImageRemove = () => {
+  function handleImageRemove(): void {
     setImageUrl('');
     setImagePath('');
-  };
+  }
 
   if (isLoading) {
     return (
@@ -158,7 +161,6 @@ export default function EditProductPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link
           href="/admin/products"
@@ -168,15 +170,12 @@ export default function EditProductPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold">Rediger produkt</h1>
-          <p className="text-muted-foreground mt-1">
-            Oppdater produktinformasjon
-          </p>
+          <p className="text-muted-foreground mt-1">Oppdater produktinformasjon</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Image */}
           <div className="space-y-4">
             <label className="block text-sm font-medium">Produktbilde</label>
             <ImageUpload
@@ -187,13 +186,9 @@ export default function EditProductPage() {
             />
           </div>
 
-          {/* Right Column - Details */}
           <div className="space-y-6">
-            {/* Title */}
             <div className="space-y-2">
-              <label htmlFor="title" className="block text-sm font-medium">
-                Tittel *
-              </label>
+              <label htmlFor="title" className="block text-sm font-medium">Tittel *</label>
               <input
                 id="title"
                 type="text"
@@ -205,11 +200,8 @@ export default function EditProductPage() {
               />
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
-              <label htmlFor="description" className="block text-sm font-medium">
-                Beskrivelse
-              </label>
+              <label htmlFor="description" className="block text-sm font-medium">Beskrivelse</label>
               <textarea
                 id="description"
                 value={description}
@@ -220,13 +212,9 @@ export default function EditProductPage() {
               />
             </div>
 
-            {/* Price & Year Row */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Price */}
               <div className="space-y-2">
-                <label htmlFor="price" className="block text-sm font-medium">
-                  Pris (NOK inkl. MVA) *
-                </label>
+                <label htmlFor="price" className="block text-sm font-medium">Pris (NOK inkl. MVA) *</label>
                 <div className="relative">
                   <input
                     id="price"
@@ -239,17 +227,12 @@ export default function EditProductPage() {
                     className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    kr
-                  </span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">kr</span>
                 </div>
               </div>
 
-              {/* Year */}
               <div className="space-y-2">
-                <label htmlFor="year" className="block text-sm font-medium">
-                  År
-                </label>
+                <label htmlFor="year" className="block text-sm font-medium">År</label>
                 <input
                   id="year"
                   type="number"
@@ -263,7 +246,6 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Product Type */}
             <div className="space-y-2">
               <label className="block text-sm font-medium">Type *</label>
               <div className="flex gap-4">
@@ -292,11 +274,8 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Collection */}
             <div className="space-y-2">
-              <label htmlFor="collection" className="block text-sm font-medium">
-                Samling
-              </label>
+              <label htmlFor="collection" className="block text-sm font-medium">Samling</label>
               <select
                 id="collection"
                 value={collectionId}
@@ -312,11 +291,8 @@ export default function EditProductPage() {
               </select>
             </div>
 
-            {/* Shipping Size */}
             <div className="space-y-2">
-              <label htmlFor="shippingSize" className="block text-sm font-medium">
-                Fraktstørrelse
-              </label>
+              <label htmlFor="shippingSize" className="block text-sm font-medium">Fraktstørrelse</label>
               <select
                 id="shippingSize"
                 value={shippingSize}
@@ -324,7 +300,7 @@ export default function EditProductPage() {
                 className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 <option value="">Velg størrelse...</option>
-                {(Object.keys(SHIPPING_SIZE_INFO) as ShippingSize[]).map((size) => (
+                {SHIPPING_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size}>
                     {SHIPPING_SIZE_INFO[size].label} - {SHIPPING_SIZE_INFO[size].description}
                   </option>
@@ -332,11 +308,8 @@ export default function EditProductPage() {
               </select>
             </div>
 
-            {/* Shipping Cost */}
             <div className="space-y-2">
-              <label htmlFor="shippingCost" className="block text-sm font-medium">
-                Fraktkostnad (NOK)
-              </label>
+              <label htmlFor="shippingCost" className="block text-sm font-medium">Fraktkostnad (NOK)</label>
               <div className="relative">
                 <input
                   id="shippingCost"
@@ -348,16 +321,13 @@ export default function EditProductPage() {
                   className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
                   placeholder="0"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  kr
-                </span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">kr</span>
               </div>
               <p className="text-xs text-muted-foreground">
                 La stå tom for å bruke samlingens fraktpris. Sett til 0 for gratis frakt.
               </p>
             </div>
 
-            {/* Stock Quantity */}
             <div className="space-y-2">
               <label htmlFor="stock" className="block text-sm font-medium">
                 Antall pa lager {productType === 'original' && <span className="text-muted-foreground">(vanligvis 1)</span>}
@@ -370,7 +340,6 @@ export default function EditProductPage() {
                 onChange={(e) => {
                   const val = e.target.value;
                   setStockQuantity(val);
-                  // Auto-set unavailable when stock is 0
                   if (parseInt(val, 10) === 0) {
                     setIsAvailable(false);
                   }
@@ -378,24 +347,19 @@ export default function EditProductPage() {
                 className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 placeholder="1"
               />
-              <p className="text-xs text-muted-foreground">
-                Sett til 0 for a markere som solgt
-              </p>
+              <p className="text-xs text-muted-foreground">Sett til 0 for a markere som solgt</p>
             </div>
 
-            {/* Sizes */}
             <div className="space-y-2">
               <label className="block text-sm font-medium">Størrelser</label>
               <SizeInput value={sizes} onChange={setSizes} />
             </div>
 
-            {/* Gallery Images */}
             <div className="space-y-2">
               <label className="block text-sm font-medium">Galleri (flere bilder)</label>
               <GalleryUpload value={galleryImages} onChange={setGalleryImages} />
             </div>
 
-            {/* Toggles */}
             <div className="space-y-4">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -433,7 +397,6 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-6 border-t border-border">
           <Link
             href="/admin/products"

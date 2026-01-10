@@ -27,22 +27,18 @@ export const devDomains = [
 ];
 
 /**
- * Get the default locale for a domain
+ * Check if a hostname is a development domain
+ */
+function isDevDomain(hostname: string): boolean {
+  return devDomains.some((dev) => hostname.includes(dev));
+}
+
+/**
+ * Get the default locale for a domain (null for dev domains or unknown hosts)
  */
 export function getLocaleForDomain(hostname: string): Locale | null {
-  // Check for exact match first
-  const exactMatch = domains.find(d => d.domain === hostname);
-  if (exactMatch) {
-    return exactMatch.defaultLocale;
-  }
-
-  // Check for development domains (return null to allow any locale)
-  const isDev = devDomains.some(dev => hostname.includes(dev));
-  if (isDev) {
-    return null;
-  }
-
-  return null;
+  const match = domains.find((d) => d.domain === hostname);
+  return match?.defaultLocale ?? null;
 }
 
 /**
@@ -50,13 +46,7 @@ export function getLocaleForDomain(hostname: string): Locale | null {
  */
 export function shouldForceLocale(hostname: string, currentLocale: Locale): Locale | null {
   const domainLocale = getLocaleForDomain(hostname);
-
-  // If domain has a specific locale and it differs from current, return the forced locale
-  if (domainLocale && domainLocale !== currentLocale) {
-    return domainLocale;
-  }
-
-  return null;
+  return domainLocale && domainLocale !== currentLocale ? domainLocale : null;
 }
 
 /**
@@ -97,19 +87,13 @@ export function getLanguageSwitchUrl(
   hostname?: string
 ): string {
   const targetLocale: Locale = currentLocale === 'no' ? 'en' : 'no';
-
-  // Check if we're on a dev domain (use relative paths)
-  const isDev = !hostname || devDomains.some(dev => hostname.includes(dev));
+  const pathWithoutLocale = currentPath.replace(/^\/(no|en)/, '') || '/';
+  const isDev = !hostname || isDevDomain(hostname);
 
   if (isDev) {
-    // For development, just switch the locale prefix
-    const pathWithoutLocale = currentPath.replace(/^\/(no|en)/, '');
-    return `/${targetLocale}${pathWithoutLocale || '/'}`;
+    return `/${targetLocale}${pathWithoutLocale}`;
   }
 
-  // For production, redirect to the appropriate domain
   const targetDomain = getPrimaryDomainUrl(targetLocale);
-  const pathWithoutLocale = currentPath.replace(/^\/(no|en)/, '');
-
-  return `${targetDomain}/${targetLocale}${pathWithoutLocale || '/'}`;
+  return `${targetDomain}/${targetLocale}${pathWithoutLocale}`;
 }

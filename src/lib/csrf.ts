@@ -3,10 +3,11 @@
  * Validates that requests come from allowed origins
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server.js';
 
-// Allowed origins for CSRF protection
-const ALLOWED_ORIGINS = [
+const STATE_CHANGING_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
+
+const ALLOWED_ORIGINS: string[] = [
   process.env.NEXT_PUBLIC_SITE_URL,
   'https://dotty.no',
   'https://www.dotty.no',
@@ -14,72 +15,70 @@ const ALLOWED_ORIGINS = [
   'https://www.dottyartwork.no',
   'https://dottyartwork.com',
   'https://www.dottyartwork.com',
-].filter(Boolean) as string[];
+  ...(process.env.NODE_ENV === 'development'
+    ? ['http://localhost:3000', 'http://127.0.0.1:3000']
+    : []),
+].filter((origin): origin is string => Boolean(origin));
 
-// In development, also allow localhost
-if (process.env.NODE_ENV === 'development') {
-  ALLOWED_ORIGINS.push('http://localhost:3000', 'http://127.0.0.1:3000');
+function createForbiddenResponse(): NextResponse {
+  return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 });
+}
+
+function getRequestOrigin(request: NextRequest): string | null {
+  const origin = request.headers.get('origin');
+  if (origin) return origin;
+
+  const referer = request.headers.get('referer');
+  if (referer) return new URL(referer).origin;
+
+  return null;
+}
+
+function isServerSideRequest(request: NextRequest): boolean {
+  const hasStripeSignature = Boolean(request.headers.get('stripe-signature'));
+  const hasBearerToken = request.headers.get('authorization')?.startsWith('Bearer ') ?? false;
+
+  return hasStripeSignature || hasBearerToken;
 }
 
 /**
- * Validate the Origin header for state-changing requests
- * Returns null if valid, or an error response if invalid
+ * Validate the Origin header for state-changing requests.
+ * Returns null if valid, or an error response if invalid.
  */
 export function validateOrigin(request: NextRequest): NextResponse | null {
   const method = request.method.toUpperCase();
 
-  // Only validate state-changing methods
-  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+  if (!STATE_CHANGING_METHODS.includes(method)) {
     return null;
   }
 
-  const origin = request.headers.get('origin');
-  const referer = request.headers.get('referer');
+  const requestOrigin = getRequestOrigin(request);
 
-  // For same-origin requests, browser may not send Origin header
-  // In that case, check Referer
-  const requestOrigin = origin || (referer ? new URL(referer).origin : null);
-
-  // API routes called from server-side won't have Origin
-  // Allow these by checking for server-side indicators
   if (!requestOrigin) {
-    // Check if it's a webhook (Stripe sends signature header)
-    if (request.headers.get('stripe-signature')) {
+    if (isServerSideRequest(request)) {
       return null;
     }
-    // Check if it's a cron job
-    if (request.headers.get('authorization')?.startsWith('Bearer ')) {
-      return null;
-    }
-    // For other requests without origin, be strict in production
     if (process.env.NODE_ENV === 'production') {
       console.warn('CSRF: Request without origin header blocked');
-      return NextResponse.json(
-        { error: 'Invalid request origin' },
-        { status: 403 }
-      );
+      return createForbiddenResponse();
     }
     return null;
   }
 
-  // Validate origin is in allowed list
-  if (!ALLOWED_ORIGINS.some(allowed => requestOrigin === allowed)) {
+  if (!ALLOWED_ORIGINS.includes(requestOrigin)) {
     console.warn(`CSRF: Request from unauthorized origin: ${requestOrigin}`);
-    return NextResponse.json(
-      { error: 'Invalid request origin' },
-      { status: 403 }
-    );
+    return createForbiddenResponse();
   }
 
   return null;
 }
 
+type RouteHandler = (request: NextRequest, ...args: unknown[]) => Promise<NextResponse>;
+
 /**
- * Middleware helper to add CSRF validation to API routes
+ * Middleware helper to add CSRF validation to API routes.
  */
-export function withCsrfProtection<T extends (...args: unknown[]) => Promise<NextResponse>>(
-  handler: T
-): T {
+export function withCsrfProtection<T extends RouteHandler>(handler: T): T {
   return (async (request: NextRequest, ...rest: unknown[]) => {
     const csrfError = validateOrigin(request);
     if (csrfError) return csrfError;

@@ -9,7 +9,15 @@ import type { Order } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
 
-const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+type OrderStatus = NonNullable<Order['status']>;
+
+interface StatusInfo {
+  label: string;
+  color: string;
+  icon: typeof Clock;
+}
+
+const STATUS_CONFIG: Record<OrderStatus, StatusInfo> = {
   pending: { label: 'Venter', color: 'bg-warning/10 text-warning', icon: Clock },
   paid: { label: 'Betalt', color: 'bg-success/10 text-success', icon: CheckCircle },
   shipped: { label: 'Sendt', color: 'bg-accent/10 text-accent', icon: Truck },
@@ -17,14 +25,32 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   cancelled: { label: 'Kansellert', color: 'bg-error/10 text-error', icon: XCircle },
 };
 
-// Wrapper with Suspense for useSearchParams
+const FILTER_STATUSES: Array<'all' | OrderStatus> = ['all', 'pending', 'paid', 'shipped', 'delivered'];
+
+function formatRelativeDate(dateStr: string): string {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.round(diffMs / (60 * 1000));
+  const hours = Math.round(diffMs / (60 * 60 * 1000));
+  const days = Math.round(diffMs / (24 * 60 * 60 * 1000));
+
+  if (minutes < 60) {
+    return `${minutes} min siden`;
+  }
+  if (hours < 24) {
+    return `${hours} timer siden`;
+  }
+  return `${days} dager siden`;
+}
+
 export default function AdminOrdersPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      }
+    >
       <AdminOrdersContent />
     </Suspense>
   );
@@ -34,21 +60,17 @@ function AdminOrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<'all' | OrderStatus>('all');
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState({ carrier: '', number: '' });
   const searchParams = useSearchParams();
   const highlightId = searchParams.get('highlight');
 
-  // Scroll to highlighted order
   useEffect(() => {
     if (highlightId && !isLoading) {
       const timer = setTimeout(() => {
-        const element = document.getElementById(`order-${highlightId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        document.getElementById(`order-${highlightId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -75,18 +97,17 @@ function AdminOrdersContent() {
 
   const filteredOrders = orders.filter((order) => {
     if (filter !== 'all' && order.status !== filter) return false;
-    if (search) {
-      const searchLower = search.toLowerCase();
-      return (
-        order.customer_name?.toLowerCase().includes(searchLower) ||
-        order.customer_email?.toLowerCase().includes(searchLower) ||
-        order.order_number?.toLowerCase().includes(searchLower)
-      );
-    }
-    return true;
+    if (!search) return true;
+
+    const searchLower = search.toLowerCase();
+    return (
+      order.customer_name?.toLowerCase().includes(searchLower) ||
+      order.customer_email?.toLowerCase().includes(searchLower) ||
+      order.order_number?.toLowerCase().includes(searchLower)
+    );
   });
 
-  const handleShip = async (orderId: string) => {
+  async function handleShip(orderId: string): Promise<void> {
     if (!trackingInput.carrier || !trackingInput.number) {
       alert('Vennligst fyll inn transportør og sporingsnummer');
       return;
@@ -108,12 +129,7 @@ function AdminOrdersContent() {
       setOrders((prev) =>
         prev.map((o) =>
           o.id === orderId
-            ? {
-                ...o,
-                status: 'shipped' as const,
-                tracking_carrier: trackingInput.carrier,
-                tracking_number: trackingInput.number,
-              }
+            ? { ...o, status: 'shipped' as const, tracking_carrier: trackingInput.carrier, tracking_number: trackingInput.number }
             : o
         )
       );
@@ -122,9 +138,9 @@ function AdminOrdersContent() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update');
     }
-  };
+  }
 
-  const handleDelivered = async (orderId: string) => {
+  async function handleDelivered(orderId: string): Promise<void> {
     try {
       const response = await adminFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
@@ -135,16 +151,14 @@ function AdminOrdersContent() {
       if (!response.ok) throw new Error('Failed to update order');
 
       setOrders((prev) =>
-        prev.map((o) =>
-          o.id === orderId ? { ...o, status: 'delivered' as const } : o
-        )
+        prev.map((o) => (o.id === orderId ? { ...o, status: 'delivered' as const } : o))
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update');
     }
-  };
+  }
 
-  const handleCancel = async (orderId: string) => {
+  async function handleCancel(orderId: string): Promise<void> {
     if (!confirm('Er du sikker på at du vil kansellere denne ordren?')) return;
 
     try {
@@ -157,28 +171,12 @@ function AdminOrdersContent() {
       if (!response.ok) throw new Error('Failed to cancel order');
 
       setOrders((prev) =>
-        prev.map((o) =>
-          o.id === orderId ? { ...o, status: 'cancelled' as const } : o
-        )
+        prev.map((o) => (o.id === orderId ? { ...o, status: 'cancelled' as const } : o))
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel');
     }
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-
-    if (diff < 60 * 60 * 1000) {
-      return `${Math.round(diff / (60 * 1000))} min siden`;
-    } else if (diff < 24 * 60 * 60 * 1000) {
-      return `${Math.round(diff / (60 * 60 * 1000))} timer siden`;
-    } else {
-      return `${Math.round(diff / (24 * 60 * 60 * 1000))} dager siden`;
-    }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -214,7 +212,6 @@ function AdminOrdersContent() {
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -227,23 +224,20 @@ function AdminOrdersContent() {
           />
         </div>
         <div className="flex gap-2">
-          {['all', 'pending', 'paid', 'shipped', 'delivered'].map((status) => (
+          {FILTER_STATUSES.map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
               className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                filter === status
-                  ? 'bg-primary text-background'
-                  : 'bg-muted hover:bg-muted-foreground/10'
+                filter === status ? 'bg-primary text-background' : 'bg-muted hover:bg-muted-foreground/10'
               }`}
             >
-              {status === 'all' ? 'Alle' : statusConfig[status]?.label}
+              {status === 'all' ? 'Alle' : STATUS_CONFIG[status].label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Orders List */}
       {filteredOrders.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
@@ -252,8 +246,10 @@ function AdminOrdersContent() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order, index) => {
-            const StatusIcon = statusConfig[order.status!]?.icon || Clock;
+          {filteredOrders.map((order) => {
+            const status = order.status!;
+            const statusInfo = STATUS_CONFIG[status];
+            const StatusIcon = statusInfo.icon;
             const isHighlighted = order.id === highlightId;
 
             return (
@@ -266,22 +262,18 @@ function AdminOrdersContent() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusConfig[order.status!]?.color}`}
-                    >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusInfo.color}`}>
                       <StatusIcon className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-bold font-mono text-primary">{order.order_number}</p>
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded ${statusConfig[order.status!]?.color}`}
-                        >
-                          {statusConfig[order.status!]?.label}
+                        <span className={`px-2 py-0.5 text-xs rounded ${statusInfo.color}`}>
+                          {statusInfo.label}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {order.customer_name} · {formatDate(order.created_at!)}
+                        {order.customer_name} · {formatRelativeDate(order.created_at!)}
                       </p>
                     </div>
                   </div>
@@ -289,7 +281,7 @@ function AdminOrdersContent() {
                   <div className="flex items-center gap-4">
                     <p className="text-xl font-bold">{formatPrice(order.total!)}</p>
 
-                    {order.status === 'paid' && (
+                    {status === 'paid' && (
                       <button
                         onClick={() => setSelectedOrder(order.id!)}
                         className="px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
@@ -297,7 +289,7 @@ function AdminOrdersContent() {
                         Merk som sendt
                       </button>
                     )}
-                    {order.status === 'shipped' && (
+                    {status === 'shipped' && (
                       <button
                         onClick={() => handleDelivered(order.id!)}
                         className="px-4 py-2 bg-success text-white font-medium rounded-lg hover:bg-success/90 transition-colors"
@@ -305,7 +297,7 @@ function AdminOrdersContent() {
                         Merk som levert
                       </button>
                     )}
-                    {(order.status === 'pending' || order.status === 'paid') && (
+                    {(status === 'pending' || status === 'paid') && (
                       <button
                         onClick={() => handleCancel(order.id!)}
                         className="px-4 py-2 bg-error/10 text-error font-medium rounded-lg hover:bg-error/20 transition-colors"
@@ -316,7 +308,6 @@ function AdminOrdersContent() {
                   </div>
                 </div>
 
-                {/* Tracking info for shipped/delivered */}
                 {order.tracking_number && (
                   <div className="mt-4 pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
@@ -326,7 +317,6 @@ function AdminOrdersContent() {
                   </div>
                 )}
 
-                {/* Shipping form */}
                 {selectedOrder === order.id && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -369,7 +359,6 @@ function AdminOrdersContent() {
                   </motion.div>
                 )}
 
-                {/* Customer details */}
                 <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">E-post</p>

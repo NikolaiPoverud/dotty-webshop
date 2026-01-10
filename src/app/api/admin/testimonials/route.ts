@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       .order('display_order', { ascending: false })
       .limit(1);
 
-    const newOrder = existing && existing.length > 0 ? existing[0].display_order + 1 : 1;
+    const newOrder = (existing?.[0]?.display_order ?? 0) + 1;
 
     const { data, error } = await supabase
       .from('testimonials')

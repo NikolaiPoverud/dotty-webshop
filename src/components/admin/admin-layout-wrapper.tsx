@@ -1,32 +1,36 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+
 import { ToastProvider } from './toast';
 
-interface AdminLayoutWrapperProps {
+interface Props {
   children: ReactNode;
   sidebar: ReactNode;
 }
 
-// Pages that should not show the admin sidebar
-const publicAdminPages = ['/admin/login', '/admin/reset-password'];
+const PUBLIC_ADMIN_PAGES = ['/admin/login', '/admin/reset-password'];
 
-export function AdminLayoutWrapper({ children, sidebar }: AdminLayoutWrapperProps) {
+function isPublicAdminPage(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return PUBLIC_ADMIN_PAGES.some(
+    (page) => pathname === page || pathname.startsWith(`${page}/`)
+  );
+}
+
+export function AdminLayoutWrapper({ children, sidebar }: Props): ReactNode {
   const pathname = usePathname();
 
-  // Don't show sidebar on login/reset-password pages
-  const isPublicPage = publicAdminPages.some(page => pathname === page || pathname?.startsWith(`${page}/`));
-
-  if (isPublicPage) {
+  if (isPublicAdminPage(pathname)) {
     return <ToastProvider>{children}</ToastProvider>;
   }
 
   return (
     <ToastProvider>
-      <div className="min-h-screen flex">
+      <div className="flex min-h-screen">
         {sidebar}
-        <main className="flex-1 min-h-screen overflow-y-auto p-8">
+        <main className="min-h-screen flex-1 overflow-y-auto p-8">
           {children}
         </main>
       </div>

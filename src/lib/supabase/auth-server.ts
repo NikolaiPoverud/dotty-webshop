@@ -1,33 +1,29 @@
 import 'server-only';
-import { createClient } from './server';
 
-// Get current user (server-side only)
-export async function getUser() {
+import type { Session, User } from '@supabase/supabase-js';
+
+import { createClient } from './server.js';
+
+export async function getUser(): Promise<User | null> {
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
 
-  if (error || !user) {
-    return null;
-  }
-
-  return user;
+  return error ? null : data.user;
 }
 
-// Get current session (server-side only)
-export async function getSession() {
+export async function getSession(): Promise<Session | null> {
   const supabase = await createClient();
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const { data, error } = await supabase.auth.getSession();
 
-  if (error || !session) {
-    return null;
-  }
-
-  return session;
+  return error ? null : data.session;
 }
 
-// Check if user is admin (for now, any authenticated user is admin)
-// You can extend this to check for specific roles or email domains
-export async function isAdmin() {
+/**
+ * Check if user is authenticated as admin.
+ * Currently, any authenticated user is considered an admin.
+ * Extend this to check for specific roles or email domains as needed.
+ */
+export async function isAdmin(): Promise<boolean> {
   const user = await getUser();
-  return !!user;
+  return user !== null;
 }

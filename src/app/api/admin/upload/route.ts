@@ -2,70 +2,74 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
-// SEC-005: Magic byte signatures for image validation
-const IMAGE_SIGNATURES: { type: string; ext: string; bytes: number[]; offset?: number }[] = [
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+const IMAGE_SIGNATURES = [
   { type: 'image/jpeg', ext: 'jpg', bytes: [0xFF, 0xD8, 0xFF] },
   { type: 'image/png', ext: 'png', bytes: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
-  { type: 'image/gif', ext: 'gif', bytes: [0x47, 0x49, 0x46, 0x38] }, // GIF8
-  { type: 'image/webp', ext: 'webp', bytes: [0x52, 0x49, 0x46, 0x46] }, // RIFF header (WebP also has WEBP at offset 8)
-];
+  { type: 'image/gif', ext: 'gif', bytes: [0x47, 0x49, 0x46, 0x38] },
+  { type: 'image/webp', ext: 'webp', bytes: [0x52, 0x49, 0x46, 0x46] },
+] as const;
 
-// Validate file content matches magic bytes
-function validateFileMagicBytes(buffer: Uint8Array): { valid: boolean; type: string; ext: string } | null {
+const WEBP_MARKER = [0x57, 0x45, 0x42, 0x50]; // "WEBP" at offset 8
+
+function validateImageMagicBytes(buffer: Uint8Array): { type: string; ext: string } | null {
   for (const sig of IMAGE_SIGNATURES) {
-    const offset = sig.offset || 0;
-    if (buffer.length < offset + sig.bytes.length) continue;
+    if (buffer.length < sig.bytes.length) continue;
 
-    const matches = sig.bytes.every((byte, i) => buffer[offset + i] === byte);
-    if (matches) {
-      // Extra validation for WebP: check for "WEBP" at offset 8
-      if (sig.type === 'image/webp') {
-        if (buffer.length < 12) continue;
-        const webpMarker = [0x57, 0x45, 0x42, 0x50]; // "WEBP"
-        const hasWebp = webpMarker.every((byte, i) => buffer[8 + i] === byte);
-        if (!hasWebp) continue;
-      }
-      return { valid: true, type: sig.type, ext: sig.ext };
+    const matches = sig.bytes.every((byte, i) => buffer[i] === byte);
+    if (!matches) continue;
+
+    // WebP requires additional validation for "WEBP" marker at offset 8
+    if (sig.type === 'image/webp') {
+      if (buffer.length < 12) continue;
+      const hasWebpMarker = WEBP_MARKER.every((byte, i) => buffer[8 + i] === byte);
+      if (!hasWebpMarker) continue;
     }
+
+    return { type: sig.type, ext: sig.ext };
   }
   return null;
 }
 
+function generateFilename(ext: string): string {
+  const timestamp = Date.now();
+  const randomId = Math.random().toString(36).substring(2, 15);
+  return `products/${timestamp}-${randomId}.${ext}`;
+}
+
+function isValidProductPath(path: string): boolean {
+  const normalized = String(path).trim();
+  return (
+    normalized.startsWith('products/') &&
+    !normalized.includes('..') &&
+    !normalized.includes('//') &&
+    /^products\/[\w\-]+\.\w+$/.test(normalized)
+  );
+}
+
 // POST /api/admin/upload - Upload image to Supabase storage
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
   try {
-    const supabase = createAdminClient();
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
     if (!file) {
-      console.error('No file provided in upload request');
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
-
-    // Validate file size first (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'File too large. Max size: 10MB' },
-        { status: 400 }
-      );
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: 'File too large. Max size: 10MB' }, { status: 400 });
     }
 
-    // Convert File to ArrayBuffer for validation
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
 
-    // SEC-005: Validate actual file content via magic bytes (not just MIME type)
-    const fileValidation = validateFileMagicBytes(buffer);
-    if (!fileValidation) {
+    const validation = validateImageMagicBytes(buffer);
+    if (!validation) {
       console.warn('Magic byte validation failed for file:', file.name);
       return NextResponse.json(
         { error: 'Invalid file type. File must be a valid JPEG, PNG, WebP, or GIF image.' },
@@ -73,101 +77,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the detected type and extension (ignore user-provided values which can be spoofed)
-    const detectedType = fileValidation.type;
-    const detectedExt = fileValidation.ext;
+    const path = generateFilename(validation.ext);
+    const supabase = createAdminClient();
 
-    // Generate unique filename with validated extension
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 15);
-    const filename = `${timestamp}-${randomId}.${detectedExt}`;
-    const path = `products/${filename}`;
-
-    // Upload to Supabase storage with detected content type
     const { error: uploadError } = await supabase.storage
       .from('artwork')
       .upload(path, buffer, {
-        contentType: detectedType,
-        cacheControl: '31536000', // 1 year cache
+        contentType: validation.type,
+        cacheControl: '31536000',
         upsert: false,
       });
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      return NextResponse.json(
-        { error: `Upload failed: ${uploadError.message}` },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
     }
 
-    console.log('File uploaded successfully to:', path);
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('artwork')
-      .getPublicUrl(path);
+    const { data: urlData } = supabase.storage.from('artwork').getPublicUrl(path);
 
     return NextResponse.json({
-      data: {
-        path,
-        url: urlData.publicUrl,
-      },
+      data: { path, url: urlData.publicUrl },
     });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload image' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
   }
 }
 
 // DELETE /api/admin/upload - Delete image from storage
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
   try {
-    const supabase = createAdminClient();
     const { path } = await request.json();
 
     if (!path) {
-      return NextResponse.json(
-        { error: 'No path provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No path provided' }, { status: 400 });
     }
 
-    // SEC-006: Validate path to prevent traversal attacks
-    const normalizedPath = String(path).trim();
-    if (
-      !normalizedPath.startsWith('products/') ||
-      normalizedPath.includes('..') ||
-      normalizedPath.includes('//') ||
-      !/^products\/[\w\-]+\.\w+$/.test(normalizedPath)
-    ) {
-      return NextResponse.json(
-        { error: 'Invalid file path' },
-        { status: 400 }
-      );
+    if (!isValidProductPath(path)) {
+      return NextResponse.json({ error: 'Invalid file path' }, { status: 400 });
     }
 
-    const { error } = await supabase.storage
-      .from('artwork')
-      .remove([path]);
+    const supabase = createAdminClient();
+    const { error } = await supabase.storage.from('artwork').remove([path]);
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to delete image' },
-      { status: 500 }
-    );
+    console.error('Delete error:', error);
+    return NextResponse.json({ error: 'Failed to delete image' }, { status: 500 });
   }
 }

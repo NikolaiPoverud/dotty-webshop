@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import { ProductCard } from './product-card';
 import { FilterTabs, type FilterOption } from './filter-tabs';
-import { staggerContainer, fadeUpItem } from '@/lib/animations';
+import { staggerContainer, fadeUpItem, fadeBlur } from '@/lib/animations';
 
 const filterText = {
   no: {
@@ -29,49 +29,37 @@ interface ShopContentProps {
   highlightedProduct?: string;
 }
 
-export function ShopContent({ products, collections, lang, initialCollection, highlightedProduct }: ShopContentProps) {
+interface ShopContentInnerProps extends ShopContentProps {
+  initialFilter: string;
+}
+
+function ShopContentInner({
+  products,
+  collections,
+  lang,
+  highlightedProduct,
+  initialFilter,
+}: ShopContentInnerProps) {
   const t = filterText[lang];
   const searchParams = useSearchParams();
 
-  // Get collection and highlight from URL
-  const collectionFromUrl = searchParams.get('collection');
   const highlightFromUrl = searchParams.get('highlight');
   const highlightId = highlightFromUrl || highlightedProduct;
-  const defaultFilter = collectionFromUrl || initialCollection || 'all';
 
-  const [activeFilter, setActiveFilter] = useState(defaultFilter);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [activeFilter, setActiveFilter] = useState(initialFilter);
 
-  // Update filter when initialCollection changes (from URL route)
-  useEffect(() => {
-    if (initialCollection) {
-      setActiveFilter(initialCollection);
-    } else if (collectionFromUrl) {
-      setActiveFilter(collectionFromUrl);
-    }
-  }, [initialCollection, collectionFromUrl]);
-
-  // Handle filter change - smooth client-side update with URL sync
   const handleFilterChange = useCallback((filterId: string) => {
     if (filterId === activeFilter) return;
 
-    setIsTransitioning(true);
+    setActiveFilter(filterId);
 
-    // Small delay for exit animation
-    setTimeout(() => {
-      setActiveFilter(filterId);
+    // Update URL without navigation (shallow update)
+    const collection = collections.find(c => c.id === filterId);
+    const newPath = filterId === 'all'
+      ? `/${lang}/shop`
+      : `/${lang}/shop/${collection?.slug || filterId}`;
 
-      // Update URL without navigation (shallow update)
-      const collection = collections.find(c => c.id === filterId);
-      const newPath = filterId === 'all'
-        ? `/${lang}/shop`
-        : `/${lang}/shop/${collection?.slug || filterId}`;
-
-      window.history.replaceState(null, '', newPath);
-
-      // Reset transition state after animation completes
-      setTimeout(() => setIsTransitioning(false), 300);
-    }, 150);
+    window.history.replaceState(null, '', newPath);
   }, [activeFilter, collections, lang]);
 
   // Scroll to highlighted product
@@ -87,35 +75,30 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
     }
   }, [highlightId]);
 
-  const filterOptions: FilterOption[] = useMemo(() => {
-    const options: FilterOption[] = [{ id: 'all', label: t.all }];
-    collections.forEach((collection) => {
-      options.push({ id: collection.id, label: collection.name });
-    });
-    return options;
-  }, [collections, t.all]);
+  const filterOptions: FilterOption[] = useMemo(() => [
+    { id: 'all', label: t.all },
+    ...collections.map(c => ({ id: c.id, label: c.name })),
+  ], [collections, t.all]);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === 'all') return products;
     return products.filter(p => p.collection_id === activeFilter);
   }, [products, activeFilter]);
 
-  // Get active collection description (truncated)
   const activeDescription = useMemo(() => {
     if (activeFilter === 'all') return null;
-    const collection = collections.find(c => c.id === activeFilter);
-    if (!collection?.description) return null;
 
-    const desc = collection.description;
-    if (desc.length <= MAX_DESCRIPTION_CHARS) return desc;
-    return desc.slice(0, MAX_DESCRIPTION_CHARS).trim() + '...';
+    const description = collections.find(c => c.id === activeFilter)?.description;
+    if (!description) return null;
+
+    return description.length <= MAX_DESCRIPTION_CHARS
+      ? description
+      : `${description.slice(0, MAX_DESCRIPTION_CHARS).trim()}...`;
   }, [activeFilter, collections]);
 
   return (
     <LayoutGroup>
-      {/* Filter Section - Fixed spacing */}
       <div className="mb-12">
-        {/* Filter Tabs - Centered */}
         {filterOptions.length > 1 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -131,16 +114,15 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
           </motion.div>
         )}
 
-        {/* Collection Description - Fixed height container */}
         <div className="h-16 flex items-center justify-center mt-6">
           <AnimatePresence mode="wait">
             {activeDescription && (
               <motion.p
                 key={activeFilter}
-                initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                variants={fadeBlur}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 className="text-center text-muted-foreground max-w-2xl px-4"
               >
                 {activeDescription}
@@ -150,8 +132,7 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
         </div>
       </div>
 
-      {/* Product Grid */}
-      <div className="relative min-h-[400px]">
+      <div className="min-h-[400px]">
         <AnimatePresence mode="wait">
           {filteredProducts.length > 0 ? (
             <motion.div
@@ -192,20 +173,33 @@ export function ShopContent({ products, collections, lang, initialCollection, hi
             </motion.p>
           )}
         </AnimatePresence>
-
-        {/* Subtle transition overlay */}
-        <AnimatePresence>
-          {isTransitioning && (
-            <motion.div
-              className="absolute inset-0 bg-background/30 backdrop-blur-[1px] pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            />
-          )}
-        </AnimatePresence>
       </div>
     </LayoutGroup>
+  );
+}
+
+export function ShopContent({
+  products,
+  collections,
+  lang,
+  initialCollection,
+  highlightedProduct,
+}: ShopContentProps) {
+  const searchParams = useSearchParams();
+  const collectionFromUrl = searchParams.get('collection');
+
+  // Derive the initial filter from external sources
+  const initialFilter = initialCollection || collectionFromUrl || 'all';
+
+  // Key-based remount ensures state resets when external filter changes
+  return (
+    <ShopContentInner
+      key={initialFilter}
+      products={products}
+      collections={collections}
+      lang={lang}
+      highlightedProduct={highlightedProduct}
+      initialFilter={initialFilter}
+    />
   );
 }

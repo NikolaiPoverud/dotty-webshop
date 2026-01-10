@@ -28,31 +28,29 @@ export interface AuditLogEntry {
 }
 
 /**
- * Log an action to the audit log
+ * Log an action to the audit log.
+ * Failures are logged but do not throw - audit logging should not break operations.
  */
 export async function logAudit(entry: AuditLogEntry): Promise<void> {
-  try {
-    const supabase = createAdminClient();
+  const supabase = createAdminClient();
+  const { error } = await supabase.from('audit_log').insert({
+    ...entry,
+    details: entry.details ?? {},
+  });
 
-    await supabase.from('audit_log').insert({
-      action: entry.action,
-      entity_type: entry.entity_type,
-      entity_id: entry.entity_id,
-      actor_type: entry.actor_type,
-      actor_id: entry.actor_id,
-      details: entry.details || {},
-      ip_address: entry.ip_address,
-    });
-  } catch (error) {
-    // Log to console but don't throw - audit logging should not break operations
+  if (error) {
     console.error('Failed to write audit log:', error);
   }
 }
 
 /**
- * Get IP address from request headers
+ * Extract client IP address from request headers.
+ * Returns 'unknown' if no forwarded header is present.
  */
 export function getIpFromRequest(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  return forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (!forwardedFor) return 'unknown';
+
+  const [firstIp] = forwardedFor.split(',');
+  return firstIp.trim();
 }

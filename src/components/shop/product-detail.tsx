@@ -1,11 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Check, ArrowLeft, Mail, Send, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-import type { Locale, Product, GalleryImage } from '@/types';
+import { Check, ArrowLeft, Mail, Send, Loader2 } from 'lucide-react';
+import type { Locale, Product, GalleryImage, ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
@@ -24,14 +23,12 @@ const text = {
     viewCart: 'Se handlekurv',
     original: 'Maleri',
     print: 'Prints',
-    // Inquiry-only product
     inquiryOnly: 'Forespørsel påkrevd',
     inquiryDescription: 'Dette verket selges ikke direkte. Legg igjen din e-post, så tar vi kontakt.',
     emailPlaceholder: 'Din e-postadresse',
     sendInquiry: 'Send forespørsel',
     inquirySent: 'Takk! Vi tar kontakt snart.',
     inquiryError: 'Noe gikk galt. Prøv igjen.',
-    // Sold out inquiry
     soldOutInterest: 'Interessert?',
     soldOutDescription: 'Dette verket er solgt, men jeg kan lage lignende. Legg igjen din e-post!',
     contactArtist: 'Kontakt kunstner',
@@ -48,19 +45,100 @@ const text = {
     viewCart: 'View cart',
     original: 'Painting',
     print: 'Print',
-    // Inquiry-only product
     inquiryOnly: 'Inquiry required',
     inquiryDescription: 'This artwork is not sold directly. Leave your email and we will contact you.',
     emailPlaceholder: 'Your email address',
     sendInquiry: 'Send inquiry',
     inquirySent: 'Thank you! We will be in touch soon.',
     inquiryError: 'Something went wrong. Please try again.',
-    // Sold out inquiry
     soldOutInterest: 'Interested?',
     soldOutDescription: 'This artwork is sold, but I can create something similar. Leave your email!',
     contactArtist: 'Contact artist',
   },
 };
+
+type InquiryStatus = 'idle' | 'sending' | 'sent' | 'error';
+
+function parseJsonField<T>(value: T | string | undefined | null, fallback: T): T {
+  if (!value) return fallback;
+  if (typeof value === 'string') return JSON.parse(value) as T;
+  return value;
+}
+
+interface InquiryFormProps {
+  title: string;
+  description: string;
+  buttonText: string;
+  email: string;
+  setEmail: (email: string) => void;
+  status: InquiryStatus;
+  onSubmit: (e: React.FormEvent) => void;
+  successMessage: string;
+  errorMessage: string;
+  emailPlaceholder: string;
+}
+
+function InquiryForm({
+  title,
+  description,
+  buttonText,
+  email,
+  setEmail,
+  status,
+  onSubmit,
+  successMessage,
+  errorMessage,
+  emailPlaceholder,
+}: InquiryFormProps): React.ReactElement {
+  if (status === 'sent') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+      >
+        <Check className="w-5 h-5" />
+        {successMessage}
+      </motion.div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+        <div className="flex items-center gap-2 mb-1">
+          <Mail className="w-4 h-4 text-primary" />
+          <span className="font-semibold text-sm">{title}</span>
+        </div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <form onSubmit={onSubmit} className="space-y-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder={emailPlaceholder}
+          required
+          className="w-full px-5 py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+        <motion.button
+          type="submit"
+          disabled={status === 'sending' || !email}
+          className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {status === 'sending' ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Send className="w-4 h-4" />
+          )}
+          {status === 'error' ? errorMessage : buttonText}
+        </motion.button>
+      </form>
+    </div>
+  );
+}
 
 interface ProductDetailProps {
   product: Product;
@@ -69,117 +147,140 @@ interface ProductDetailProps {
   lang: Locale;
 }
 
-export function ProductDetail({ product, collectionName, collectionSlug, lang }: ProductDetailProps) {
+export function ProductDetail({ product, collectionName, collectionSlug, lang }: ProductDetailProps): React.ReactElement {
   const t = text[lang];
-  const router = useRouter();
   const { addItem, cart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
-
-  // Inquiry form state
   const [inquiryEmail, setInquiryEmail] = useState('');
-  const [inquiryStatus, setInquiryStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [inquiryStatus, setInquiryStatus] = useState<InquiryStatus>('idle');
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Check if item is already in cart
   const isInCart = cart.items.some((item) => item.product.id === product.id);
-
-  // Item is sold if not available OR stock is 0
   const isSold = !product.is_available || product.stock_quantity === 0;
+  const year = product.year ?? new Date(product.created_at).getFullYear();
+  const sizes = parseJsonField<ProductSize[]>(product.sizes, []);
+  const dimensionsText = sizes.length > 0 ? sizes[0].label : '-';
+  const galleryImages = parseJsonField<GalleryImage[]>(product.gallery_images, []);
 
-  // Extract year from created_at
-  const year = new Date(product.created_at).getFullYear();
-
-  // Format dimensions - handle both array and string from JSONB
-  const sizesArray = typeof product.sizes === 'string'
-    ? JSON.parse(product.sizes)
-    : product.sizes;
-  const dimensionsText = sizesArray && sizesArray.length > 0
-    ? sizesArray[0].label
-    : '-';
-
-  // Parse gallery images - handle both array and string from JSONB
-  const galleryImages: GalleryImage[] = typeof product.gallery_images === 'string'
-    ? JSON.parse(product.gallery_images)
-    : (product.gallery_images || []);
-
-  const handleAddToCart = () => {
+  function handleAddToCart(): void {
     if (isSold) return;
-
     addItem(product, 1);
     setIsAdded(true);
-
-    // Reset after 3 seconds
     setTimeout(() => setIsAdded(false), 3000);
-  };
+  }
 
-  const handleViewCart = () => {
-    router.push(getLocalizedPath(lang, 'cart'));
-  };
+  async function submitInquiry(type: 'product_inquiry' | 'sold_out_inquiry'): Promise<void> {
+    const message = type === 'product_inquiry'
+      ? `Inquiry about artwork: ${product.title} (${product.id})`
+      : `Interest in sold artwork: ${product.title} (${product.id}) - Customer wants similar work`;
 
-  const handleInquirySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inquiryEmail || inquiryStatus === 'sending') return;
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: inquiryEmail,
+        name: '',
+        message,
+        type,
+        product_id: product.id,
+        product_title: product.title,
+      }),
+    });
 
-    setInquiryStatus('sending');
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: inquiryEmail,
-          name: '',
-          message: `Inquiry about artwork: ${product.title} (${product.id})`,
-          type: 'product_inquiry',
-          product_id: product.id,
-          product_title: product.title,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send inquiry');
-      }
-
-      setInquiryStatus('sent');
-    } catch {
-      setInquiryStatus('error');
-      // Reset error after 3 seconds to allow retry
-      setTimeout(() => setInquiryStatus('idle'), 3000);
+    if (!response.ok) {
+      throw new Error('Failed to send inquiry');
     }
-  };
+  }
 
-  const handleSoldOutInquiry = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inquiryEmail || inquiryStatus === 'sending') return;
+  function handleInquiry(type: 'product_inquiry' | 'sold_out_inquiry') {
+    return async (e: React.FormEvent): Promise<void> => {
+      e.preventDefault();
+      if (!inquiryEmail || inquiryStatus === 'sending') return;
 
-    setInquiryStatus('sending');
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: inquiryEmail,
-          name: '',
-          message: `Interest in sold artwork: ${product.title} (${product.id}) - Customer wants similar work`,
-          type: 'sold_out_inquiry',
-          product_id: product.id,
-          product_title: product.title,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send inquiry');
+      setInquiryStatus('sending');
+      try {
+        await submitInquiry(type);
+        setInquiryStatus('sent');
+      } catch {
+        setInquiryStatus('error');
+        setTimeout(() => setInquiryStatus('idle'), 3000);
       }
+    };
+  }
 
-      setInquiryStatus('sent');
-    } catch {
-      setInquiryStatus('error');
-      setTimeout(() => setInquiryStatus('idle'), 3000);
+  function renderPurchaseSection(): React.ReactElement {
+    if (product.requires_inquiry) {
+      return (
+        <InquiryForm
+          title={t.inquiryOnly}
+          description={t.inquiryDescription}
+          buttonText={t.sendInquiry}
+          email={inquiryEmail}
+          setEmail={setInquiryEmail}
+          status={inquiryStatus}
+          onSubmit={handleInquiry('product_inquiry')}
+          successMessage={t.inquirySent}
+          errorMessage={t.inquiryError}
+          emailPlaceholder={t.emailPlaceholder}
+        />
+      );
     }
-  };
+
+    if (isAdded || isInCart) {
+      return (
+        <div className="space-y-2">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+          >
+            <Check className="w-5 h-5" />
+            {t.addedToCart}
+          </motion.div>
+          <Link href={getLocalizedPath(lang, 'cart')}>
+            <motion.button
+              className="w-full py-3 bg-muted text-foreground font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-muted/80"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {t.viewCart}
+            </motion.button>
+          </Link>
+        </div>
+      );
+    }
+
+    if (isSold) {
+      return (
+        <InquiryForm
+          title={t.soldOutInterest}
+          description={t.soldOutDescription}
+          buttonText={t.contactArtist}
+          email={inquiryEmail}
+          setEmail={setInquiryEmail}
+          status={inquiryStatus}
+          onSubmit={handleInquiry('sold_out_inquiry')}
+          successMessage={t.inquirySent}
+          errorMessage={t.inquiryError}
+          emailPlaceholder={t.emailPlaceholder}
+        />
+      );
+    }
+
+    return (
+      <motion.button
+        onClick={handleAddToCart}
+        className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {t.addToCart}
+      </motion.button>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-20 pb-8">
@@ -288,135 +389,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang }:
             )}
 
             {/* Purchase / Inquiry Section */}
-            {product.requires_inquiry ? (
-              // Inquiry-only product - show email form
-              <div className="space-y-3">
-                <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Mail className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-sm">{t.inquiryOnly}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t.inquiryDescription}
-                  </p>
-                </div>
-
-                {inquiryStatus === 'sent' ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
-                  >
-                    <Check className="w-5 h-5" />
-                    {t.inquirySent}
-                  </motion.div>
-                ) : (
-                  <form onSubmit={handleInquirySubmit} className="space-y-2">
-                    <input
-                      type="email"
-                      value={inquiryEmail}
-                      onChange={(e) => setInquiryEmail(e.target.value)}
-                      placeholder={t.emailPlaceholder}
-                      required
-                      className="w-full px-5 py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                    <motion.button
-                      type="submit"
-                      disabled={inquiryStatus === 'sending' || !inquiryEmail}
-                      className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {inquiryStatus === 'sending' ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                      {inquiryStatus === 'error' ? t.inquiryError : t.sendInquiry}
-                    </motion.button>
-                  </form>
-                )}
-              </div>
-            ) : isAdded || isInCart ? (
-              // Item added to cart
-              <div className="space-y-2">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
-                >
-                  <Check className="w-5 h-5" />
-                  {t.addedToCart}
-                </motion.div>
-                <motion.button
-                  onClick={handleViewCart}
-                  className="w-full py-3 bg-muted text-foreground font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-muted/80"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {t.viewCart}
-                </motion.button>
-              </div>
-            ) : isSold ? (
-              // Sold out - show contact artist form
-              <div className="space-y-3">
-                <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Mail className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-sm">{t.soldOutInterest}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t.soldOutDescription}
-                  </p>
-                </div>
-
-                {inquiryStatus === 'sent' ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
-                  >
-                    <Check className="w-5 h-5" />
-                    {t.inquirySent}
-                  </motion.div>
-                ) : (
-                  <form onSubmit={handleSoldOutInquiry} className="space-y-2">
-                    <input
-                      type="email"
-                      value={inquiryEmail}
-                      onChange={(e) => setInquiryEmail(e.target.value)}
-                      placeholder={t.emailPlaceholder}
-                      required
-                      className="w-full px-5 py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                    <motion.button
-                      type="submit"
-                      disabled={inquiryStatus === 'sending' || !inquiryEmail}
-                      className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {inquiryStatus === 'sending' ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                      {inquiryStatus === 'error' ? t.inquiryError : t.contactArtist}
-                    </motion.button>
-                  </form>
-                )}
-              </div>
-            ) : (
-              // Normal add to cart button
-              <motion.button
-                onClick={handleAddToCart}
-                className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {t.addToCart}
-              </motion.button>
-            )}
+            {renderPurchaseSection()}
           </motion.div>
         </div>
       </div>

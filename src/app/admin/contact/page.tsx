@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, MailOpen, Trash2, Search, Loader2, RefreshCw, CheckCircle } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { CheckCircle, Loader2, Mail, MailOpen, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
 import { adminFetch } from '@/lib/admin-fetch';
 
 interface ContactSubmission {
@@ -15,11 +16,13 @@ interface ContactSubmission {
   read_at: string | null;
 }
 
+type FilterStatus = 'all' | 'unread' | 'read';
+
 export default function AdminContactPage() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [filter, setFilter] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -27,16 +30,14 @@ export default function AdminContactPage() {
   const fetchSubmissions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await adminFetch('/api/admin/contact');
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+    const response = await adminFetch('/api/admin/contact');
+    const result = await response.json();
+    if (!response.ok) {
+      setError(result.error || 'Failed to load');
+    } else {
       setSubmissions(result || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -46,76 +47,76 @@ export default function AdminContactPage() {
   const filteredSubmissions = submissions.filter((sub) => {
     if (filter === 'unread' && sub.is_read) return false;
     if (filter === 'read' && !sub.is_read) return false;
-    if (search) {
-      const searchLower = search.toLowerCase();
-      return (
-        sub.name.toLowerCase().includes(searchLower) ||
-        sub.email.toLowerCase().includes(searchLower) ||
-        sub.message.toLowerCase().includes(searchLower)
-      );
-    }
-    return true;
+    if (!search) return true;
+
+    const searchLower = search.toLowerCase();
+    return (
+      sub.name.toLowerCase().includes(searchLower) ||
+      sub.email.toLowerCase().includes(searchLower) ||
+      sub.message.toLowerCase().includes(searchLower)
+    );
   });
 
   const unreadCount = submissions.filter((s) => !s.is_read).length;
 
-  const handleToggleRead = async (id: string, currentlyRead: boolean) => {
-    try {
-      const response = await adminFetch(`/api/admin/contact/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_read: !currentlyRead }),
-      });
+  async function handleToggleRead(id: string, currentlyRead: boolean): Promise<void> {
+    const response = await adminFetch(`/api/admin/contact/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_read: !currentlyRead }),
+    });
 
-      if (!response.ok) throw new Error('Failed to update');
-
-      setSubmissions((prev) =>
-        prev.map((s) =>
-          s.id === id
-            ? { ...s, is_read: !currentlyRead, read_at: !currentlyRead ? new Date().toISOString() : null }
-            : s
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update');
+    if (!response.ok) {
+      setError('Failed to update');
+      return;
     }
-  };
 
-  const handleDelete = async (id: string) => {
+    setSubmissions((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? { ...s, is_read: !currentlyRead, read_at: !currentlyRead ? new Date().toISOString() : null }
+          : s
+      )
+    );
+  }
+
+  async function handleDelete(id: string): Promise<void> {
     if (!confirm('Er du sikker på at du vil slette denne meldingen?')) return;
 
     setDeletingId(id);
-    try {
-      const response = await adminFetch(`/api/admin/contact/${id}`, {
-        method: 'DELETE',
-      });
+    const response = await adminFetch(`/api/admin/contact/${id}`, { method: 'DELETE' });
+    setDeletingId(null);
 
-      if (!response.ok) throw new Error('Failed to delete');
-
-      setSubmissions((prev) => prev.filter((s) => s.id !== id));
-      if (expandedId === id) setExpandedId(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
-    } finally {
-      setDeletingId(null);
+    if (!response.ok) {
+      setError('Failed to delete');
+      return;
     }
-  };
 
-  const formatDate = (dateStr: string) => {
+    setSubmissions((prev) => prev.filter((s) => s.id !== id));
+    if (expandedId === id) setExpandedId(null);
+  }
+
+  function formatDate(dateStr: string): string {
     const date = new Date(dateStr);
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diffMs = now.getTime() - date.getTime();
 
-    if (diff < 60 * 60 * 1000) {
-      return `${Math.round(diff / (60 * 1000))} min siden`;
-    } else if (diff < 24 * 60 * 60 * 1000) {
-      return `${Math.round(diff / (60 * 60 * 1000))} timer siden`;
-    } else if (diff < 7 * 24 * 60 * 60 * 1000) {
-      return `${Math.round(diff / (24 * 60 * 60 * 1000))} dager siden`;
-    } else {
-      return date.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+    const MINUTE = 60 * 1000;
+    const HOUR = 60 * MINUTE;
+    const DAY = 24 * HOUR;
+    const WEEK = 7 * DAY;
+
+    if (diffMs < HOUR) {
+      return `${Math.round(diffMs / MINUTE)} min siden`;
     }
-  };
+    if (diffMs < DAY) {
+      return `${Math.round(diffMs / HOUR)} timer siden`;
+    }
+    if (diffMs < WEEK) {
+      return `${Math.round(diffMs / DAY)} dager siden`;
+    }
+    return date.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
 
   if (isLoading) {
     return (
@@ -163,7 +164,7 @@ export default function AdminContactPage() {
           />
         </div>
         <div className="flex gap-2">
-          {(['all', 'unread', 'read'] as const).map((status) => (
+          {(['all', 'unread', 'read'] as FilterStatus[]).map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}

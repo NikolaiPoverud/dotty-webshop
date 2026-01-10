@@ -1,37 +1,18 @@
 import { Heading, Hr, Section, Text } from '@react-email/components';
-import * as React from 'react';
+
 import type { Order } from '@/types';
-import { EmailLayout } from './components/layout';
-import { EmailHeader } from './components/header';
-import { EmailFooter } from './components/footer';
+
 import { Button } from './components/button';
+import { EmailFooter } from './components/footer';
+import { EmailHeader } from './components/header';
+import { EmailLayout } from './components/layout';
+import { getTrackingUrl } from './utils';
 
 interface ShippingNotificationEmailProps {
   order: Order;
 }
 
-// Common Norwegian carrier tracking URLs
-function getTrackingUrl(carrier: string, trackingNumber: string): string {
-  const carrierLower = carrier.toLowerCase();
-
-  if (carrierLower.includes('posten') || carrierLower.includes('bring')) {
-    return `https://sporing.bring.no/sporing/${trackingNumber}`;
-  }
-  if (carrierLower.includes('postnord')) {
-    return `https://www.postnord.no/sporpakke?id=${trackingNumber}`;
-  }
-  if (carrierLower.includes('dhl')) {
-    return `https://www.dhl.com/no-no/home/tracking.html?tracking-id=${trackingNumber}`;
-  }
-  if (carrierLower.includes('ups')) {
-    return `https://www.ups.com/track?tracknum=${trackingNumber}`;
-  }
-
-  // Default: Google search for tracking
-  return `https://www.google.com/search?q=${encodeURIComponent(`${carrier} ${trackingNumber} sporing`)}`;
-}
-
-export function ShippingNotificationEmail({ order }: ShippingNotificationEmailProps) {
+export function ShippingNotificationEmail({ order }: ShippingNotificationEmailProps): React.ReactElement {
   const trackingUrl = order.tracking_carrier && order.tracking_number
     ? getTrackingUrl(order.tracking_carrier, order.tracking_number)
     : null;
@@ -41,7 +22,6 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
       <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
         <EmailHeader subtitle="Forsendelsesbekreftelse" />
 
-        {/* Status Message */}
         <Section className="px-8 pb-8 text-center">
           <Text className="mx-auto mb-4 text-5xl">
             📦
@@ -56,7 +36,6 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
 
         <Hr className="mx-8 border-border" />
 
-        {/* Tracking Info */}
         <Section className="px-8 py-6">
           <Section className="rounded-xl border-l-4 border-primary bg-muted p-6">
             <Heading as="h2" className="m-0 mb-4 text-base font-bold uppercase tracking-wider text-foreground">
@@ -105,7 +84,6 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
           </Section>
         </Section>
 
-        {/* Items Reminder */}
         <Section className="px-8 pb-8">
           <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
             I denne pakken

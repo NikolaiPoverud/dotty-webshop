@@ -8,38 +8,30 @@ export async function adminFetch(
 ): Promise<Response> {
   const response = await fetch(url, options);
 
-  // If unauthorized, redirect to login page
-  if (response.status === 401) {
-    // Check if we're in a browser environment
-    if (typeof window !== 'undefined') {
-      window.location.href = '/admin/login';
-      // Return a never-resolving promise to prevent further processing
-      return new Promise(() => {});
-    }
+  if (response.status === 401 && typeof window !== 'undefined') {
+    window.location.href = '/admin/login';
+    return new Promise(() => {});
   }
 
   return response;
 }
 
+type AdminResult<T> = { data: T; error?: never } | { data?: never; error: string };
+
 /**
- * Fetch JSON data from admin API with 401 handling
+ * Fetch JSON data from admin API with 401 handling.
+ * Returns either data or error, never both.
  */
 export async function adminFetchJson<T>(
   url: string,
   options?: RequestInit
-): Promise<{ data?: T; error?: string }> {
-  try {
-    const response = await adminFetch(url, options);
-    const result = await response.json();
+): Promise<AdminResult<T>> {
+  const response = await adminFetch(url, options);
+  const result = await response.json();
 
-    if (!response.ok) {
-      throw new Error(result.error || 'Request failed');
-    }
-
-    return { data: result.data as T };
-  } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+  if (!response.ok) {
+    return { error: result.error || 'Request failed' };
   }
+
+  return { data: result.data as T };
 }

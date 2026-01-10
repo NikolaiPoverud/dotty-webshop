@@ -5,11 +5,18 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
-import { createAuthClient } from '@/lib/supabase/auth';
+import { createClient } from '@/lib/supabase/client';
 
 type LoginMode = 'password' | 'reset-password';
 
-export default function AdminLoginPage() {
+function getButtonText(mode: LoginMode, isLoading: boolean): string {
+  if (mode === 'reset-password') {
+    return isLoading ? 'Sender...' : 'Send tilbakestillingslenke';
+  }
+  return isLoading ? 'Logger inn...' : 'Logg inn';
+}
+
+export default function AdminLoginPage(): React.ReactNode {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +31,7 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      const supabase = createAuthClient();
+      const supabase = createClient();
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -53,7 +60,7 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      const supabase = createAuthClient();
+      const supabase = createClient();
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/admin/reset-password`,
@@ -198,16 +205,8 @@ export default function AdminLoginPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {mode === 'reset-password' ? 'Sender...' : 'Logger inn...'}
-                </>
-              ) : mode === 'reset-password' ? (
-                'Send tilbakestillingslenke'
-              ) : (
-                'Logg inn'
-              )}
+              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              {getButtonText(mode, isLoading)}
             </motion.button>
 
             {mode === 'password' && (

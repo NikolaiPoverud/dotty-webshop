@@ -24,12 +24,9 @@ export async function GET(request: Request) {
 
     const { data, error } = await query;
 
-    if (error) {
-      console.error('Error fetching contact submissions:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    return NextResponse.json(data);
+    return NextResponse.json({ data });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(

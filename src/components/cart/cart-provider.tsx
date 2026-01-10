@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import type { Product, CartProduct, CartItem, Cart } from '@/types';
-import { calculateArtistLevy, ARTIST_LEVY_THRESHOLD } from '@/lib/utils';
+import { calculateArtistLevy } from '@/lib/utils';
 
 // Cart actions
 type CartAction =
@@ -42,17 +42,13 @@ const initialCart: Cart = {
 };
 
 // Calculate totals including shipping and artist levy (kunsteravgift)
-function calculateTotals(items: CartItem[], discountAmount: number): { subtotal: number; shippingCost: number; artistLevy: number; total: number } {
+function calculateTotals(items: CartItem[], discountAmount: number): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-  // Calculate shipping cost (highest shipping cost among items, or sum - depends on business logic)
-  // Using highest cost approach: customer pays shipping for the most expensive item
-  const shippingCost = items.reduce((max, item) => {
-    const cost = item.product.shipping_cost ?? 0;
-    return cost > max ? cost : max;
-  }, 0);
+  // Highest shipping cost approach: customer pays shipping for the most expensive item
+  const shippingCost = items.reduce((max, item) => Math.max(max, item.product.shipping_cost ?? 0), 0);
 
-  // Calculate artist levy (5% for items over 2500 NOK)
+  // Artist levy (5% for items over 2500 NOK)
   const levyItems = items.map(item => ({
     id: item.product.id,
     title: item.product.title,
@@ -61,10 +57,15 @@ function calculateTotals(items: CartItem[], discountAmount: number): { subtotal:
   }));
   const { totalLevy: artistLevy } = calculateArtistLevy(levyItems);
 
-  // Discount only applies to subtotal, never to shipping or artist levy
+  // Discount applies only to subtotal, not shipping or artist levy
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const total = discountedSubtotal + shippingCost + artistLevy;
   return { subtotal, shippingCost, artistLevy, total };
+}
+
+// Helper to create updated cart state with recalculated totals
+function withTotals(state: Cart, items: CartItem[], discountAmount: number = state.discountAmount): Cart {
+  return { ...state, items, ...calculateTotals(items, discountAmount) };
 }
 
 // Cart reducer
@@ -72,57 +73,43 @@ function cartReducer(state: Cart, action: CartAction): Cart {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { product, quantity = 1, reservationId, expiresAt } = action.payload;
-      const existingIndex = state.items.findIndex((item) => item.product.id === product.id);
-      // ARCH-007: Store only essential product fields
       const cartProduct = toCartProduct(product);
+      const existingIndex = state.items.findIndex((item) => item.product.id === product.id);
 
-      let newItems: CartItem[];
-      if (existingIndex > -1) {
-        // Update existing item
-        newItems = state.items.map((item, index) =>
-          index === existingIndex
-            ? { ...item, product: cartProduct, quantity: item.quantity + quantity, reservationId, expiresAt }
-            : item
-        );
-      } else {
-        // Add new item
-        newItems = [...state.items, { product: cartProduct, quantity, reservationId, expiresAt }];
-      }
+      const newItems = existingIndex > -1
+        ? state.items.map((item, index) =>
+            index === existingIndex
+              ? { ...item, product: cartProduct, quantity: item.quantity + quantity, reservationId, expiresAt }
+              : item
+          )
+        : [...state.items, { product: cartProduct, quantity, reservationId, expiresAt }];
 
-      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
+      return withTotals(state, newItems);
     }
 
     case 'REMOVE_ITEM': {
       const newItems = state.items.filter((item) => item.product.id !== action.payload.productId);
-      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
+      return withTotals(state, newItems);
     }
 
     case 'UPDATE_QUANTITY': {
       const { productId, quantity } = action.payload;
       if (quantity <= 0) {
-        const newItems = state.items.filter((item) => item.product.id !== productId);
-        const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-        return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
+        return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId } });
       }
-
       const newItems = state.items.map((item) =>
         item.product.id === productId ? { ...item, quantity } : item
       );
-      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
+      return withTotals(state, newItems);
     }
 
     case 'APPLY_DISCOUNT': {
       const { code, amount } = action.payload;
-      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(state.items, amount);
-      return { ...state, discountCode: code, discountAmount: amount, subtotal, shippingCost, artistLevy, total };
+      return { ...withTotals(state, state.items, amount), discountCode: code, discountAmount: amount };
     }
 
     case 'CLEAR_DISCOUNT': {
-      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(state.items, 0);
-      return { ...state, discountCode: undefined, discountAmount: 0, subtotal, shippingCost, artistLevy, total };
+      return { ...withTotals(state, state.items, 0), discountCode: undefined, discountAmount: 0 };
     }
 
     case 'CLEAR_CART':
@@ -132,16 +119,12 @@ function cartReducer(state: Cart, action: CartAction): Cart {
       return action.payload;
 
     case 'REMOVE_EXPIRED': {
-      const now = new Date().getTime();
-      const newItems = state.items.filter((item) => {
-        if (!item.expiresAt) return true;
-        return new Date(item.expiresAt).getTime() > now;
-      });
-
+      const now = Date.now();
+      const newItems = state.items.filter((item) =>
+        !item.expiresAt || new Date(item.expiresAt).getTime() > now
+      );
       if (newItems.length === state.items.length) return state;
-
-      const { subtotal, shippingCost, artistLevy, total } = calculateTotals(newItems, state.discountAmount);
-      return { ...state, items: newItems, subtotal, shippingCost, artistLevy, total };
+      return withTotals(state, newItems);
     }
 
     default:
@@ -195,29 +178,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  const addItem = (product: Product, quantity = 1, reservationId?: string, expiresAt?: string) => {
+  function addItem(product: Product, quantity = 1, reservationId?: string, expiresAt?: string): void {
     dispatch({ type: 'ADD_ITEM', payload: { product, quantity, reservationId, expiresAt } });
-  };
+  }
 
-  const removeItem = (productId: string) => {
+  function removeItem(productId: string): void {
     dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
-  };
+  }
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  function updateQuantity(productId: string, quantity: number): void {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
-  };
+  }
 
-  const applyDiscount = (code: string, amount: number) => {
+  function applyDiscount(code: string, amount: number): void {
     dispatch({ type: 'APPLY_DISCOUNT', payload: { code, amount } });
-  };
+  }
 
-  const clearDiscount = () => {
+  function clearDiscount(): void {
     dispatch({ type: 'CLEAR_DISCOUNT' });
-  };
+  }
 
-  const clearCart = () => {
+  function clearCart(): void {
     dispatch({ type: 'CLEAR_CART' });
-  };
+  }
 
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -239,7 +222,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useCart() {
+export function useCart(): CartContextType {
   const context = useContext(CartContext);
   if (!context) {
     throw new Error('useCart must be used within a CartProvider');

@@ -10,45 +10,40 @@ interface SizeInputProps {
   onChange: (sizes: ProductSize[]) => void;
 }
 
-export function SizeInput({ value, onChange }: SizeInputProps) {
+const INPUT_CLASS =
+  'w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm';
+
+export function SizeInput({ value, onChange }: SizeInputProps): React.ReactElement {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
 
-  const addSize = () => {
+  function addSize(): void {
     const w = parseInt(width, 10);
     const h = parseInt(height, 10);
 
-    if (!w || !h || w <= 0 || h <= 0) return;
+    if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) return;
 
-    // Check if size already exists
     const exists = value.some((s) => s.width === w && s.height === h);
     if (exists) return;
 
-    const newSize: ProductSize = {
-      width: w,
-      height: h,
-      label: `${w}x${h} cm`,
-    };
-
-    onChange([...value, newSize]);
+    onChange([...value, { width: w, height: h, label: `${w}x${h} cm` }]);
     setWidth('');
     setHeight('');
-  };
+  }
 
-  const removeSize = (index: number) => {
+  function removeSize(index: number): void {
     onChange(value.filter((_, i) => i !== index));
-  };
+  }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: React.KeyboardEvent): void {
     if (e.key === 'Enter') {
       e.preventDefault();
       addSize();
     }
-  };
+  }
 
   return (
     <div className="space-y-3">
-      {/* Size List */}
       <AnimatePresence>
         {value.length > 0 && (
           <motion.div
@@ -80,7 +75,6 @@ export function SizeInput({ value, onChange }: SizeInputProps) {
         )}
       </AnimatePresence>
 
-      {/* Add Size Form */}
       <div className="flex items-center gap-2">
         <div className="flex-1 flex items-center gap-2">
           <input
@@ -90,7 +84,7 @@ export function SizeInput({ value, onChange }: SizeInputProps) {
             onChange={(e) => setWidth(e.target.value)}
             onKeyDown={handleKeyDown}
             min="1"
-            className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+            className={INPUT_CLASS}
           />
           <span className="text-muted-foreground">x</span>
           <input
@@ -100,7 +94,7 @@ export function SizeInput({ value, onChange }: SizeInputProps) {
             onChange={(e) => setHeight(e.target.value)}
             onKeyDown={handleKeyDown}
             min="1"
-            className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+            className={INPUT_CLASS}
           />
           <span className="text-muted-foreground text-sm">cm</span>
         </div>
@@ -113,6 +107,7 @@ export function SizeInput({ value, onChange }: SizeInputProps) {
           <Plus className="w-5 h-5" />
         </button>
       </div>
+
       <p className="text-xs text-muted-foreground">
         Legg til tilgjengelige storrelser for kunstverket (bredde x hoyde i cm)
       </p>

@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Loader2, Lock, AlertCircle, CheckCircle } from 'lucide-react';
-import { createAuthClient } from '@/lib/supabase/auth';
+import { createClient } from '@/lib/supabase/client';
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordPage(): React.ReactNode {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     // Check if user has a valid recovery session
     const checkSession = async () => {
-      const supabase = createAuthClient();
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
       // User should have a session from the recovery link
@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      const supabase = createAuthClient();
+      const supabase = createClient();
 
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
@@ -210,14 +210,8 @@ export default function ResetPasswordPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Oppdaterer...
-                </>
-              ) : (
-                'Oppdater passord'
-              )}
+              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isLoading ? 'Oppdaterer...' : 'Oppdater passord'}
             </motion.button>
           </form>
         </div>

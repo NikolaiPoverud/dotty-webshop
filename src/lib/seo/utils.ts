@@ -2,85 +2,79 @@ import type { Locale } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
-/**
- * Get the canonical URL for a page
- */
 export function getCanonicalUrl(lang: Locale, ...segments: string[]): string {
   const path = segments.filter(Boolean).join('/');
-  return path ? `${BASE_URL}/${lang}/${path}` : `${BASE_URL}/${lang}`;
+  if (path) {
+    return `${BASE_URL}/${lang}/${path}`;
+  }
+  return `${BASE_URL}/${lang}`;
 }
 
-/**
- * Get alternate language URLs for hreflang tags
- */
 export function getAlternateLanguages(path: string = ''): Record<string, string> {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  const noUrl = cleanPath ? `${BASE_URL}/no/${cleanPath}` : `${BASE_URL}/no`;
+  const enUrl = cleanPath ? `${BASE_URL}/en/${cleanPath}` : `${BASE_URL}/en`;
+
   return {
-    'nb-NO': cleanPath ? `${BASE_URL}/no/${cleanPath}` : `${BASE_URL}/no`,
-    'en': cleanPath ? `${BASE_URL}/en/${cleanPath}` : `${BASE_URL}/en`,
+    'nb-NO': noUrl,
+    'en': enUrl,
   };
 }
 
-/**
- * Get the OG image URL
- */
 export function getOgImageUrl(customImage?: string | null): string {
   return customImage || `${BASE_URL}/og-image.jpg`;
 }
 
-/**
- * Format price for meta tags (price in ore to decimal string)
- */
 export function formatPriceForMeta(priceInOre: number): string {
   return (priceInOre / 100).toFixed(0);
 }
 
-/**
- * Generate product meta description
- */
 export function generateProductDescription(
   title: string,
   productType: 'original' | 'print',
   lang: Locale,
   customDescription?: string | null
 ): string {
-  if (customDescription) return customDescription;
+  if (customDescription) {
+    return customDescription;
+  }
 
+  const isNorwegian = lang === 'no';
   const productTypeLabel = productType === 'original'
-    ? (lang === 'no' ? 'originalt kunstverk' : 'original artwork')
-    : (lang === 'no' ? 'kunsttrykk' : 'art print');
+    ? (isNorwegian ? 'originalt kunstverk' : 'original artwork')
+    : (isNorwegian ? 'kunsttrykk' : 'art print');
 
-  return lang === 'no'
-    ? `Kjøp ${title} - unikt ${productTypeLabel} fra Dotty. Pop-art som bringer farge og energi til ditt hjem.`
-    : `Buy ${title} - unique ${productTypeLabel} from Dotty. Pop-art that brings color and energy to your home.`;
+  if (isNorwegian) {
+    return `Kjøp ${title} - unikt ${productTypeLabel} fra Dotty. Pop-art som bringer farge og energi til ditt hjem.`;
+  }
+  return `Buy ${title} - unique ${productTypeLabel} from Dotty. Pop-art that brings color and energy to your home.`;
 }
 
-/**
- * Generate collection meta description
- */
 export function generateCollectionDescription(
   name: string,
   lang: Locale,
   customDescription?: string | null
 ): string {
-  if (customDescription) return customDescription;
+  if (customDescription) {
+    return customDescription;
+  }
 
-  return lang === 'no'
-    ? `Utforsk vår ${name.toLowerCase()} samling. Unike pop-art verk fra Dotty.`
-    : `Explore our ${name.toLowerCase()} collection. Unique pop-art pieces from Dotty.`;
+  if (lang === 'no') {
+    return `Utforsk vår ${name.toLowerCase()} samling. Unike pop-art verk fra Dotty.`;
+  }
+  return `Explore our ${name.toLowerCase()} collection. Unique pop-art pieces from Dotty.`;
 }
 
-/**
- * Create standard OpenGraph metadata
- */
-export function createOgMetadata(options: {
+interface OgMetadataOptions {
   title: string;
   description: string;
   url: string;
   image?: string | null;
   lang: Locale;
   type?: 'website' | 'article' | 'product';
-}) {
+}
+
+export function createOgMetadata(options: OgMetadataOptions) {
   const { title, description, url, image, lang, type = 'website' } = options;
 
   return {
@@ -99,14 +93,13 @@ export function createOgMetadata(options: {
   };
 }
 
-/**
- * Create standard Twitter metadata
- */
-export function createTwitterMetadata(options: {
+interface TwitterMetadataOptions {
   title: string;
   description: string;
   image?: string | null;
-}) {
+}
+
+export function createTwitterMetadata(options: TwitterMetadataOptions) {
   const { title, description, image } = options;
 
   return {

@@ -3,13 +3,12 @@
 import { useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
-export default function AdminError({
-  error,
-  reset,
-}: {
+interface AdminErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}
+
+export default function AdminError({ error, reset }: AdminErrorProps): React.ReactNode {
   useEffect(() => {
     console.error('Admin error:', error);
   }, [error]);

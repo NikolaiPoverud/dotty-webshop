@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { use } from 'react';
-import { Instagram, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import type { Locale } from '@/types';
 
 const content = {
@@ -22,7 +23,7 @@ const content = {
     ctaTitle: 'Se kunsten',
     ctaText: 'Utforsk samlingen og finn ditt nye favorittkunstverk.',
     ctaButton: 'Gå til shop',
-    followMe: 'Følg meg på Instagram',
+    followMe: 'Følg meg',
   },
   en: {
     title: 'About Dotty.',
@@ -38,15 +39,61 @@ const content = {
     ctaTitle: 'See the art',
     ctaText: 'Explore the collection and find your new favorite piece.',
     ctaButton: 'Go to shop',
-    followMe: 'Follow me on Instagram',
+    followMe: 'Follow me',
   },
+} as const;
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
 };
+
+type ContentSectionProps = {
+  title: string;
+  text: string;
+  delay: number;
+};
+
+function ContentSection({ title, text, delay }: ContentSectionProps): React.ReactElement {
+  return (
+    <motion.section
+      initial={fadeInUp.initial}
+      animate={fadeInUp.animate}
+      transition={{ delay }}
+      className="mb-16"
+    >
+      <h2 className="text-3xl font-bold mb-4">{title}</h2>
+      <p className="text-lg text-muted-foreground leading-relaxed">{text}</p>
+    </motion.section>
+  );
+}
+
+function DecorativeDots(): React.ReactElement {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.5 }}
+      className="flex justify-center gap-2 mb-16"
+    >
+      {[0, 1, 2, 3, 4].map((i) => (
+        <motion.div
+          key={i}
+          className="w-3 h-3 rounded-full bg-primary"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.6 + i * 0.1 }}
+        />
+      ))}
+    </motion.div>
+  );
+}
 
 export default function AboutPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
-}) {
+}): React.ReactElement {
   const { lang } = use(params);
   const locale = lang as Locale;
   const t = content[locale];
@@ -54,10 +101,9 @@ export default function AboutPage({
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
           className="text-center mb-16"
         >
           <h1 className="text-5xl sm:text-6xl font-bold mb-4">
@@ -66,10 +112,9 @@ export default function AboutPage({
           <p className="text-xl text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
-        {/* Artist Image + Intro */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
           transition={{ delay: 0.1 }}
           className="grid md:grid-cols-2 gap-8 mb-16"
         >
@@ -94,67 +139,15 @@ export default function AboutPage({
           </div>
         </motion.div>
 
-        {/* Story Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-16"
-        >
-          <h2 className="text-3xl font-bold mb-4">{t.storyTitle}</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {t.storyText}
-          </p>
-        </motion.section>
+        <ContentSection title={t.storyTitle} text={t.storyText} delay={0.2} />
+        <ContentSection title={t.processTitle} text={t.processText} delay={0.3} />
+        <ContentSection title={t.philosophyTitle} text={t.philosophyText} delay={0.4} />
 
-        {/* Process Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-16"
-        >
-          <h2 className="text-3xl font-bold mb-4">{t.processTitle}</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {t.processText}
-          </p>
-        </motion.section>
+        <DecorativeDots />
 
-        {/* Philosophy Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-16"
-        >
-          <h2 className="text-3xl font-bold mb-4">{t.philosophyTitle}</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {t.philosophyText}
-          </p>
-        </motion.section>
-
-        {/* Decorative dots */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex justify-center gap-2 mb-16"
-        >
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="w-3 h-3 rounded-full bg-primary"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.6 + i * 0.1 }}
-            />
-          ))}
-        </motion.div>
-
-        {/* CTA Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
           transition={{ delay: 0.6 }}
           className="text-center bg-muted rounded-lg p-8 mb-8"
         >
@@ -169,12 +162,11 @@ export default function AboutPage({
           </Link>
         </motion.section>
 
-        {/* Instagram Link */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          className="text-center"
+          className="flex justify-center gap-4"
         >
           <a
             href="https://instagram.com/dottyartwork"
@@ -182,8 +174,17 @@ export default function AboutPage({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
           >
-            <Instagram className="w-5 h-5" />
-            {t.followMe}
+            <SiInstagram className="w-5 h-5" />
+            @dottyartwork
+          </a>
+          <a
+            href="https://tiktok.com/@dottyartwork"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <SiTiktok className="w-5 h-5" />
+            @dottyartwork
           </a>
         </motion.div>
       </div>

@@ -6,11 +6,11 @@ import {
   Preview,
   Tailwind,
 } from '@react-email/components';
-import * as React from 'react';
+import type { ReactNode } from 'react';
 
 interface EmailLayoutProps {
   preview: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function EmailLayout({ preview, children }: EmailLayoutProps) {

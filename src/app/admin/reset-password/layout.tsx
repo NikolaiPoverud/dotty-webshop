@@ -1,8 +1,8 @@
-// Reset password page has its own layout without the admin sidebar
+// Reset password page bypasses the admin sidebar layout
 export default function ResetPasswordLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  return <>{children}</>;
+}): React.ReactNode {
+  return children;
 }

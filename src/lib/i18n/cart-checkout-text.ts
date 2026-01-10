@@ -1,0 +1,156 @@
+import type { Locale } from '@/types';
+
+export const cartText = {
+  no: {
+    title: 'Handlekurv',
+    empty: 'Handlekurven din er tom',
+    continueShopping: 'Fortsett å handle',
+    checkout: 'Gå til kassen',
+    subtotal: 'Delsum',
+    discount: 'Rabatt',
+    total: 'Totalt',
+    reservationWarning: 'Varer er reservert i begrenset tid',
+    includingVat: 'inkl. MVA',
+  },
+  en: {
+    title: 'Shopping Cart',
+    empty: 'Your cart is empty',
+    continueShopping: 'Continue shopping',
+    checkout: 'Proceed to checkout',
+    subtotal: 'Subtotal',
+    discount: 'Discount',
+    total: 'Total',
+    reservationWarning: 'Items are reserved for limited time',
+    includingVat: 'incl. VAT',
+  },
+} as const;
+
+export const checkoutText = {
+  no: {
+    title: 'Kasse',
+    shipping: 'Leveringsadresse',
+    payment: 'Betaling',
+    name: 'Fullt navn',
+    email: 'E-post',
+    phone: 'Telefon',
+    address: 'Adresse',
+    addressLine2: 'Adresse linje 2 (valgfritt)',
+    city: 'By',
+    postalCode: 'Postnummer',
+    country: 'Land',
+    discountCode: 'Rabattkode',
+    apply: 'Bruk',
+    subtotal: 'Delsum',
+    artistLevy: 'Kunsteravgift (5%)',
+    artistLevyNote: 'Gjelder kunst over 2 500 kr',
+    discount: 'Rabatt',
+    shippingCost: 'Frakt',
+    shippingFree: 'Gratis',
+    total: 'Totalt',
+    payWithCard: 'Betal med kort',
+    payWithVipps: 'Betal med Vipps',
+    processing: 'Behandler...',
+    orderSummary: 'Ordresammendrag',
+    includingVat: 'inkl. MVA',
+    emptyCart: 'Handlekurven er tom',
+    paymentCanceled: 'Betalingen ble avbrutt',
+    paymentCanceledDesc: 'Du kan prøve igjen når du er klar.',
+    paymentFailed: 'Betalingen mislyktes',
+    paymentFailedDesc: 'Kortet ble avvist eller det oppstod en feil. Vennligst prøv igjen.',
+    genericError: 'Noe gikk galt. Vennligst prøv igjen.',
+    fillAllFields: 'Vennligst fyll ut alle påkrevde felt',
+    acceptPrivacy: 'Jeg har lest og godtar',
+    privacyPolicy: 'personvernerklæringen',
+    subscribeNewsletter: 'Ja, jeg vil motta nyhetsbrev med nyheter og tilbud',
+    acceptPrivacyRequired: 'Du må godta personvernerklæringen for å fortsette',
+    invalidDiscountCode: 'Ugyldig rabattkode',
+    discountApplied: 'Rabattkode aktivert!',
+    discountValidationFailed: 'Kunne ikke validere rabattkode',
+    vippsComingSoon: 'Vipps-betaling kommer snart!',
+    comingSoon: 'Kommer snart',
+  },
+  en: {
+    title: 'Checkout',
+    shipping: 'Shipping Address',
+    payment: 'Payment',
+    name: 'Full name',
+    email: 'Email',
+    phone: 'Phone',
+    address: 'Address',
+    addressLine2: 'Address line 2 (optional)',
+    city: 'City',
+    postalCode: 'Postal code',
+    country: 'Country',
+    discountCode: 'Discount code',
+    apply: 'Apply',
+    subtotal: 'Subtotal',
+    artistLevy: 'Artist levy (5%)',
+    artistLevyNote: 'Applies to art over 2,500 kr',
+    discount: 'Discount',
+    shippingCost: 'Shipping',
+    shippingFree: 'Free',
+    total: 'Total',
+    payWithCard: 'Pay with card',
+    payWithVipps: 'Pay with Vipps',
+    processing: 'Processing...',
+    orderSummary: 'Order Summary',
+    includingVat: 'incl. VAT',
+    emptyCart: 'Your cart is empty',
+    paymentCanceled: 'Payment was canceled',
+    paymentCanceledDesc: 'You can try again when you are ready.',
+    paymentFailed: 'Payment failed',
+    paymentFailedDesc: 'Your card was declined or an error occurred. Please try again.',
+    genericError: 'Something went wrong. Please try again.',
+    fillAllFields: 'Please fill in all required fields',
+    acceptPrivacy: 'I have read and accept the',
+    privacyPolicy: 'privacy policy',
+    subscribeNewsletter: 'Yes, I want to receive newsletters with news and offers',
+    acceptPrivacyRequired: 'You must accept the privacy policy to continue',
+    invalidDiscountCode: 'Invalid discount code',
+    discountApplied: 'Discount applied!',
+    discountValidationFailed: 'Failed to validate discount code',
+    vippsComingSoon: 'Vipps payment coming soon!',
+    comingSoon: 'Coming soon',
+  },
+} as const;
+
+export const successText = {
+  no: {
+    title: 'Takk for din bestilling!',
+    message: 'Vi har mottatt din ordre og sender deg en bekreftelse på e-post.',
+    orderNumber: 'Ordrenummer',
+    emailSent: 'Bekreftelse sendt til',
+    shippingNote: 'Vi kontakter deg snart med informasjon om frakt.',
+    backToShop: 'Tilbake til shop',
+    total: 'Total betalt',
+    loading: 'Henter ordredetaljer...',
+    yourOrder: 'Din bestilling',
+  },
+  en: {
+    title: 'Thank you for your order!',
+    message: 'We have received your order and will send you a confirmation by email.',
+    orderNumber: 'Order number',
+    emailSent: 'Confirmation sent to',
+    shippingNote: 'We will contact you soon with shipping information.',
+    backToShop: 'Back to shop',
+    total: 'Total paid',
+    loading: 'Loading order details...',
+    yourOrder: 'Your order',
+  },
+} as const;
+
+export type CartText = (typeof cartText)[Locale];
+export type CheckoutText = (typeof checkoutText)[Locale];
+export type SuccessText = (typeof successText)[Locale];
+
+export function getCartText(locale: Locale): CartText {
+  return cartText[locale];
+}
+
+export function getCheckoutText(locale: Locale): CheckoutText {
+  return checkoutText[locale];
+}
+
+export function getSuccessText(locale: Locale): SuccessText {
+  return successText[locale];
+}

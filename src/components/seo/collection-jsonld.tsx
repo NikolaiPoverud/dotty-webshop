@@ -1,6 +1,8 @@
-import type { Locale, ProductListItem, CollectionCard } from '@/types';
+import type { ReactElement } from 'react';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+import type { CollectionCard, Locale, ProductListItem } from '@/types';
+
+import { BASE_URL, JsonLd } from './json-ld';
 
 interface CollectionJsonLdProps {
   collection: CollectionCard;
@@ -8,7 +10,12 @@ interface CollectionJsonLdProps {
   lang: Locale;
 }
 
-export function CollectionJsonLd({ collection, products, lang }: CollectionJsonLdProps) {
+function getAvailability(product: ProductListItem): string {
+  const inStock = product.is_available && product.stock_quantity !== 0;
+  return inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+}
+
+export function CollectionJsonLd({ collection, products, lang }: CollectionJsonLdProps): ReactElement {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -32,19 +39,12 @@ export function CollectionJsonLd({ collection, products, lang }: CollectionJsonL
             '@type': 'Offer',
             price: (product.price / 100).toFixed(2),
             priceCurrency: 'NOK',
-            availability: product.is_available && product.stock_quantity !== 0
-              ? 'https://schema.org/InStock'
-              : 'https://schema.org/OutOfStock',
+            availability: getAvailability(product),
           },
         },
       })),
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
+  return <JsonLd data={structuredData} />;
 }

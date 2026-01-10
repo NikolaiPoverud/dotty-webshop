@@ -17,8 +17,12 @@ interface DraggableImageItemProps {
   onRemove: () => void;
 }
 
-function DraggableImageItem({ image, index, onRemove }: DraggableImageItemProps) {
+function DraggableImageItem({ image, index, onRemove }: DraggableImageItemProps): React.ReactElement {
   const dragControls = useDragControls();
+
+  function handlePointerDown(e: React.PointerEvent): void {
+    dragControls.start(e);
+  }
 
   return (
     <Reorder.Item
@@ -35,26 +39,20 @@ function DraggableImageItem({ image, index, onRemove }: DraggableImageItemProps)
         className="object-cover pointer-events-none"
       />
 
-      {/* Drag handle */}
       <div
-        onPointerDown={(e) => dragControls.start(e)}
+        onPointerDown={handlePointerDown}
         className="absolute inset-0 flex items-center justify-center bg-background/0 hover:bg-background/40 transition-colors cursor-grab active:cursor-grabbing touch-none"
       >
         <GripVertical className="w-6 h-6 text-white drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      {/* Order indicator */}
       <div className="absolute top-1 left-1 w-5 h-5 bg-background/90 rounded-full flex items-center justify-center text-xs font-medium pointer-events-none">
         {index + 1}
       </div>
 
-      {/* Remove button */}
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
+        onClick={onRemove}
         className="absolute top-1 right-1 p-1 bg-error text-background rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/80 z-10"
         title="Fjern"
       >
@@ -64,21 +62,21 @@ function DraggableImageItem({ image, index, onRemove }: DraggableImageItemProps)
   );
 }
 
-export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
+export function GalleryUpload({ value, onChange }: GalleryUploadProps): React.ReactElement {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (file: File) => {
+  async function handleUpload(file: File): Promise<void> {
+    if (!file || file.size === 0) {
+      setError('No file selected or file is empty');
+      return;
+    }
+
     setError(null);
     setIsUploading(true);
 
     try {
-      // Validate file exists and has content (Safari fix)
-      if (!file || file.size === 0) {
-        throw new Error('No file selected or file is empty');
-      }
-
       const formData = new FormData();
       formData.append('file', file);
 
@@ -87,7 +85,6 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
         body: formData,
       });
 
-      // Get response as text first to handle Safari's JSON parsing quirks
       const responseText = await response.text();
 
       let result;
@@ -113,23 +110,21 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
     } finally {
       setIsUploading(false);
     }
-  };
+  }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>): void {
     const file = e.target.files?.[0];
     if (file) {
       handleUpload(file);
     }
-    // Reset input
     if (inputRef.current) {
       inputRef.current.value = '';
     }
-  };
+  }
 
-  const handleRemove = async (index: number) => {
+  async function handleRemove(index: number): Promise<void> {
     const imageToRemove = value[index];
 
-    // Try to delete from storage
     if (imageToRemove.path) {
       try {
         await fetch('/api/admin/upload', {
@@ -142,14 +137,15 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
       }
     }
 
-    // Remove from array
     const newImages = value.filter((_, i) => i !== index);
     onChange(newImages);
-  };
+  }
+
+  const ButtonIcon = isUploading ? Loader2 : Plus;
+  const buttonText = isUploading ? 'Laster opp...' : 'Legg til bilde';
 
   return (
     <div className="space-y-3">
-      {/* Draggable Image Grid */}
       <AnimatePresence>
         {value.length > 0 && (
           <motion.div
@@ -180,24 +176,14 @@ export function GalleryUpload({ value, onChange }: GalleryUploadProps) {
         )}
       </AnimatePresence>
 
-      {/* Add Image Button */}
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={isUploading}
         className="w-full py-3 px-4 border-2 border-dashed border-border rounded-lg hover:border-primary/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground disabled:opacity-50"
       >
-        {isUploading ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Laster opp...</span>
-          </>
-        ) : (
-          <>
-            <Plus className="w-5 h-5" />
-            <span>Legg til bilde</span>
-          </>
-        )}
+        <ButtonIcon className={`w-5 h-5 ${isUploading ? 'animate-spin' : ''}`} />
+        <span>{buttonText}</span>
       </button>
 
       <input

@@ -8,7 +8,7 @@ import type { CartItem as CartItemType, Locale } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from './cart-provider';
 
-const text = {
+const translations = {
   no: {
     remove: 'Fjern',
     reserved: 'Reservert',
@@ -25,38 +25,36 @@ const text = {
   },
 };
 
-// Random gradient for placeholder
 const gradients = [
   'from-primary to-accent',
   'from-accent to-accent-2',
   'from-accent-2 to-accent-3',
 ];
 
+function getGradientForId(id: string): string {
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return gradients[hash % gradients.length];
+}
+
+function formatTimeRemaining(expiresAt: string): string {
+  const remaining = Math.max(0, new Date(expiresAt).getTime() - Date.now());
+  const minutes = Math.floor(remaining / 60000);
+  const seconds = Math.floor((remaining % 60000) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 interface CartItemProps {
   item: CartItemType;
   lang: Locale;
 }
 
-export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemProps) {
+export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemProps): React.ReactElement {
   const { removeItem, updateQuantity } = useCart();
-  const t = text[lang];
+  const t = translations[lang];
   const { product, quantity, expiresAt } = item;
-  const gradient = gradients[parseInt(product.id) % gradients.length];
 
-  // Calculate time remaining if reservation exists
-  const getTimeRemaining = () => {
-    if (!expiresAt) return null;
-    const now = new Date().getTime();
-    const expires = new Date(expiresAt).getTime();
-    const remaining = Math.max(0, expires - now);
-    const minutes = Math.floor(remaining / 60000);
-    const seconds = Math.floor((remaining % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const canIncrement = product.product_type === 'print' && product.stock_quantity !== null
-    ? quantity < product.stock_quantity
-    : product.product_type !== 'original';
+  const isPrint = product.product_type === 'print';
+  const canIncrement = isPrint && (product.stock_quantity === null || quantity < product.stock_quantity);
 
   return (
     <motion.div
@@ -66,7 +64,6 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
       exit={{ opacity: 0, x: -100 }}
       className="flex gap-4 py-4 border-b border-border"
     >
-      {/* Image */}
       <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden flex-shrink-0">
         {product.image_url ? (
           <Image
@@ -77,21 +74,19 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
             sizes="(max-width: 640px) 96px, 128px"
           />
         ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
+          <div className={`absolute inset-0 bg-gradient-to-br ${getGradientForId(product.id)}`} />
         )}
       </div>
 
-      {/* Details */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-semibold truncate">{product.title}</h3>
             <p className="text-sm text-muted-foreground capitalize">
-              {product.product_type === 'original' ? t.original : t.print}
+              {isPrint ? t.print : t.original}
             </p>
           </div>
 
-          {/* Remove button */}
           <button
             onClick={() => removeItem(product.id)}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -101,17 +96,14 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
           </button>
         </div>
 
-        {/* Reservation warning */}
         {expiresAt && (
           <p className="text-xs text-warning mt-1">
-            {t.reserved} - {t.expires} {getTimeRemaining()}
+            {t.reserved} - {t.expires} {formatTimeRemaining(expiresAt)}
           </p>
         )}
 
-        {/* Quantity and Price */}
         <div className="flex items-center justify-between mt-4">
-          {/* Quantity controls - only for prints */}
-          {product.product_type === 'print' ? (
+          {isPrint ? (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => updateQuantity(product.id, quantity - 1)}
@@ -134,7 +126,6 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
             <span className="text-sm text-muted-foreground">Qty: 1</span>
           )}
 
-          {/* Price */}
           <span className="font-semibold">
             {formatPrice(product.price * quantity)}
           </span>

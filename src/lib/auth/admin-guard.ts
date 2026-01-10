@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { errors } from '@/lib/api-response';
 
 export interface AdminAuthResult {
   authorized: true;
@@ -25,36 +26,16 @@ export type AdminAuth = AdminAuthResult | AdminAuthError;
  * }
  */
 export async function verifyAdminAuth(): Promise<AdminAuth> {
-  try {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
 
-    if (error || !user) {
-      console.warn('Admin API unauthorized access attempt');
-      return {
-        authorized: false,
-        response: NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        ),
-      };
-    }
-
-    return {
-      authorized: true,
-      user: {
-        id: user.id,
-        email: user.email || 'unknown',
-      },
-    };
-  } catch (error) {
-    console.error('Admin auth check failed:', error);
-    return {
-      authorized: false,
-      response: NextResponse.json(
-        { error: 'Authentication error' },
-        { status: 500 }
-      ),
-    };
+  if (error || !data.user) {
+    console.warn('Admin API unauthorized access attempt');
+    return { authorized: false, response: errors.unauthorized() };
   }
+
+  return {
+    authorized: true,
+    user: { id: data.user.id, email: data.user.email ?? 'unknown' },
+  };
 }

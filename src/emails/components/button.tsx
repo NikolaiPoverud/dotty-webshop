@@ -1,9 +1,9 @@
 import { Button as EmailButton } from '@react-email/components';
-import * as React from 'react';
+import type { ReactNode } from 'react';
 
 interface ButtonProps {
   href: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Button({ href, children }: ButtonProps) {
