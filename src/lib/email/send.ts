@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 
-import { emailConfig, getResend } from './resend.js';
+import { emailConfig, getResend } from './resend';
 import { DeliveryConfirmationEmail } from '@/emails/delivery-confirmation';
 import { NewOrderAlertEmail } from '@/emails/new-order-alert';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
