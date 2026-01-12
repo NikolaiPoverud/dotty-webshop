@@ -54,7 +54,10 @@ export function Hero({ lang }: HeroProps): React.ReactNode {
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.div {...fadeInUp}>
-          <Logo size="hero" className="mx-auto" />
+          <h1>
+            <span className="sr-only">Dotty. Pop-Art from Norway</span>
+            <Logo size="hero" className="mx-auto" />
+          </h1>
         </motion.div>
 
         <motion.p

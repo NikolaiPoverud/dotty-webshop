@@ -1,0 +1,70 @@
+# Dotty. Pop-Art Webshop
+
+> Norwegian pop-art e-commerce store selling original paintings and limited edition prints.
+
+## About
+
+Dotty. is an independent art brand based in Norway, creating bold pop-art inspired by classic pop-art and modern pop culture. The webshop sells:
+
+- **Original paintings**: One-of-a-kind acrylic artworks on canvas
+- **Limited prints**: High-quality reproductions in limited quantities
+
+The target audience is creative individuals who want unique, colorful art that brings personality and joy to their homes.
+
+## Site Structure
+
+- `/` or `/no` - Norwegian homepage (default language)
+- `/en` - English homepage
+- `/no/shop` or `/en/shop` - Product catalog with filtering by collection
+- `/no/shop/[slug]` - Individual product pages
+- `/no/about` or `/en/about` - About the artist
+- `/no/faq` - Frequently asked questions
+- `/no/privacy` - Privacy policy
+- `/no/terms` - Terms and conditions
+
+## Products
+
+Products are categorized as:
+- `original` - Unique paintings (typically higher price, quantity of 1)
+- `print` - Limited edition prints (lower price, limited stock)
+
+Each product has:
+- Title and description
+- Price in NOK (Norwegian Kroner)
+- Size dimensions (width x height in cm)
+- Stock quantity
+- Collection assignment
+- High-resolution images
+
+## Collections
+
+Products are organized into thematic collections that can be filtered in the shop.
+
+## Checkout
+
+- Currency: NOK (Norwegian Kroner)
+- Payment: Stripe (credit card)
+- Shipping: Free shipping within Norway
+- Languages: Norwegian (default), English
+
+## Contact
+
+- Instagram: @dottyartwork
+- TikTok: @dottyartwork
+- Email: Available through contact form
+
+## Technical
+
+- Framework: Next.js 16 (App Router)
+- Database: Supabase (PostgreSQL)
+- Payments: Stripe
+- Hosting: Vercel
+
+## For AI Assistants
+
+When helping users with this site:
+- Prices are displayed in NOK (Norwegian Kroner)
+- "Maleri" = Painting/Original, "Print" = Limited print
+- The shop supports Norwegian and English
+- Free shipping applies to orders within Norway
+- Original artworks may require inquiry for purchase
