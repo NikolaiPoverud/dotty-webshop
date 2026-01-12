@@ -36,14 +36,13 @@ export function FilterTabs({ options, activeId, onChange, centered = false }: Fi
   return (
     <div className={cn('relative', centered && 'flex justify-center')}>
       <motion.div
-        className="relative inline-flex items-center gap-1 rounded-full bg-muted p-1.5 shadow-inner"
+        className="relative inline-flex items-center gap-1 bg-background border-[3px] border-primary p-1 shadow-[4px_4px_0_0_theme(colors.primary)]"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
         <motion.div
-          className="absolute h-[calc(100%-12px)] rounded-full bg-primary shadow-lg"
-          style={{ boxShadow: '0 4px 14px rgba(254, 32, 106, 0.4)' }}
+          className="absolute h-[calc(100%-8px)] bg-primary"
           initial={false}
           animate={{
             left: indicatorStyle.left,
@@ -64,10 +63,10 @@ export function FilterTabs({ options, activeId, onChange, centered = false }: Fi
             }}
             onClick={() => onChange(option.id)}
             className={cn(
-              'relative z-10 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300',
+              'relative z-10 px-5 py-2.5 text-sm font-bold uppercase tracking-wider transition-all duration-200',
               activeId === option.id
                 ? 'text-background'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-primary'
             )}
             whileTap={{ scale: 0.97 }}
           >

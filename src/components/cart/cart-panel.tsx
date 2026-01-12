@@ -144,7 +144,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
   );
 
   const renderFooter = () => (
-    <div className="shrink-0 p-4 border-t border-border space-y-3 bg-[#0a0a0a]">
+    <div className="shrink-0 p-4 border-t-[3px] border-primary space-y-3 bg-[#0a0a0a]">
       <div className="flex justify-between items-center">
         <span className="text-sm text-muted-foreground">{t.subtotal}</span>
         <span className="text-lg font-bold">{formatPrice(cart.subtotal)}</span>
@@ -156,9 +156,8 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
         className="block w-full"
       >
         <motion.button
-          className="w-full py-3 bg-primary text-background font-semibold text-sm uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="w-full py-3 bg-background border-[3px] border-primary text-primary font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+          whileTap={{ scale: 0.98, y: 2 }}
         >
           {t.checkout}
         </motion.button>
@@ -181,7 +180,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
             className="fixed right-0 top-0 w-full max-w-md bg-[#0a0a0a] border-l border-border z-[80] flex flex-col shadow-2xl"
             style={{ height: '100vh' }}
           >
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center justify-between p-4 border-b-[3px] border-primary">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5" />
                 {t.title}
@@ -193,7 +192,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-muted rounded-full transition-colors"
+                className="p-2 border-2 border-muted-foreground/30 hover:border-primary hover:text-primary transition-all duration-200"
               >
                 <X className="w-5 h-5" />
               </button>

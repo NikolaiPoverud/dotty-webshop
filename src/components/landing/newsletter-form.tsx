@@ -96,16 +96,16 @@ export function NewsletterForm({ lang }: NewsletterFormProps): React.ReactElemen
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-success/10 border border-success/20 rounded-lg p-4"
+          className="bg-success border-[3px] border-success text-background p-4 shadow-[4px_4px_0_0_theme(colors.success)]"
         >
-          <div className="flex items-center justify-center gap-2 text-success mb-2">
+          <div className="flex items-center justify-center gap-2 mb-2">
             <Check className="w-5 h-5" />
-            <span className="font-semibold">
+            <span className="font-bold uppercase tracking-wider">
               {status === 'already' ? t.alreadySubscribed : t.success}
             </span>
           </div>
           {status === 'success' && (
-            <p className="text-sm text-muted-foreground">{t.successMessage}</p>
+            <p className="text-sm text-background/80">{t.successMessage}</p>
           )}
         </motion.div>
       ) : (
@@ -124,15 +124,14 @@ export function NewsletterForm({ lang }: NewsletterFormProps): React.ReactElemen
             placeholder={t.placeholder}
             required
             disabled={status === 'loading'}
-            className="flex-1 px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-background border-[3px] border-muted-foreground/30 focus:outline-none focus:border-primary focus:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all disabled:opacity-50"
           />
 
           <motion.button
             type="submit"
             disabled={status === 'loading'}
-            className="px-6 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="px-6 py-3 bg-background border-[3px] border-primary text-primary font-bold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 flex items-center justify-center gap-2 shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[6px_6px_0_0_theme(colors.primary)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+            whileTap={{ scale: 0.98, x: 2, y: 2 }}
           >
             {status === 'loading' ? (
               <Loader2 className="w-4 h-4 animate-spin" />

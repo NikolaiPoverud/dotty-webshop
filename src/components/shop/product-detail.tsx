@@ -95,7 +95,7 @@ function InquiryForm({
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+        className="w-full py-4 bg-success border-[3px] border-success text-background font-semibold uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_0_0_theme(colors.success)]"
       >
         <Check className="w-5 h-5" />
         {successMessage}
@@ -124,9 +124,8 @@ function InquiryForm({
         <motion.button
           type="submit"
           disabled={status === 'sending' || !email}
-          className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="w-full py-4 bg-background border-[3px] border-primary text-primary font-semibold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-primary flex items-center justify-center gap-2 shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+          whileTap={{ scale: 0.98, y: 2 }}
         >
           {status === 'sending' ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -231,20 +230,19 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang }:
 
     if (isAdded || isInCart) {
       return (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full py-4 bg-success text-background font-semibold uppercase tracking-wider rounded-full flex items-center justify-center gap-2"
+            className="w-full py-4 bg-success border-[3px] border-success text-background font-semibold uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_0_0_theme(colors.success)]"
           >
             <Check className="w-5 h-5" />
             {t.addedToCart}
           </motion.div>
           <Link href={getLocalizedPath(lang, 'cart')}>
             <motion.button
-              className="w-full py-3 bg-muted text-foreground font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-muted/80"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 bg-background border-[3px] border-muted-foreground/30 text-foreground font-semibold uppercase tracking-wider transition-all duration-200 hover:border-primary hover:text-primary shadow-[0_3px_0_0_theme(colors.border)] hover:shadow-[0_4px_0_0_theme(colors.primary)]"
+              whileTap={{ scale: 0.98, y: 2 }}
             >
               {t.viewCart}
             </motion.button>
@@ -273,9 +271,8 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang }:
     return (
       <motion.button
         onClick={handleAddToCart}
-        className="w-full py-4 bg-primary text-background font-semibold uppercase tracking-wider rounded-full transition-all duration-300 hover:bg-primary-light"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        className="group w-full py-4 bg-background border-[3px] border-primary text-primary font-semibold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+        whileTap={{ scale: 0.98, y: 2 }}
       >
         {t.addToCart}
       </motion.button>

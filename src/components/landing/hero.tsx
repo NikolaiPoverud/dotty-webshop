@@ -69,14 +69,22 @@ export function Hero({ lang }: HeroProps): React.ReactNode {
 
       <motion.button
         onClick={scrollToArt}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer"
+        className="group absolute bottom-8 left-1/2 -translate-x-1/2 z-10
+                   w-12 h-12 sm:w-14 sm:h-14
+                   bg-background border-[3px] border-primary
+                   flex items-center justify-center
+                   transition-all duration-200
+                   hover:bg-primary
+                   shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)]
+                   hover:-translate-y-1 cursor-pointer"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.8 }}
+        whileTap={{ scale: 0.95 }}
         aria-label="Scroll down"
       >
         <motion.div {...bounceAnimation}>
-          <ChevronDown className="w-6 h-6" />
+          <ChevronDown className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
         </motion.div>
       </motion.button>
     </section>
