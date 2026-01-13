@@ -39,15 +39,17 @@ const SLIDE_VARIANTS = {
 function NavButton({ direction, onClick }: NavButtonProps): React.ReactElement {
   const isPrev = direction === 'prev';
   const Icon = isPrev ? ChevronLeft : ChevronRight;
-  const positionClass = isPrev ? 'left-0 sm:-left-12' : 'right-0 sm:-right-12';
+  const positionClass = isPrev
+    ? 'left-0 sm:-left-14 shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)]'
+    : 'right-0 sm:-right-14 shadow-[-3px_3px_0_0_theme(colors.primary)] hover:shadow-[-4px_4px_0_0_theme(colors.primary)]';
 
   return (
     <button
       onClick={onClick}
-      className={`absolute ${positionClass} z-10 p-2 text-muted-foreground hover:text-foreground transition-colors`}
+      className={`group absolute ${positionClass} z-10 w-10 h-10 sm:w-12 sm:h-12 bg-background border-2 border-primary flex items-center justify-center transition-all duration-200 hover:bg-primary`}
       aria-label={`${isPrev ? 'Previous' : 'Next'} testimonial`}
     >
-      <Icon className="w-8 h-8" />
+      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
     </button>
   );
 }

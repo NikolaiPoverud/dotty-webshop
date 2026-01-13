@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
@@ -78,6 +78,7 @@ export function FeaturedGrid({
   const t = sectionText[lang];
   const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
+  const isNavigating = useRef(false);
 
   const filterOptions: FilterOption[] = useMemo(() => {
     const collectionOptions = collections.map((c) => ({ id: c.id, label: c.name }));
@@ -95,10 +96,28 @@ export function FeaturedGrid({
   }
 
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
-  const hasNextPage = currentPage < totalPages - 1;
+  const maxPage = Math.max(0, totalPages - 1);
+  const hasNextPage = currentPage < maxPage;
   const hasPrevPage = currentPage > 0;
   const startIndex = currentPage * PRODUCTS_PER_PAGE;
   const visibleProducts = filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+
+  const goToPage = useCallback((direction: 'next' | 'prev') => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
+
+    setCurrentPage((prev) => {
+      if (direction === 'next') {
+        return Math.min(prev + 1, maxPage);
+      }
+      return Math.max(prev - 1, 0);
+    });
+
+    // Debounce: prevent rapid clicks for 300ms
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 300);
+  }, [maxPage]);
 
   if (products.length === 0) {
     return (
@@ -153,7 +172,7 @@ export function FeaturedGrid({
             {hasPrevPage && (
               <CarouselArrow
                 direction="left"
-                onClick={() => setCurrentPage((prev) => prev - 1)}
+                onClick={() => goToPage('prev')}
               />
             )}
           </AnimatePresence>
@@ -162,7 +181,7 @@ export function FeaturedGrid({
             {hasNextPage && (
               <CarouselArrow
                 direction="right"
-                onClick={() => setCurrentPage((prev) => prev + 1)}
+                onClick={() => goToPage('next')}
               />
             )}
           </AnimatePresence>

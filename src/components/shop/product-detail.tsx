@@ -291,16 +291,15 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang }:
         >
           <Link
             href={getLocalizedPath(lang, 'shop')}
-            className="group inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-300"
+            className="group inline-flex items-center gap-3"
           >
             <motion.span
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-muted group-hover:bg-primary/20 transition-colors duration-300"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center w-10 h-10 bg-background border-2 border-muted-foreground/30 group-hover:border-primary group-hover:text-primary transition-all duration-200 shadow-[2px_2px_0_0_theme(colors.border)] group-hover:shadow-[3px_3px_0_0_theme(colors.primary)]"
+              whileTap={{ scale: 0.95, x: 1, y: 1 }}
             >
-              <ArrowLeft className="w-4 h-4 group-hover:text-primary transition-colors duration-300" />
+              <ArrowLeft className="w-4 h-4" />
             </motion.span>
-            <span className="text-xs font-medium uppercase tracking-wider group-hover:text-primary transition-colors duration-300">
+            <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
               {t.backToShop}
             </span>
           </Link>

@@ -131,10 +131,14 @@ export default async function ShopPage({ params }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href={`/${locale}`}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+            className="group inline-flex items-center gap-3 mb-6"
           >
-            <ArrowLeft className="w-4 h-4" />
-            {t.backToHome}
+            <span className="flex items-center justify-center w-10 h-10 bg-background border-2 border-muted-foreground/30 group-hover:border-primary group-hover:text-primary transition-all duration-200 shadow-[2px_2px_0_0_theme(colors.border)] group-hover:shadow-[3px_3px_0_0_theme(colors.primary)]">
+              <ArrowLeft className="w-4 h-4" />
+            </span>
+            <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
+              {t.backToHome}
+            </span>
           </Link>
 
           <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
