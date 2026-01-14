@@ -38,7 +38,6 @@ export default function EditProductPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false); // Track if initial data has been loaded
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const skipNextAutoSaveRef = useRef(true); // Skip the first change after data loads
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -97,11 +96,10 @@ export default function EditProductPage() {
       } finally {
         setIsLoading(false);
         // Mark data as loaded after a short delay to let React finish state updates
+        // This prevents auto-save from triggering on the initial load
         setTimeout(() => {
           setDataLoaded(true);
-          // Skip the first auto-save trigger that happens when dataLoaded changes
-          skipNextAutoSaveRef.current = true;
-        }, 200);
+        }, 300);
       }
     }
 
@@ -155,23 +153,20 @@ export default function EditProductPage() {
 
       setAutoSaveStatus('saved');
       setLastSaved(new Date());
+      toast.success('Automatisk lagret');
       setTimeout(() => setAutoSaveStatus('idle'), 2000);
-    } catch {
+    } catch (err) {
       setAutoSaveStatus('error');
+      toast.error('Kunne ikke auto-lagre');
+      console.error('Auto-save error:', err);
       setTimeout(() => setAutoSaveStatus('idle'), 3000);
     }
-  }, [productId, buildSaveData, title, price]);
+  }, [productId, buildSaveData, title, price, toast]);
 
   // Trigger auto-save on any field change (debounced)
-  const triggerAutoSave = useCallback(() => {
+  useEffect(() => {
     // Don't auto-save until data is loaded
     if (!dataLoaded || isLoading) return;
-
-    // Skip one auto-save after initial load
-    if (skipNextAutoSaveRef.current) {
-      skipNextAutoSaveRef.current = false;
-      return;
-    }
 
     // Clear existing timeout
     if (autoSaveTimeoutRef.current) {
@@ -180,16 +175,18 @@ export default function EditProductPage() {
 
     setAutoSaveStatus('pending');
 
-    // Set new timeout
+    // Set new timeout for auto-save
     autoSaveTimeoutRef.current = setTimeout(() => {
       performAutoSave();
     }, AUTO_SAVE_DELAY);
-  }, [dataLoaded, isLoading, performAutoSave]);
 
-  // Watch all form fields for changes
-  useEffect(() => {
-    triggerAutoSave();
-  }, [triggerAutoSave, title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
+    // Cleanup on unmount or before next effect run
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [dataLoaded, isLoading, performAutoSave, title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
