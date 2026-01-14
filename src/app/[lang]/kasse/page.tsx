@@ -305,14 +305,20 @@ function OrderSummary({ t, isLoading, onCheckout }: OrderSummaryProps): React.Re
         </motion.button>
 
         <motion.button
-          disabled={true}
-          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#ff5b24]/40 text-white/60 font-semibold text-lg uppercase tracking-widest rounded cursor-not-allowed"
-          title={t.comingSoon}
+          onClick={() => onCheckout('vipps')}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#ff5b24] text-white font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-[#ff5b24]/90 disabled:opacity-50"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {t.payWithVipps}
-          <span className="text-xs font-normal normal-case ml-2">
-            ({t.comingSoon})
-          </span>
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z" />
+            </svg>
+          )}
+          {isLoading ? t.processing : t.payWithVipps}
         </motion.button>
       </div>
     </div>
@@ -328,12 +334,45 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
   const [formData, setFormData] = useState<ShippingFormData>(INITIAL_FORM_DATA);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
+  const [checkoutToken, setCheckoutToken] = useState<string | null>(null);
+
+  // SEC-002: Fetch checkout token when page loads
+  useEffect(() => {
+    async function fetchCheckoutToken(): Promise<void> {
+      try {
+        const response = await fetch('/api/checkout/token');
+        if (response.ok) {
+          const data = await response.json();
+          setCheckoutToken(data.token);
+        }
+      } catch (err) {
+        console.error('Failed to fetch checkout token:', err);
+      }
+    }
+
+    fetchCheckoutToken();
+  }, []);
 
   useEffect(() => {
     if (searchParams.get('canceled') === 'true') {
       setError(t.paymentCanceled);
     }
-  }, [searchParams, t.paymentCanceled]);
+
+    // Handle Vipps errors
+    const vippsError = searchParams.get('vipps_error');
+    if (vippsError) {
+      switch (vippsError) {
+        case 'canceled':
+          setError(t.paymentCanceled);
+          break;
+        case 'incomplete':
+          setError(t.vippsIncomplete || 'Vipps-betaling ble ikke fullført. Prøv igjen.');
+          break;
+        default:
+          setError(t.genericError);
+      }
+    }
+  }, [searchParams, t.paymentCanceled, t.genericError]);
 
   if (itemCount === 0) {
     return (
@@ -371,12 +410,9 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
     setIsLoading(true);
 
     try {
-      if (provider === 'vipps') {
-        setError(t.vippsComingSoon);
-        return;
-      }
+      const endpoint = provider === 'vipps' ? '/api/vipps/initiate' : '/api/checkout';
 
-      const response = await fetch('/api/checkout', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -404,6 +440,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
           locale,
           privacy_accepted: true,
           newsletter_opt_in: newsletterOptIn,
+          checkout_token: checkoutToken,
         }),
       });
 
@@ -413,8 +450,10 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
         throw new Error(result.error || 'Failed to create checkout session');
       }
 
-      if (result.url) {
-        window.location.href = result.url;
+      // Handle redirect URL (Stripe uses 'url', Vipps uses 'redirectUrl')
+      const redirectUrl = result.url || result.redirectUrl;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       }
     } catch (err) {
       console.error('Checkout error:', err);

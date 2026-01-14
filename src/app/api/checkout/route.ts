@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
-import type { ShippingAddress, OrderItem, Locale } from '@/types';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
+import { validateCheckoutToken, generateCheckoutToken } from '@/lib/checkout-token';
+import type { ShippingAddress, OrderItem, Locale, DiscountCode } from '@/types';
 
 interface CheckoutRequestBody {
   items: OrderItem[];
@@ -16,10 +19,35 @@ interface CheckoutRequestBody {
   locale?: Locale;
   privacy_accepted?: boolean;
   newsletter_opt_in?: boolean;
+  checkout_token?: string;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Rate limiting: 5 requests per minute per IP for checkout
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`checkout:${clientIp}`, {
+    maxRequests: 5,
+    windowMs: 60000,
+  });
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many checkout attempts. Please wait a minute and try again.' },
+      { status: 429, headers: getRateLimitHeaders(rateLimitResult) },
+    );
+  }
+
   const body = await request.json() as CheckoutRequestBody;
+
+  // SEC-002: Validate checkout token to ensure request originated from legitimate checkout
+  const tokenValidation = validateCheckoutToken(body.checkout_token);
+  if (!tokenValidation.valid) {
+    return NextResponse.json(
+      { error: tokenValidation.error || 'Invalid checkout session' },
+      { status: 403 },
+    );
+  }
+
   const {
     items,
     customer_email,
@@ -178,6 +206,7 @@ function buildOrderMetadata(input: OrderMetadataInput): Record<string, string> {
     total: input.total.toString(),
     privacy_accepted: input.privacy_accepted.toString(),
     newsletter_opt_in: input.newsletter_opt_in.toString(),
+    checkout_token: generateCheckoutToken(),
   };
 }
 
