@@ -70,9 +70,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const validation = validateImageMagicBytes(buffer);
     if (!validation) {
-      console.warn('Magic byte validation failed for file:', file.name);
+      // Log first bytes for debugging
+      const firstBytes = Array.from(buffer.slice(0, 16))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join(' ');
+      console.warn('Magic byte validation failed for file:', file.name, 'First bytes:', firstBytes);
       return NextResponse.json(
-        { error: 'Invalid file type. File must be a valid JPEG, PNG, WebP, or GIF image.' },
+        { error: `Invalid file type. Expected JPEG, PNG, WebP, or GIF. Got: ${file.type || 'unknown'}` },
         { status: 400 }
       );
     }

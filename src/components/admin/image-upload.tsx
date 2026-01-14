@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface ImageUploadProps {
   value?: string;
@@ -57,6 +58,13 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
       return;
     }
 
+    // Validate file size client-side
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_SIZE) {
+      setError(`File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max 10MB)`);
+      return;
+    }
+
     setError(null);
     setIsUploading(true);
 
@@ -64,20 +72,21 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/admin/upload', {
+      const response = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const responseText = await response.text();
+      // Check content-type to see if we got JSON or HTML error
+      const contentType = response.headers.get('content-type') || '';
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        console.error('Failed to parse response:', responseText);
-        throw new Error('Server returned invalid response');
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response:', text.substring(0, 500));
+        throw new Error(`Upload failed: Server error (${response.status})`);
       }
+
+      const result = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed');
@@ -85,6 +94,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
 
       onChange(result.data.url, result.data.path);
     } catch (err) {
+      console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setIsUploading(false);
