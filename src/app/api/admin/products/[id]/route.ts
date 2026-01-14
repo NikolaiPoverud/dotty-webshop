@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify, generateRandomSuffix } from '@/lib/utils';
 import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+
+/**
+ * Revalidate all cached pages that display product data.
+ * This ensures updated product info (sizes, prices, etc.) appears immediately.
+ */
+function revalidateProductPages(slug?: string): void {
+  // Revalidate shop pages for both locales
+  revalidatePath('/no/shop', 'page');
+  revalidatePath('/en/shop', 'page');
+
+  // Revalidate the specific product page if slug is known
+  if (slug) {
+    revalidatePath(`/no/shop/${slug}`, 'page');
+    revalidatePath(`/en/shop/${slug}`, 'page');
+  }
+
+  // Revalidate homepage (featured products)
+  revalidatePath('/no', 'page');
+  revalidatePath('/en', 'page');
+
+  // Revalidate sold pages
+  revalidatePath('/no/solgt', 'page');
+  revalidatePath('/en/sold', 'page');
+}
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -97,6 +122,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
       ...getAuditHeadersFromRequest(request),
     });
 
+    // Revalidate cached pages to show updated product data immediately
+    revalidateProductPages(product.slug);
+
     return NextResponse.json({ data: product });
   } catch (error) {
     console.error('Failed to update product:', error);
@@ -115,7 +143,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
 
     const { data: product } = await supabase
       .from('products')
-      .select('image_path')
+      .select('image_path, slug')
       .eq('id', id)
       .single();
 
@@ -141,6 +169,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
       details: { image_path: product?.image_path },
       ...getAuditHeadersFromRequest(request),
     });
+
+    // Revalidate cached pages to remove deleted product
+    revalidateProductPages(product?.slug);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify, generateRandomSuffix } from '@/lib/utils';
 import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
@@ -6,6 +7,16 @@ import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 import { validateCreateProduct } from '@/lib/schemas/product';
 import { success, errors } from '@/lib/api-response';
+
+/**
+ * Revalidate all cached pages that display product data.
+ */
+function revalidateProductPages(): void {
+  revalidatePath('/no/shop', 'page');
+  revalidatePath('/en/shop', 'page');
+  revalidatePath('/no', 'page');
+  revalidatePath('/en', 'page');
+}
 
 // GET /api/admin/products - List all products with pagination
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -126,6 +137,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       details: { title: product.title, price: product.price, product_type: product.product_type },
       ...getAuditHeadersFromRequest(request),
     });
+
+    // Revalidate cached pages to show new product immediately
+    revalidateProductPages();
 
     // Return created product with 201 status
     const response = success(product);
