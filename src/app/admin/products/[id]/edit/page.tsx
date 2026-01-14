@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Save, Loader2, Check, AlertCircle, Cloud } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
@@ -14,6 +14,9 @@ import type { Product, ProductSize, Collection, GalleryImage, ShippingSize } fro
 import { SHIPPING_SIZE_INFO } from '@/types';
 
 const SHIPPING_SIZE_OPTIONS = Object.keys(SHIPPING_SIZE_INFO) as ShippingSize[];
+const AUTO_SAVE_DELAY = 1000; // 1 second debounce
+
+type AutoSaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
 function parseGalleryImages(value: unknown): GalleryImage[] {
   if (typeof value === 'string') {
@@ -31,6 +34,10 @@ export default function EditProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<AutoSaveStatus>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -88,41 +95,114 @@ export default function EditProductPage() {
         toast.error(err instanceof Error ? err.message : 'Kunne ikke laste produkt');
       } finally {
         setIsLoading(false);
+        // Mark initial load as complete after a short delay
+        setTimeout(() => {
+          isInitialLoadRef.current = false;
+        }, 100);
       }
     }
 
     fetchData();
   }, [productId, toast]);
 
-  async function handleSubmit(e: React.FormEvent): Promise<void> {
-    e.preventDefault();
-    setIsSubmitting(true);
+  // Build the data object for saving
+  const buildSaveData = useCallback(() => {
+    const priceInOre = price ? Math.round(parseFloat(price) * 100) : 0;
+    const shippingCostInOre = shippingCost ? Math.round(parseFloat(shippingCost) * 100) : null;
 
+    return {
+      title,
+      description,
+      price: priceInOre,
+      image_url: imageUrl,
+      image_path: imagePath,
+      product_type: productType,
+      stock_quantity: parseInt(stockQuantity, 10) || 1,
+      collection_id: collectionId || null,
+      is_available: isAvailable,
+      is_featured: isFeatured,
+      sizes,
+      gallery_images: galleryImages,
+      shipping_cost: shippingCostInOre,
+      shipping_size: shippingSize || null,
+      requires_inquiry: requiresInquiry,
+      year: year ? parseInt(year, 10) : null,
+    };
+  }, [title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
+
+  // Auto-save function
+  const performAutoSave = useCallback(async () => {
+    if (!title || !price) return; // Don't save if required fields are missing
+
+    setAutoSaveStatus('saving');
     try {
-      const priceInOre = Math.round(parseFloat(price) * 100);
-      const shippingCostInOre = shippingCost ? Math.round(parseFloat(shippingCost) * 100) : null;
-
       const response = await adminFetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          price: priceInOre,
-          image_url: imageUrl,
-          image_path: imagePath,
-          product_type: productType,
-          stock_quantity: parseInt(stockQuantity, 10) || 1,
-          collection_id: collectionId || null,
-          is_available: isAvailable,
-          is_featured: isFeatured,
-          sizes,
-          gallery_images: galleryImages,
-          shipping_cost: shippingCostInOre,
-          shipping_size: shippingSize || null,
-          requires_inquiry: requiresInquiry,
-          year: year ? parseInt(year, 10) : null,
-        }),
+        body: JSON.stringify(buildSaveData()),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Failed to save');
+      }
+
+      setAutoSaveStatus('saved');
+      setLastSaved(new Date());
+      setTimeout(() => setAutoSaveStatus('idle'), 2000);
+    } catch {
+      setAutoSaveStatus('error');
+      setTimeout(() => setAutoSaveStatus('idle'), 3000);
+    }
+  }, [productId, buildSaveData, title, price]);
+
+  // Trigger auto-save on any field change (debounced)
+  const triggerAutoSave = useCallback(() => {
+    if (isInitialLoadRef.current || isLoading) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    setAutoSaveStatus('pending');
+
+    // Set new timeout
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performAutoSave();
+    }, AUTO_SAVE_DELAY);
+  }, [isLoading, performAutoSave]);
+
+  // Watch all form fields for changes
+  useEffect(() => {
+    triggerAutoSave();
+  }, [title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Manual save (navigates back to products list)
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+
+    // Cancel any pending auto-save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await adminFetch(`/api/admin/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildSaveData()),
       });
 
       const result = await response.json();
@@ -151,17 +231,8 @@ export default function EditProductPage() {
     setImagePath('');
   }
 
-  async function handleSizesAutoSave(newSizes: ProductSize[]): Promise<void> {
-    const response = await adminFetch(`/api/admin/products/${productId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sizes: newSizes }),
-    });
-
-    if (!response.ok) {
-      const result = await response.json();
-      throw new Error(result.error || 'Failed to save sizes');
-    }
+  function formatLastSaved(date: Date): string {
+    return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
   }
 
   if (isLoading) {
@@ -174,17 +245,71 @@ export default function EditProductPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/admin/products"
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold">Rediger produkt</h1>
-          <p className="text-muted-foreground mt-1">Oppdater produktinformasjon</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin/products"
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">Rediger produkt</h1>
+            <p className="text-muted-foreground mt-1">Oppdater produktinformasjon</p>
+          </div>
         </div>
+
+        {/* Auto-save status indicator */}
+        <AnimatePresence mode="wait">
+          {autoSaveStatus === 'pending' && (
+            <motion.div
+              key="pending"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full text-sm text-muted-foreground"
+            >
+              <Cloud className="w-4 h-4" />
+              <span>Ulagrede endringer...</span>
+            </motion.div>
+          )}
+          {autoSaveStatus === 'saving' && (
+            <motion.div
+              key="saving"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full text-sm text-muted-foreground"
+            >
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Lagrer...</span>
+            </motion.div>
+          )}
+          {autoSaveStatus === 'saved' && (
+            <motion.div
+              key="saved"
+              initial={{ opacity: 0, y: -10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-success/10 text-success rounded-full text-sm"
+            >
+              <Check className="w-4 h-4" />
+              <span>Lagret {lastSaved && formatLastSaved(lastSaved)}</span>
+            </motion.div>
+          )}
+          {autoSaveStatus === 'error' && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-error/10 text-error rounded-full text-sm"
+            >
+              <AlertCircle className="w-4 h-4" />
+              <span>Kunne ikke lagre</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -367,7 +492,7 @@ export default function EditProductPage() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">Størrelser</label>
-              <SizeInput value={sizes} onChange={setSizes} onAutoSave={handleSizesAutoSave} />
+              <SizeInput value={sizes} onChange={setSizes} />
             </div>
 
             <div className="space-y-2">
