@@ -3,11 +3,12 @@
 import { motion, Reorder, useDragControls } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Loader2, RefreshCw, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, RefreshCw, GripVertical, CheckSquare, Square, Edit3 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Product } from '@/types';
+import type { Product, Collection } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
+import { MassEditModal } from '@/components/admin/mass-edit-modal';
 
 const PLACEHOLDER_GRADIENTS = [
   'from-primary to-accent',
@@ -19,9 +20,12 @@ interface DraggableProductRowProps {
   product: Product;
   gradientIndex: number;
   onDelete: (id: string) => void;
+  isSelected: boolean;
+  onToggleSelect: (id: string) => void;
+  selectionMode: boolean;
 }
 
-function DraggableProductRow({ product, gradientIndex, onDelete }: DraggableProductRowProps) {
+function DraggableProductRow({ product, gradientIndex, onDelete, isSelected, onToggleSelect, selectionMode }: DraggableProductRowProps) {
   const dragControls = useDragControls();
   const gradient = PLACEHOLDER_GRADIENTS[gradientIndex % PLACEHOLDER_GRADIENTS.length];
 
@@ -30,7 +34,9 @@ function DraggableProductRow({ product, gradientIndex, onDelete }: DraggableProd
       value={product}
       dragListener={false}
       dragControls={dragControls}
-      className="grid grid-cols-[auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-4 bg-muted hover:bg-muted-foreground/5 border-b border-border cursor-default"
+      className={`grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-4 hover:bg-muted-foreground/5 border-b border-border cursor-default transition-colors ${
+        isSelected ? 'bg-primary/10' : 'bg-muted'
+      }`}
       whileDrag={{
         scale: 1.02,
         backgroundColor: 'rgba(236, 72, 153, 0.1)',
@@ -38,10 +44,21 @@ function DraggableProductRow({ product, gradientIndex, onDelete }: DraggableProd
         zIndex: 10,
       }}
     >
+      <button
+        onClick={() => onToggleSelect(product.id)}
+        className={`p-1 -m-1 transition-colors ${
+          isSelected ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        {isSelected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+      </button>
+
       <div
-        onPointerDown={(e) => dragControls.start(e)}
-        className="cursor-grab active:cursor-grabbing touch-none p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
-        title="Dra for å endre rekkefølge"
+        onPointerDown={(e) => !selectionMode && dragControls.start(e)}
+        className={`p-1 -m-1 text-muted-foreground transition-colors ${
+          selectionMode ? 'opacity-50 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing touch-none hover:text-foreground'
+        }`}
+        title={selectionMode ? 'Deaktiver valg for å dra' : 'Dra for å endre rekkefølge'}
       >
         <GripVertical className="w-5 h-5" />
       </div>
@@ -114,34 +131,73 @@ function DraggableProductRow({ product, gradientIndex, onDelete }: DraggableProd
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const originalOrderRef = useRef<string[]>([]);
 
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isMassEditOpen, setIsMassEditOpen] = useState(false);
+
+  const selectionMode = selectedIds.size > 0;
+  const selectedProducts = products.filter(p => selectedIds.has(p.id));
+
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await adminFetch('/api/admin/products');
-      const result = await response.json();
+      const [productsRes, collectionsRes] = await Promise.all([
+        adminFetch('/api/admin/products'),
+        adminFetch('/api/admin/collections'),
+      ]);
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to fetch products');
+      const productsResult = await productsRes.json();
+      const collectionsResult = await collectionsRes.json();
+
+      if (!productsRes.ok) {
+        throw new Error(productsResult.error || 'Failed to fetch products');
       }
 
       // Handle both paginated and non-paginated responses
-      const productsData = Array.isArray(result) ? result : (result.data || []);
+      const productsData = Array.isArray(productsResult) ? productsResult : (productsResult.data || []);
       setProducts(productsData);
+      setCollections(collectionsResult.data || []);
       originalOrderRef.current = productsData.map((p: Product) => p.id);
       setHasUnsavedChanges(false);
+      setSelectedIds(new Set());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map(p => p.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
 
   const handleReorder = (newOrder: Product[]) => {
     setProducts(newOrder);
@@ -219,6 +275,32 @@ export default function AdminProductsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {selectionMode && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
+            >
+              <span className="text-sm text-muted-foreground">
+                {selectedIds.size} valgt
+              </span>
+              <motion.button
+                onClick={() => setIsMassEditOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-accent text-background font-medium rounded-lg hover:bg-accent/90 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Edit3 className="w-4 h-4" />
+                Masseredigering
+              </motion.button>
+              <button
+                onClick={clearSelection}
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Avbryt
+              </button>
+            </motion.div>
+          )}
           {hasUnsavedChanges && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -279,7 +361,18 @@ export default function AdminProductsPage() {
         </div>
       ) : (
         <div className="bg-muted rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
+          <div className="grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
+            <button
+              onClick={selectAll}
+              className="p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
+              title={selectedIds.size === products.length ? 'Fjern alle valg' : 'Velg alle'}
+            >
+              {selectedIds.size === products.length && products.length > 0 ? (
+                <CheckSquare className="w-5 h-5" />
+              ) : (
+                <Square className="w-5 h-5" />
+              )}
+            </button>
             <div className="w-5" />
             <div>Bilde</div>
             <div>Tittel</div>
@@ -302,15 +395,29 @@ export default function AdminProductsPage() {
                 product={product}
                 gradientIndex={index}
                 onDelete={deleteProduct}
+                isSelected={selectedIds.has(product.id)}
+                onToggleSelect={toggleSelect}
+                selectionMode={selectionMode}
               />
             ))}
           </Reorder.Group>
 
           <div className="px-6 py-3 bg-muted-foreground/5 text-xs text-muted-foreground">
-            Dra produktene for å endre rekkefølge i butikken
+            {selectionMode
+              ? `${selectedIds.size} produkt${selectedIds.size !== 1 ? 'er' : ''} valgt - klikk "Masseredigering" for å endre`
+              : 'Dra produktene for å endre rekkefølge i butikken'
+            }
           </div>
         </div>
       )}
+
+      <MassEditModal
+        isOpen={isMassEditOpen}
+        onClose={() => setIsMassEditOpen(false)}
+        selectedProducts={selectedProducts}
+        collections={collections}
+        onSuccess={fetchProducts}
+      />
     </div>
   );
 }
