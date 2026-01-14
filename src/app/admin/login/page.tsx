@@ -31,18 +31,30 @@ export default function AdminLoginPage(): React.ReactNode {
     setIsLoading(true);
 
     try {
-      const supabase = createClient();
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // SEC-008: Use rate-limited API route instead of direct Supabase call
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        if (signInError.message.includes('Invalid login credentials')) {
-          throw new Error('Feil e-post eller passord');
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = data.retryAfter || 60;
+          throw new Error(`For mange forsøk. Prøv igjen om ${Math.ceil(retryAfter / 60)} minutter.`);
         }
-        throw signInError;
+        throw new Error(data.error || 'Feil e-post eller passord');
+      }
+
+      // Set the session in Supabase client
+      if (data.session) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
       }
 
       router.push('/admin/dashboard');
