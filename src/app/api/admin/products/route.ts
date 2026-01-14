@@ -5,6 +5,7 @@ import { logAudit, getIpFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 import { validateCreateProduct } from '@/lib/schemas/product';
+import { success, errors } from '@/lib/api-response';
 
 // GET /api/admin/products - List all products with pagination
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -36,13 +37,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       console.error('Database error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return errors.internal('Failed to fetch products');
     }
 
     return NextResponse.json(buildPaginationResult(products ?? [], count, paginationParams));
   } catch (error) {
     console.error('Failed to fetch products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return errors.internal('Failed to fetch products');
   }
 }
 
@@ -59,12 +60,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       rawBody = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+      return errors.badRequest('Invalid JSON in request body');
     }
 
     const validationResult = validateCreateProduct(rawBody);
     if (!validationResult.success) {
-      return NextResponse.json({ error: validationResult.error }, { status: 400 });
+      return errors.badRequest(validationResult.error);
     }
 
     const body = validationResult.data;
@@ -112,7 +113,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Database error:', error);
+      return errors.internal('Failed to create product');
     }
 
     await logAudit({
@@ -125,9 +127,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ip_address: getIpFromRequest(request),
     });
 
-    return NextResponse.json({ data: product }, { status: 201 });
+    // Return created product with 201 status
+    const response = success(product);
+    return new NextResponse(response.body, { status: 201, headers: response.headers });
   } catch (error) {
     console.error('Failed to create product:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    return errors.internal('Failed to create product');
   }
 }

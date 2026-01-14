@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { success, errors } from '@/lib/api-response';
+import type { ProductListItem } from '@/types';
 
 const PRODUCT_FIELDS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry';
 
@@ -17,6 +19,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   let query = supabase
     .from('products')
     .select(PRODUCT_FIELDS)
+    // DB-004: Filter out deleted products
+    .is('deleted_at', null)
     .order('display_order', { ascending: true });
 
   if (collection) {
@@ -38,8 +42,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const { data: products, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Products API error:', error);
+    return errors.internal('Failed to fetch products');
   }
 
-  return NextResponse.json({ data: products }, { headers: CACHE_HEADERS });
+  // Return with cache headers
+  const response = success<ProductListItem[]>(products ?? []);
+  CACHE_HEADERS && Object.entries(CACHE_HEADERS).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  return response;
 }
