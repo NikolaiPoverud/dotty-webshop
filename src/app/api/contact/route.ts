@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getResend, emailConfig } from '@/lib/email/resend';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import { success, errors } from '@/lib/api-response';
 
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 function getSubjectPrefix(type: string): string {
   switch (type) {
@@ -92,6 +87,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return errors.badRequest('Invalid email address');
   }
 
+  const supabase = createAdminClient();
   const { data, error: dbError } = await supabase
     .from('contact_submissions')
     .insert({
