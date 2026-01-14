@@ -53,7 +53,7 @@ Three specialist audits were performed: Security, Architecture, and Database. Th
 - [x] **ARCH-006**: Split checkout page (589 lines) into smaller components – Done – Agent 1 – 99460a0
 - [x] **ARCH-007**: Add error boundaries for public-facing routes – Done – Agent 1 – bb9cd7f
 - [x] **ARCH-008**: Consolidate cart calculation logic into CartService – Done – Agent 1 – ea407ab
-- [ ] **ARCH-009**: Move inline translations to dictionary files – In progress – Agent 3
+- [x] **ARCH-009**: Move inline translations to dictionary files – Done – Agent 3 – 225db77
 - [x] **ARCH-010**: Implement async queue for email sending (webhook → queue) – Done – Agent 1 – 1fda36c
 - [x] **DB-009**: Add composite index `idx_products_active_sorted` – Done – Agent 2 – 707bb8e
 - [x] **DB-010**: Add email format validation constraints – Done – Agent 1 – ae1db06
