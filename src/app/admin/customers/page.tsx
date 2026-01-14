@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'dompurify';
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -18,7 +19,7 @@ import {
   ShoppingBag,
   Users,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { adminFetch } from '@/lib/admin-fetch';
 
@@ -54,6 +55,17 @@ export default function CustomersPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // SEC-004: Sanitize HTML content to prevent XSS attacks in preview
+  const sanitizedContent = useMemo(() => {
+    if (!content) {
+      return '<p class="text-gray-400">Ingen innhold enda...</p>';
+    }
+    return DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'],
+      ALLOWED_ATTR: ['href', 'target', 'class', 'style'],
+    });
+  }, [content]);
 
   useEffect(() => {
     async function loadCustomers(): Promise<void> {
@@ -313,7 +325,7 @@ export default function CustomersPage() {
                   <hr className="border-gray-700 mb-6" />
                   <div
                     className="prose prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: content || '<p class="text-gray-400">Ingen innhold enda...</p>' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                   />
                 </div>
               </div>
