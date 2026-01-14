@@ -3,6 +3,7 @@ import type Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
 import { constructWebhookEvent } from '@/lib/stripe';
+import { validateCheckoutToken } from '@/lib/checkout-token';
 import type { Order, ShippingAddress } from '@/types';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -43,6 +44,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   const metadata = session.metadata;
   if (!metadata) {
     console.error('No metadata in session');
+    return;
+  }
+
+  // SEC-003: Validate checkout token to verify session originated from this app
+  const tokenValidation = validateCheckoutToken(metadata.checkout_token);
+  if (!tokenValidation.valid) {
+    console.error('Invalid checkout token for session:', session.id, tokenValidation.error);
     return;
   }
 
