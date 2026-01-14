@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { validate, testimonialSchema } from '@/lib/validation';
 
 export async function GET() {
   const auth = await verifyAdminAuth();
@@ -32,6 +33,13 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+
+    // Validate input
+    const validation = validate(body, testimonialSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
     const supabase = createAdminClient();
 
     // Get the highest display_order
@@ -46,8 +54,8 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from('testimonials')
       .insert({
-        ...body,
-        display_order: body.display_order ?? newOrder,
+        ...validation.data,
+        display_order: validation.data.display_order ?? newOrder,
       })
       .select()
       .single();

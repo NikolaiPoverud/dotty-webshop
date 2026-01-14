@@ -7,7 +7,7 @@ import { EmailHeader } from './components/header';
 import { EmailLayout } from './components/layout';
 
 interface DeliveryConfirmationEmailProps {
-  order: Order;
+  order: Order; // Delivery confirmation doesn't need items
 }
 
 export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailProps): React.ReactElement {

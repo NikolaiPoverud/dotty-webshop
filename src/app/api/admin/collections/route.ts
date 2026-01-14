@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { validate, collectionSchema } from '@/lib/validation';
 
 export async function GET(): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
@@ -25,12 +26,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
-  const supabase = createAdminClient();
   const body = await request.json();
 
+  // Validate input
+  const validation = validate(body, collectionSchema);
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('collections')
-    .insert(body)
+    .insert(validation.data)
     .select()
     .single();
 

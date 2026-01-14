@@ -5,7 +5,7 @@ import { DeliveryConfirmationEmail } from '@/emails/delivery-confirmation';
 import { NewOrderAlertEmail } from '@/emails/new-order-alert';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { ShippingNotificationEmail } from '@/emails/shipping-notification';
-import type { Order } from '@/types';
+import type { Order, OrderWithItems } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
 type EmailResult = { success: boolean; error?: string };
@@ -40,7 +40,7 @@ async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   }
 }
 
-export function sendOrderConfirmation(order: Order): Promise<EmailResult> {
+export function sendOrderConfirmation(order: OrderWithItems): Promise<EmailResult> {
   return sendEmail({
     to: order.customer_email,
     subject: `Ordrebekreftelse ${order.order_number} – Dotty.`,
@@ -49,7 +49,7 @@ export function sendOrderConfirmation(order: Order): Promise<EmailResult> {
   });
 }
 
-export function sendNewOrderAlert(order: Order): Promise<EmailResult> {
+export function sendNewOrderAlert(order: OrderWithItems): Promise<EmailResult> {
   return sendEmail({
     to: emailConfig.artistEmail,
     subject: `Ny ordre ${order.order_number} – ${formatPrice(order.total)}`,
@@ -58,7 +58,7 @@ export function sendNewOrderAlert(order: Order): Promise<EmailResult> {
   });
 }
 
-export function sendShippingNotification(order: Order): Promise<EmailResult> {
+export function sendShippingNotification(order: OrderWithItems): Promise<EmailResult> {
   return sendEmail({
     to: order.customer_email,
     subject: `Pakken din er på vei! – Ordre ${order.order_number}`,
@@ -76,7 +76,7 @@ export function sendDeliveryConfirmation(order: Order): Promise<EmailResult> {
   });
 }
 
-export async function sendOrderEmails(order: Order): Promise<{
+export async function sendOrderEmails(order: OrderWithItems): Promise<{
   confirmation: EmailResult;
   alert: EmailResult;
 }> {

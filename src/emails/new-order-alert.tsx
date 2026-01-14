@@ -1,7 +1,7 @@
 import { Heading, Hr, Link, Section, Text } from '@react-email/components';
 
 import { emailConfig } from '@/lib/email/resend';
-import type { Order } from '@/types';
+import type { OrderWithItems } from '@/types';
 
 import { Button } from './components/button';
 import { EmailFooter } from './components/footer';
@@ -10,7 +10,7 @@ import { OrderItems } from './components/order-items';
 import { formatDateTime, formatPrice } from './utils';
 
 interface NewOrderAlertEmailProps {
-  order: Order;
+  order: OrderWithItems;
 }
 
 export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.ReactElement {

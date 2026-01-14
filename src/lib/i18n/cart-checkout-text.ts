@@ -66,8 +66,7 @@ export const checkoutText = {
     invalidDiscountCode: 'Ugyldig rabattkode',
     discountApplied: 'Rabattkode aktivert!',
     discountValidationFailed: 'Kunne ikke validere rabattkode',
-    vippsComingSoon: 'Vipps-betaling kommer snart!',
-    comingSoon: 'Kommer snart',
+    vippsIncomplete: 'Vipps-betalingen ble ikke fullført. Prøv igjen.',
   },
   en: {
     title: 'Checkout',
@@ -109,8 +108,7 @@ export const checkoutText = {
     invalidDiscountCode: 'Invalid discount code',
     discountApplied: 'Discount applied!',
     discountValidationFailed: 'Failed to validate discount code',
-    vippsComingSoon: 'Vipps payment coming soon!',
-    comingSoon: 'Coming soon',
+    vippsIncomplete: 'Vipps payment was not completed. Please try again.',
   },
 } as const;
 

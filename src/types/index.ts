@@ -94,7 +94,8 @@ export interface Order {
   customer_name: string;
   customer_phone: string;
   shipping_address: ShippingAddress;
-  items: OrderItem[];
+  // DB-003: items removed - now stored in order_items junction table
+  // Use OrderWithItems for orders that include items
   subtotal: number;
   discount_code: string | null;
   discount_amount: number;
@@ -107,6 +108,11 @@ export interface Order {
   tracking_number: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// Order with items loaded from order_items junction table
+export interface OrderWithItems extends Order {
+  items: OrderItem[];
 }
 
 export interface DiscountCode {

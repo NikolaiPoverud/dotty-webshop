@@ -1,6 +1,6 @@
 import { Heading, Hr, Section, Text } from '@react-email/components';
 
-import type { Order } from '@/types';
+import type { OrderWithItems } from '@/types';
 
 import { Button } from './components/button';
 import { EmailFooter } from './components/footer';
@@ -9,7 +9,7 @@ import { EmailLayout } from './components/layout';
 import { getTrackingUrl } from './utils';
 
 interface ShippingNotificationEmailProps {
-  order: Order;
+  order: OrderWithItems;
 }
 
 export function ShippingNotificationEmail({ order }: ShippingNotificationEmailProps): React.ReactElement {

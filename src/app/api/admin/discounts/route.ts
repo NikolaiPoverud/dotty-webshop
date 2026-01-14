@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { validate, discountSchema } from '@/lib/validation';
 
 export async function GET() {
   const auth = await verifyAdminAuth();
@@ -32,11 +33,17 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const supabase = createAdminClient();
 
+    // Validate input
+    const validation = validate(body, discountSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('discount_codes')
-      .insert(body)
+      .insert(validation.data)
       .select()
       .single();
 

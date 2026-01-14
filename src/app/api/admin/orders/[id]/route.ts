@@ -1,24 +1,37 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendShippingNotification, sendDeliveryConfirmation } from '@/lib/email/send';
-import type { Order } from '@/types';
+import type { Order, OrderWithItems, OrderItem } from '@/types';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
-const STATUS_EMAIL_HANDLERS: Record<string, (order: Order) => Promise<{ success: boolean; error?: string }>> = {
-  shipped: sendShippingNotification,
-  delivered: sendDeliveryConfirmation,
-};
+// DB-003: Helper to load order items from junction table
+async function loadOrderWithItems(order: Order): Promise<OrderWithItems> {
+  const supabase = createAdminClient();
+  const { data: items } = await supabase
+    .from('order_items')
+    .select('product_id, title, price, quantity, image_url')
+    .eq('order_id', order.id);
 
-function sendStatusChangeEmail(order: Order, previousStatus: string | undefined): void {
+  return {
+    ...order,
+    items: (items ?? []) as OrderItem[],
+  };
+}
+
+async function sendStatusChangeEmail(order: Order, previousStatus: string | undefined): Promise<void> {
   if (previousStatus === order.status) return;
 
-  const handler = STATUS_EMAIL_HANDLERS[order.status];
-  if (!handler) return;
-
-  handler(order).catch((err) => {
+  try {
+    if (order.status === 'shipped') {
+      const orderWithItems = await loadOrderWithItems(order);
+      await sendShippingNotification(orderWithItems);
+    } else if (order.status === 'delivered') {
+      await sendDeliveryConfirmation(order);
+    }
+  } catch (err) {
     console.error(`Failed to send ${order.status} email for order ${order.id}:`, err);
-  });
+  }
 }
 
 export async function PUT(

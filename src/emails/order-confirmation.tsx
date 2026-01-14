@@ -1,6 +1,6 @@
 import { Heading, Hr, Section, Text } from '@react-email/components';
 
-import type { Order } from '@/types';
+import type { OrderWithItems } from '@/types';
 
 import { EmailFooter } from './components/footer';
 import { EmailHeader } from './components/header';
@@ -9,7 +9,7 @@ import { OrderItems } from './components/order-items';
 import { formatDate, formatPrice } from './utils';
 
 interface OrderConfirmationEmailProps {
-  order: Order;
+  order: OrderWithItems;
 }
 
 export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): React.ReactElement {

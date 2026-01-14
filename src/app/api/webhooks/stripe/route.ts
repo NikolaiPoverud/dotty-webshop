@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
 import { constructWebhookEvent } from '@/lib/stripe';
 import { validateCheckoutToken } from '@/lib/checkout-token';
-import type { Order, ShippingAddress } from '@/types';
+import type { Order, OrderWithItems, OrderItem, ShippingAddress } from '@/types';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const body = await request.text();
@@ -100,7 +100,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     .single();
 
   if (order) {
-    await sendOrderEmailsSafe(order as Order);
+    // DB-003: Fetch items from order_items table for emails
+    const { data: orderItems } = await supabase
+      .from('order_items')
+      .select('product_id, title, price, quantity, image_url')
+      .eq('order_id', order.id);
+
+    await sendOrderEmailsSafe(order as Order, (orderItems ?? []) as OrderItem[]);
   }
 }
 
@@ -163,7 +169,14 @@ async function handleCheckoutCompletedFallback(
   }
 
   await updateInventory(supabase, items);
-  await sendOrderEmailsSafe(order as Order);
+
+  // DB-003: Fetch items from order_items table for emails
+  const { data: orderItems } = await supabase
+    .from('order_items')
+    .select('product_id, title, price, quantity, image_url')
+    .eq('order_id', order.id);
+
+  await sendOrderEmailsSafe(order as Order, (orderItems ?? []) as OrderItem[]);
 }
 
 async function decrementDiscountCode(supabase: SupabaseClient, code: string): Promise<void> {
@@ -211,9 +224,18 @@ async function updateInventory(supabase: SupabaseClient, items: OrderItemInput[]
   }
 }
 
-async function sendOrderEmailsSafe(order: Order): Promise<void> {
+// DB-003: Load order items from junction table for emails
+function loadOrderWithItems(order: Order, items: OrderItem[]): OrderWithItems {
+  return {
+    ...order,
+    items,
+  };
+}
+
+async function sendOrderEmailsSafe(order: Order, items: OrderItem[]): Promise<void> {
   try {
-    const emailResults = await sendOrderEmails(order);
+    const orderWithItems = loadOrderWithItems(order, items);
+    const emailResults = await sendOrderEmails(orderWithItems);
     if (!emailResults.confirmation.success) {
       console.error('Customer email failed:', emailResults.confirmation.error);
     }
