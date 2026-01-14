@@ -4,34 +4,18 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie } from 'lucide-react';
 import Link from 'next/link';
-import type { Locale } from '@/types';
-
-const text = {
-  no: {
-    title: 'Vi bruker informasjonskapsler',
-    description: 'Vi bruker kun nødvendige informasjonskapsler for handlekurv og innlogging. Ingen sporing.',
-    accept: 'Godta',
-    decline: 'Avslå',
-    learnMore: 'Les mer',
-  },
-  en: {
-    title: 'We use cookies',
-    description: 'We only use essential cookies for cart and login. No tracking.',
-    accept: 'Accept',
-    decline: 'Decline',
-    learnMore: 'Learn more',
-  },
-};
+import type { Dictionary, Locale } from '@/types';
 
 const COOKIE_CONSENT_KEY = 'dotty-cookie-consent';
 
 interface CookieConsentProps {
   lang: Locale;
+  dictionary: Dictionary;
 }
 
-export function CookieConsent({ lang }: CookieConsentProps): React.ReactElement | null {
+export function CookieConsent({ lang, dictionary }: CookieConsentProps): React.ReactElement | null {
   const [showBanner, setShowBanner] = useState(false);
-  const t = text[lang];
+  const t = dictionary.cookies;
 
   useEffect(() => {
     const consent = localStorage.getItem(COOKIE_CONSENT_KEY);

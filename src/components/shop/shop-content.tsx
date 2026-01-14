@@ -3,21 +3,10 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import type { Locale, ProductListItem, CollectionCard } from '@/types';
+import type { Dictionary, Locale, ProductListItem, CollectionCard } from '@/types';
 import { ProductCard } from './product-card';
 import { FilterTabs, type FilterOption } from './filter-tabs';
 import { staggerContainer, fadeUpItem, fadeBlur } from '@/lib/animations';
-
-const filterText = {
-  no: {
-    all: 'Alle',
-    empty: 'Ingen verk tilgjengelig.',
-  },
-  en: {
-    all: 'All',
-    empty: 'No works available.',
-  },
-};
 
 const MAX_DESCRIPTION_CHARS = 150;
 
@@ -25,6 +14,7 @@ interface ShopContentProps {
   products: ProductListItem[];
   collections: CollectionCard[];
   lang: Locale;
+  dictionary: Dictionary;
   initialCollection?: string;
   highlightedProduct?: string;
 }
@@ -37,10 +27,11 @@ function ShopContentInner({
   products,
   collections,
   lang,
+  dictionary,
   highlightedProduct,
   initialFilter,
 }: ShopContentInnerProps) {
-  const t = filterText[lang];
+  const t = dictionary.shop;
   const searchParams = useSearchParams();
 
   const highlightFromUrl = searchParams.get('highlight');
@@ -182,6 +173,7 @@ export function ShopContent({
   products,
   collections,
   lang,
+  dictionary,
   initialCollection,
   highlightedProduct,
 }: ShopContentProps) {
@@ -198,6 +190,7 @@ export function ShopContent({
       products={products}
       collections={collections}
       lang={lang}
+      dictionary={dictionary}
       highlightedProduct={highlightedProduct}
       initialFilter={initialFilter}
     />

@@ -5,39 +5,17 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2, Send } from 'lucide-react';
 
-import type { Locale } from '@/types';
+import type { Dictionary, Locale } from '@/types';
 
 interface NewsletterFormProps {
   lang: Locale;
+  dictionary: Dictionary;
 }
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'already' | 'error';
 
-const newsletterText = {
-  no: {
-    title: 'Hold deg oppdatert',
-    subtitle: 'Få beskjed om nye verk og eksklusive tilbud',
-    placeholder: 'Din e-postadresse',
-    subscribe: 'Abonner',
-    success: 'Sjekk e-posten din!',
-    successMessage: 'Vi har sendt deg en bekreftelseslenke. Klikk på den for å fullføre abonnementet.',
-    alreadySubscribed: 'Du er allerede abonnent!',
-    error: 'Noe gikk galt. Prøv igjen.',
-  },
-  en: {
-    title: 'Stay updated',
-    subtitle: 'Get notified about new works and exclusive offers',
-    placeholder: 'Your email address',
-    subscribe: 'Subscribe',
-    success: 'Check your email!',
-    successMessage: "We've sent you a confirmation link. Click it to complete your subscription.",
-    alreadySubscribed: "You're already subscribed!",
-    error: 'Something went wrong. Try again.',
-  },
-};
-
-export function NewsletterForm({ lang }: NewsletterFormProps): React.ReactElement {
-  const t = newsletterText[lang];
+export function NewsletterForm({ lang, dictionary }: NewsletterFormProps): React.ReactElement {
+  const t = dictionary.newsletter;
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<FormStatus>('idle');
 

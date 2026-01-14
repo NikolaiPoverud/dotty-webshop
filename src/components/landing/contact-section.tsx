@@ -4,44 +4,14 @@ import { motion } from 'framer-motion';
 import { Send, Loader2 } from 'lucide-react';
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import { useState } from 'react';
-import type { Locale } from '@/types';
+import type { Dictionary, Locale } from '@/types';
 
 interface ContactSectionProps {
   lang: Locale;
+  dictionary: Dictionary;
 }
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
-
-const contactText = {
-  no: {
-    greeting: 'Hei du!',
-    title: 'La oss snakke',
-    subtitle: 'Har du et spørsmål, vil bestille noe spesielt, eller bare si hei? Jeg svarer alltid personlig.',
-    namePlaceholder: 'Ditt navn',
-    emailPlaceholder: 'Din e-post',
-    messagePlaceholder: 'Hva tenker du på?',
-    send: 'Send melding',
-    sending: 'Sender...',
-    success: 'Takk! Jeg svarer så fort jeg kan.',
-    error: 'Noe gikk galt. Prøv igjen!',
-    privacyNotice: 'Ved å sende denne meldingen godtar du at vi lagrer og behandler informasjonen i henhold til vår',
-    privacyLink: 'personvernerklæring',
-  },
-  en: {
-    greeting: 'Hey there!',
-    title: "Let's talk",
-    subtitle: "Have a question, want to order something special, or just say hi? I always reply personally.",
-    namePlaceholder: 'Your name',
-    emailPlaceholder: 'Your email',
-    messagePlaceholder: "What's on your mind?",
-    send: 'Send message',
-    sending: 'Sending...',
-    success: "Thanks! I'll get back to you soon.",
-    error: 'Something went wrong. Try again!',
-    privacyNotice: 'By sending this message, you agree that we store and process your information according to our',
-    privacyLink: 'privacy policy',
-  },
-} as const;
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -52,7 +22,7 @@ const fadeInUp = {
 const inputClassName =
   'w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all';
 
-function getButtonContent(state: FormState, t: (typeof contactText)[Locale]): React.ReactNode {
+function getButtonContent(state: FormState, t: Dictionary['contact']): React.ReactNode {
   switch (state) {
     case 'loading':
       return (
@@ -77,8 +47,8 @@ function getButtonContent(state: FormState, t: (typeof contactText)[Locale]): Re
 
 const emptyFormData = { name: '', email: '', message: '' };
 
-export function ContactSection({ lang }: ContactSectionProps): React.ReactElement {
-  const t = contactText[lang];
+export function ContactSection({ lang, dictionary }: ContactSectionProps): React.ReactElement {
+  const t = dictionary.contact;
   const [formState, setFormState] = useState<FormState>('idle');
   const [formData, setFormData] = useState(emptyFormData);
 

@@ -7,6 +7,7 @@ import { Testimonials } from '@/components/landing/testimonials';
 import { ContactSection } from '@/components/landing/contact-section';
 import { createPublicClient } from '@/lib/supabase/public';
 import { OrganizationJsonLd } from '@/components/seo';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -121,20 +122,21 @@ export default async function HomePage({
   const { lang } = await params;
   const locale = lang as Locale;
 
-  const [products, collections, testimonials] = await Promise.all([
+  const [products, collections, testimonials, dictionary] = await Promise.all([
     getFeaturedProducts(),
     getCollections(),
     getTestimonials(),
+    getDictionary(locale),
   ]);
 
   return (
     <>
       <OrganizationJsonLd />
-      <Hero lang={locale} />
-      <FeaturedGrid lang={locale} products={products} collections={collections} />
+      <Hero dictionary={dictionary} />
+      <FeaturedGrid lang={locale} products={products} collections={collections} dictionary={dictionary} />
       <ArtistStatement lang={locale} />
       <Testimonials testimonials={testimonials} />
-      <ContactSection lang={locale} />
+      <ContactSection lang={locale} dictionary={dictionary} />
     </>
   );
 }

@@ -4,7 +4,7 @@ import type { Locale, ProductListItem, CollectionCard } from '@/types';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-import { locales } from '@/lib/i18n/get-dictionary';
+import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { createPublicClient } from '@/lib/supabase/public';
 import { BreadcrumbJsonLd } from '@/components/seo';
 import { ShopContent } from '@/components/shop/shop-content';
@@ -23,16 +23,6 @@ type Props = {
   params: Promise<{ lang: string }>;
 };
 
-const pageText = {
-  no: {
-    title: 'Shop',
-    backToHome: 'Tilbake',
-  },
-  en: {
-    title: 'Shop',
-    backToHome: 'Back',
-  },
-};
 
 const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry';
 
@@ -112,12 +102,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ShopPage({ params }: Props) {
   const { lang } = await params;
   const locale = lang as Locale;
-  const t = pageText[locale];
 
-  const [products, collections] = await Promise.all([
+  const [products, collections, dictionary] = await Promise.all([
     getProducts(),
     getCollections(),
+    getDictionary(locale),
   ]);
+
+  const t = dictionary.shop;
 
   const breadcrumbItems = [
     { name: locale === 'no' ? 'Hjem' : 'Home', url: `/${locale}` },
@@ -149,6 +141,7 @@ export default async function ShopPage({ params }: Props) {
             products={products}
             collections={collections}
             lang={locale}
+            dictionary={dictionary}
           />
         </div>
       </div>

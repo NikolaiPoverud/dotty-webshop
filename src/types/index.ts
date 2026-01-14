@@ -207,6 +207,12 @@ export interface Dictionary {
     shop: string;
     cart: string;
     about: string;
+    aboutArtist: string;
+    art: string;
+    contact: string;
+    collections: string;
+    allProducts: string;
+    admin: string;
   };
   hero: {
     title: string;
@@ -222,17 +228,30 @@ export interface Dictionary {
     original: string;
     print: string;
     requestSimilar: string;
+    sizes: string;
+    left: string;
+    backToShop: string;
+    backToHome: string;
+    all: string;
+    empty: string;
+    viewAll: string;
+    comingSoon: string;
   };
   cart: {
     title: string;
     empty: string;
+    emptyShort: string;
     continueShopping: string;
+    continueShoppingShort: string;
     checkout: string;
+    toCheckout: string;
     remove: string;
     subtotal: string;
     total: string;
     reservationWarning: string;
     itemSoldOut: string;
+    discount: string;
+    includingVat: string;
   };
   checkout: {
     title: string;
@@ -244,29 +263,163 @@ export interface Dictionary {
     payWithCard: string;
     payWithVipps: string;
     processing: string;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    addressLine2: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    subtotal: string;
+    artistLevy: string;
+    artistLevyNote: string;
+    discount: string;
+    shippingCost: string;
+    shippingFree: string;
+    total: string;
+    orderSummary: string;
+    includingVat: string;
+    emptyCart: string;
+    paymentCanceled: string;
+    paymentCanceledDesc: string;
+    paymentFailed: string;
+    paymentFailedDesc: string;
+    genericError: string;
+    fillAllFields: string;
+    acceptPrivacy: string;
+    privacyPolicy: string;
+    subscribeNewsletter: string;
+    acceptPrivacyRequired: string;
+    discountApplied: string;
+    discountValidationFailed: string;
+    vippsIncomplete: string;
+    shippingMethod: string;
+    selectShipping: string;
+    shippingLoading: string;
+    noShippingOptions: string;
+    shippingRequired: string;
   };
   success: {
     title: string;
     message: string;
     orderNumber: string;
     emailSent: string;
+    shippingNote: string;
+    backToShop: string;
+    total: string;
+    loading: string;
+    yourOrder: string;
   };
   newsletter: {
     title: string;
+    subtitle: string;
     placeholder: string;
     subscribe: string;
     success: string;
+    successMessage: string;
+    alreadySubscribed: string;
+    error: string;
   };
   footer: {
     privacy: string;
     terms: string;
+    cookies: string;
+    myData: string;
     copyright: string;
+    returns: string;
+    securePayment: string;
+    shop: string;
+    collections: string;
+    allProducts: string;
+  };
+  language: {
+    switchTo: string;
   };
   errors: {
     itemSold: string;
     paymentFailed: string;
     cartExpired: string;
     generic: string;
+  };
+  form: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    addressLine2: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+  artist: {
+    title: string;
+    statement: string;
+  };
+  contact: {
+    greeting: string;
+    title: string;
+    subtitle: string;
+    namePlaceholder: string;
+    emailPlaceholder: string;
+    messagePlaceholder: string;
+    send: string;
+    sending: string;
+    success: string;
+    error: string;
+    privacyNotice: string;
+    privacyLink: string;
+  };
+  cookies: {
+    title: string;
+    description: string;
+    accept: string;
+    decline: string;
+    learnMore: string;
+  };
+  productDetail: {
+    backToShop: string;
+    dimensions: string;
+    year: string;
+    availability: string;
+    available: string;
+    soldOut: string;
+    addToCart: string;
+    addedToCart: string;
+    viewCart: string;
+    original: string;
+    print: string;
+    inquiryOnly: string;
+    inquiryDescription: string;
+    emailPlaceholder: string;
+    sendInquiry: string;
+    inquirySent: string;
+    inquiryError: string;
+    soldOutInterest: string;
+    soldOutDescription: string;
+    contactArtist: string;
+  };
+  shipping: {
+    title: string;
+    loading: string;
+    enterPostalCode: string;
+    noOptions: string;
+    estimated: string;
+    fossilFree: string;
+    pickup: string;
+    homeDelivery: string;
+    error: string;
+  };
+  soldPage: {
+    title: string;
+    description: string;
+    empty: string;
+  };
+  faq: {
+    title: string;
+    subtitle: string;
+    moreQuestions: string;
+    contact: string;
   };
 }
 

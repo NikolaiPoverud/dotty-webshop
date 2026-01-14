@@ -5,24 +5,11 @@ import Link from 'next/link';
 import { useState, useMemo, useRef, useCallback } from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
-import type { Locale, ProductListItem, CollectionCard } from '@/types';
+import type { Dictionary, Locale, ProductListItem, CollectionCard } from '@/types';
 import { cn } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 import { ProductCard } from '@/components/shop/product-card';
-
-const sectionText = {
-  no: {
-    viewAll: 'Se alle',
-    empty: 'Kommer snart...',
-    all: 'Alle',
-  },
-  en: {
-    viewAll: 'View all',
-    empty: 'Coming soon...',
-    all: 'All',
-  },
-} as const;
 
 const PRODUCTS_PER_PAGE = 3;
 
@@ -66,6 +53,7 @@ interface FeaturedGridProps {
   lang: Locale;
   products: ProductListItem[];
   collections: CollectionCard[];
+  dictionary: Dictionary;
   showFilters?: boolean;
 }
 
@@ -73,9 +61,10 @@ export function FeaturedGrid({
   lang,
   products,
   collections,
+  dictionary,
   showFilters = true,
 }: FeaturedGridProps): React.ReactElement {
-  const t = sectionText[lang];
+  const t = dictionary.shop;
   const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
   const isNavigating = useRef(false);
@@ -123,7 +112,7 @@ export function FeaturedGrid({
     return (
       <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-muted-foreground text-center py-12">{t.empty}</p>
+          <p className="text-muted-foreground text-center py-12">{t.comingSoon}</p>
         </div>
       </section>
     );

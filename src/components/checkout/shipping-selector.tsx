@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Truck, Package, MapPin, Leaf } from 'lucide-react';
-import type { ShippingOption, Locale } from '@/types';
+import type { Dictionary, ShippingOption, Locale } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
 interface ShippingSelectorProps {
   postalCode: string;
   countryCode?: string;
   locale: Locale;
+  dictionary?: Dictionary;
   selectedOption: ShippingOption | null;
   onSelect: (option: ShippingOption) => void;
   disabled?: boolean;
@@ -17,7 +18,8 @@ interface ShippingSelectorProps {
 
 const DEBOUNCE_MS = 500;
 
-const shippingText = {
+// Fallback text for backwards compatibility when dictionary is not provided
+const fallbackText = {
   no: {
     title: 'Velg frakt',
     loading: 'Laster fraktalternativer...',
@@ -57,6 +59,7 @@ export function ShippingSelector({
   postalCode,
   countryCode = 'NO',
   locale,
+  dictionary,
   selectedOption,
   onSelect,
   disabled = false,
@@ -65,7 +68,7 @@ export function ShippingSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const t = shippingText[locale];
+  const t = dictionary?.shipping ?? fallbackText[locale];
 
   const fetchShippingOptions = useCallback(async () => {
     if (!postalCode || postalCode.length !== 4) {

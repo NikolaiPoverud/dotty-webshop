@@ -12,7 +12,7 @@
   },
   "hero": {
     "title": "Pop-art med personlighet",
-    "subtitle": "Unike kunstverk som bringer energi og farge til ditt hjem",
+    "subtitle": "Et kunstunivers med sterke farger og en leken strek. Uten filter. Begrensede prints og originale verk.",
     "cta": "Utforsk shop"
   },
   "shop": {
@@ -25,7 +25,13 @@
     "print": "Prints",
     "requestSimilar": "Interessert i lignende verk?",
     "sizes": "Størrelser",
-    "left": "igjen"
+    "left": "igjen",
+    "backToShop": "Tilbake til shop",
+    "backToHome": "Tilbake",
+    "all": "Alle",
+    "empty": "Ingen verk tilgjengelig.",
+    "viewAll": "Se alle",
+    "comingSoon": "Kommer snart..."
   },
   "cart": {
     "title": "Handlekurv",
@@ -39,7 +45,9 @@
     "subtotal": "Delsum",
     "total": "Totalt",
     "reservationWarning": "Varer reservert i begrenset tid",
-    "itemSoldOut": "Dette verket er dessverre ikke lenger tilgjengelig"
+    "itemSoldOut": "Dette verket er dessverre ikke lenger tilgjengelig",
+    "discount": "Rabatt",
+    "includingVat": "inkl. MVA"
   },
   "checkout": {
     "title": "Kasse",
@@ -50,24 +58,76 @@
     "invalidCode": "Ugyldig rabattkode",
     "payWithCard": "Betal med kort",
     "payWithVipps": "Betal med Vipps",
-    "processing": "Behandler..."
+    "processing": "Behandler...",
+    "name": "Fullt navn",
+    "email": "E-post",
+    "phone": "Telefon",
+    "address": "Adresse",
+    "addressLine2": "Adresse linje 2 (valgfritt)",
+    "city": "By",
+    "postalCode": "Postnummer",
+    "country": "Land",
+    "subtotal": "Delsum",
+    "artistLevy": "Kunsteravgift (5%)",
+    "artistLevyNote": "Gjelder kunst over 2 500 kr",
+    "discount": "Rabatt",
+    "shippingCost": "Frakt",
+    "shippingFree": "Gratis",
+    "total": "Totalt",
+    "orderSummary": "Ordresammendrag",
+    "includingVat": "inkl. MVA",
+    "emptyCart": "Handlekurven er tom",
+    "paymentCanceled": "Betalingen ble avbrutt",
+    "paymentCanceledDesc": "Du kan prøve igjen når du er klar.",
+    "paymentFailed": "Betalingen mislyktes",
+    "paymentFailedDesc": "Kortet ble avvist eller det oppstod en feil. Vennligst prøv igjen.",
+    "genericError": "Noe gikk galt. Vennligst prøv igjen.",
+    "fillAllFields": "Vennligst fyll ut alle påkrevde felt",
+    "acceptPrivacy": "Jeg har lest og godtar",
+    "privacyPolicy": "personvernerklæringen",
+    "subscribeNewsletter": "Ja, jeg vil motta nyhetsbrev med nyheter og tilbud",
+    "acceptPrivacyRequired": "Du må godta personvernerklæringen for å fortsette",
+    "discountApplied": "Rabattkode aktivert!",
+    "discountValidationFailed": "Kunne ikke validere rabattkode",
+    "vippsIncomplete": "Vipps-betalingen ble ikke fullført. Prøv igjen.",
+    "shippingMethod": "Fraktmetode",
+    "selectShipping": "Velg fraktmetode",
+    "shippingLoading": "Laster fraktalternativer...",
+    "noShippingOptions": "Ingen fraktalternativer tilgjengelig",
+    "shippingRequired": "Velg en fraktmetode for å fortsette"
   },
   "success": {
     "title": "Takk for din bestilling!",
     "message": "Vi har mottatt din ordre og sender deg en bekreftelse på e-post.",
     "orderNumber": "Ordrenummer",
-    "emailSent": "Bekreftelse sendt til"
+    "emailSent": "Bekreftelse sendt til",
+    "shippingNote": "Vi kontakter deg snart med informasjon om frakt.",
+    "backToShop": "Tilbake til shop",
+    "total": "Total betalt",
+    "loading": "Henter ordredetaljer...",
+    "yourOrder": "Din bestilling"
   },
   "newsletter": {
     "title": "Hold deg oppdatert",
+    "subtitle": "Få beskjed om nye verk og eksklusive tilbud",
     "placeholder": "Din e-postadresse",
     "subscribe": "Abonner",
-    "success": "Takk for at du abonnerer!"
+    "success": "Sjekk e-posten din!",
+    "successMessage": "Vi har sendt deg en bekreftelseslenke. Klikk på den for å fullføre abonnementet.",
+    "alreadySubscribed": "Du er allerede abonnent!",
+    "error": "Noe gikk galt. Prøv igjen."
   },
   "footer": {
     "privacy": "Personvern",
     "terms": "Vilkår",
-    "copyright": "Alle rettigheter reservert"
+    "cookies": "Informasjonskapsler",
+    "myData": "Mine data",
+    "copyright": "Alle rettigheter reservert",
+    "returns": "14 dagers returrett",
+    "securePayment": "Sikker betaling",
+    "shop": "Shop",
+    "collections": "Samlinger",
+    "allProducts": "Alle produkter"
   },
   "language": {
     "switchTo": "English"
@@ -91,5 +151,70 @@
   "artist": {
     "title": "Om Dotty.",
     "statement": "Pop-art som utfordrer det vanlige og feirer det uventede."
+  },
+  "contact": {
+    "greeting": "Hei du!",
+    "title": "La oss snakke",
+    "subtitle": "Har du et spørsmål, vil bestille noe spesielt, eller bare si hei? Jeg svarer alltid personlig.",
+    "namePlaceholder": "Ditt navn",
+    "emailPlaceholder": "Din e-post",
+    "messagePlaceholder": "Hva tenker du på?",
+    "send": "Send melding",
+    "sending": "Sender...",
+    "success": "Takk! Jeg svarer så fort jeg kan.",
+    "error": "Noe gikk galt. Prøv igjen!",
+    "privacyNotice": "Ved å sende denne meldingen godtar du at vi lagrer og behandler informasjonen i henhold til vår",
+    "privacyLink": "personvernerklæring"
+  },
+  "cookies": {
+    "title": "Vi bruker informasjonskapsler",
+    "description": "Vi bruker kun nødvendige informasjonskapsler for handlekurv og innlogging. Ingen sporing.",
+    "accept": "Godta",
+    "decline": "Avslå",
+    "learnMore": "Les mer"
+  },
+  "productDetail": {
+    "backToShop": "Tilbake til butikk",
+    "dimensions": "Størrelse",
+    "year": "År",
+    "availability": "Tilgjengelighet",
+    "available": "Tilgjengelig",
+    "soldOut": "Utsolgt",
+    "addToCart": "Legg i Handlekurv",
+    "addedToCart": "Lagt i handlekurv",
+    "viewCart": "Se handlekurv",
+    "original": "Maleri",
+    "print": "Prints",
+    "inquiryOnly": "Forespørsel påkrevd",
+    "inquiryDescription": "Dette verket selges ikke direkte. Legg igjen din e-post, så tar vi kontakt.",
+    "emailPlaceholder": "Din e-postadresse",
+    "sendInquiry": "Send forespørsel",
+    "inquirySent": "Takk! Vi tar kontakt snart.",
+    "inquiryError": "Noe gikk galt. Prøv igjen.",
+    "soldOutInterest": "Interessert?",
+    "soldOutDescription": "Dette verket er solgt, men jeg kan lage lignende. Legg igjen din e-post!",
+    "contactArtist": "Kontakt kunstner"
+  },
+  "shipping": {
+    "title": "Velg frakt",
+    "loading": "Laster fraktalternativer...",
+    "enterPostalCode": "Skriv inn postnummer for å se fraktalternativer",
+    "noOptions": "Ingen fraktalternativer tilgjengelig",
+    "estimated": "Estimert levering",
+    "fossilFree": "fossilfri transport",
+    "pickup": "Hentested",
+    "homeDelivery": "Hjemlevering",
+    "error": "Kunne ikke laste fraktalternativer"
+  },
+  "soldPage": {
+    "title": "Solgte verk",
+    "description": "Disse originalene har funnet nye hjem. Interessert i lignende verk? Ta kontakt!",
+    "empty": "Ingen solgte verk ennå."
+  },
+  "faq": {
+    "title": "Ofte stilte spørsmål",
+    "subtitle": "Alt du trenger å vite om kjøp av kunst fra Dotty.",
+    "moreQuestions": "Har du flere spørsmål?",
+    "contact": "Ta kontakt"
   }
 }

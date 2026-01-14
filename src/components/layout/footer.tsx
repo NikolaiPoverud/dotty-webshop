@@ -4,37 +4,10 @@ import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { Mail, Shield, RotateCcw, CreditCard } from 'lucide-react';
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
-import type { Locale, Collection } from '@/types';
+import type { Dictionary, Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
 import { resetCookieConsent } from '@/components/gdpr/cookie-consent';
-
-const footerText = {
-  no: {
-    privacy: 'Personvern',
-    terms: 'Vilkår',
-    cookies: 'Informasjonskapsler',
-    myData: 'Mine data',
-    copyright: 'Alle rettigheter reservert',
-    returns: '14 dagers returrett',
-    securePayment: 'Sikker betaling',
-    shop: 'Shop',
-    collections: 'Samlinger',
-    allProducts: 'Alle produkter',
-  },
-  en: {
-    privacy: 'Privacy',
-    terms: 'Terms',
-    cookies: 'Cookies',
-    myData: 'My Data',
-    copyright: 'All rights reserved',
-    returns: '14-day returns',
-    securePayment: 'Secure payment',
-    shop: 'Shop',
-    collections: 'Collections',
-    allProducts: 'All products',
-  },
-};
 
 interface TrustBadgeProps {
   icon: LucideIcon;
@@ -53,10 +26,11 @@ function TrustBadge({ icon: Icon, label }: TrustBadgeProps): React.ReactElement 
 interface FooterProps {
   lang: Locale;
   collections?: Collection[];
+  dictionary: Dictionary;
 }
 
-export function Footer({ lang, collections = [] }: FooterProps): React.ReactElement {
-  const t = footerText[lang];
+export function Footer({ lang, collections = [], dictionary }: FooterProps): React.ReactElement {
+  const t = dictionary.footer;
   const currentYear = new Date().getFullYear();
 
   function getCollectionHref(collection: Collection): string {
@@ -75,7 +49,7 @@ export function Footer({ lang, collections = [] }: FooterProps): React.ReactElem
     <footer className="border-t border-border bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-12">
-          <NewsletterForm lang={lang} />
+          <NewsletterForm lang={lang} dictionary={dictionary} />
         </div>
 
         {collections.length > 0 && (

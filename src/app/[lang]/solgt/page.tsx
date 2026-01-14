@@ -3,6 +3,7 @@ import type { Locale, Product, Collection } from '@/types';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { CollectionFilter } from '@/components/shop/collection-filter';
 import { createPublicClient } from '@/lib/supabase/public';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -28,18 +29,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   };
 }
 
-const pageText = {
-  no: {
-    title: 'Solgte verk',
-    description: 'Disse originalene har funnet nye hjem. Interessert i lignende verk? Ta kontakt!',
-    empty: 'Ingen solgte verk ennå.',
-  },
-  en: {
-    title: 'Sold Works',
-    description: 'These originals have found new homes. Interested in similar work? Get in touch!',
-    empty: 'No sold works yet.',
-  },
-};
 
 async function getSoldProducts(): Promise<Product[]> {
   const supabase = createPublicClient();
@@ -79,12 +68,13 @@ export default async function SolgtGalleryPage({
 }): Promise<React.JSX.Element> {
   const { lang } = await params;
   const locale = lang as Locale;
-  const t = pageText[locale];
 
-  const [soldProducts, collections] = await Promise.all([
+  const [soldProducts, collections, dictionary] = await Promise.all([
     getSoldProducts(),
     getCollections(),
+    getDictionary(locale),
   ]);
+  const t = dictionary.soldPage;
 
   return (
     <div className="min-h-screen pt-24 pb-16">

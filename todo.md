@@ -49,26 +49,26 @@ Three specialist audits were performed: Security, Architecture, and Database. Th
 - [x] **SEC-012**: Add index on `orders.payment_session_id` – Done – Agent 2 – 707bb8e
 - [x] **SEC-013**: Return generic error messages to clients, log details server-side – Done – Agent 1 – 6f4517e
 - [x] **SEC-014**: Add request ID correlation in logs – Done – Agent 1 – 636bec8
-- [ ] **SEC-015**: Add user_agent and referer to audit logs – In progress – Agent 1
-- [ ] **ARCH-006**: Split checkout page (589 lines) into smaller components
-- [ ] **ARCH-007**: Add error boundaries for public-facing routes
-- [ ] **ARCH-008**: Consolidate cart calculation logic into CartService
-- [ ] **ARCH-009**: Move inline translations to dictionary files
-- [ ] **ARCH-010**: Implement async queue for email sending (webhook → queue)
+- [x] **SEC-015**: Add user_agent and referer to audit logs – Done – Agent 1 – daf34cc
+- [x] **ARCH-006**: Split checkout page (589 lines) into smaller components – Done – Agent 1 – 99460a0
+- [x] **ARCH-007**: Add error boundaries for public-facing routes – Done – Agent 1 – bb9cd7f
+- [x] **ARCH-008**: Consolidate cart calculation logic into CartService – Done – Agent 1 – ea407ab
+- [ ] **ARCH-009**: Move inline translations to dictionary files – In progress – Agent 3
+- [x] **ARCH-010**: Implement async queue for email sending (webhook → queue) – Done – Agent 1 – 1fda36c
 - [x] **DB-009**: Add composite index `idx_products_active_sorted` – Done – Agent 2 – 707bb8e
-- [ ] **DB-010**: Add email format validation constraints
-- [ ] **DB-011**: Add phone format validation constraints
+- [x] **DB-010**: Add email format validation constraints – Done – Agent 1 – ae1db06
+- [x] **DB-011**: Add phone format validation constraints – Done – Agent 1 – 5e70783
 - [x] **DB-012**: Add `updated_at` triggers to `discount_codes`, `collections` – Done – Agent 2 – ec26408
-- [ ] **DB-013**: Add audit log retention policy (partition or archive after 2 years)
+- [x] **DB-013**: Add audit log retention policy (partition or archive after 2 years) – Done – Agent 1 – d2cb7ed
 
 ### LOW - Backlog
 
-- [ ] **ARCH-011**: Add API versioning (`/api/v1/`)
-- [ ] **ARCH-012**: Consider Redis/KV caching for collections
-- [ ] **DB-014**: Create views for active records (`active_products`, etc.)
-- [ ] **DB-015**: Add product change history table
-- [ ] **DB-016**: Add JSONB GIN index for product sizes (if queried)
-- [ ] **DB-017**: Schedule cart reservation cleanup via pg_cron
+- [x] **ARCH-011**: Add API versioning (`/api/v1/`) – Done – Agent 2 – f28c91d
+- [x] **ARCH-012**: Consider Redis/KV caching for collections – Done – Agent 2 – 9846f69
+- [x] **DB-014**: Create views for active records (`active_products`, etc.) – Done – Agent 1 – fc2b1b7
+- [x] **DB-015**: Add product change history table – Done – Agent 1 – 9100312
+- [x] **DB-016**: Add JSONB GIN index for product sizes (if queried) – Done – Agent 1 – 30669b6
+- [x] **DB-017**: Schedule cart reservation cleanup via pg_cron – Done – Agent 2 – Already done in SEC-011 (ca8a1e9)
 
 ---
 

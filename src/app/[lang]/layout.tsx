@@ -1,5 +1,5 @@
 import type { Locale, Collection } from '@/types';
-import { locales } from '@/lib/i18n/get-dictionary';
+import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CookieConsent } from '@/components/gdpr/cookie-consent';
@@ -37,15 +37,19 @@ export default async function LangLayout({
 }) {
   const { lang } = await params;
   const locale = lang as Locale;
-  const collections = await getCollections();
+
+  const [collections, dictionary] = await Promise.all([
+    getCollections(),
+    getDictionary(locale),
+  ]);
 
   return (
     <PasswordGate>
       <div className="min-h-screen flex flex-col" lang={locale}>
         <Header lang={locale} collections={collections} />
         <main className="flex-1">{children}</main>
-        <Footer lang={locale} collections={collections} />
-        <CookieConsent lang={locale} />
+        <Footer lang={locale} collections={collections} dictionary={dictionary} />
+        <CookieConsent lang={locale} dictionary={dictionary} />
       </div>
     </PasswordGate>
   );

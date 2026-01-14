@@ -2,17 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import type { Locale } from '@/types';
+import type { Dictionary } from '@/types';
 import { Logo } from '@/components/ui/logo';
-
-const heroText = {
-  no: {
-    subtitle: 'Et kunstunivers med sterke farger og en leken strek. Uten filter. Begrensede prints og originale verk.',
-  },
-  en: {
-    subtitle: 'An art universe with bold colors and a playful stroke. Unfiltered. Limited prints and original works.',
-  },
-};
 
 const fadeInUp = {
   initial: { opacity: 0, y: 40 },
@@ -31,11 +22,11 @@ const bounceAnimation = {
 };
 
 interface HeroProps {
-  lang: Locale;
+  dictionary: Dictionary;
 }
 
-export function Hero({ lang }: HeroProps): React.ReactNode {
-  const t = heroText[lang];
+export function Hero({ dictionary }: HeroProps): React.ReactNode {
+  const t = dictionary.hero;
 
   function scrollToArt(): void {
     document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });

@@ -12,7 +12,7 @@
   },
   "hero": {
     "title": "Pop-art with personality",
-    "subtitle": "Unique artworks that bring energy and color to your home",
+    "subtitle": "An art universe with bold colors and a playful stroke. Unfiltered. Limited prints and original works.",
     "cta": "Explore shop"
   },
   "shop": {
@@ -25,7 +25,13 @@
     "print": "Print",
     "requestSimilar": "Interested in similar work?",
     "sizes": "Sizes",
-    "left": "left"
+    "left": "left",
+    "backToShop": "Back to shop",
+    "backToHome": "Back",
+    "all": "All",
+    "empty": "No works available.",
+    "viewAll": "View all",
+    "comingSoon": "Coming soon..."
   },
   "cart": {
     "title": "Shopping Cart",
@@ -39,35 +45,89 @@
     "subtotal": "Subtotal",
     "total": "Total",
     "reservationWarning": "Items reserved for limited time",
-    "itemSoldOut": "This artwork is unfortunately no longer available"
+    "itemSoldOut": "This artwork is unfortunately no longer available",
+    "discount": "Discount",
+    "includingVat": "incl. VAT"
   },
   "checkout": {
     "title": "Checkout",
-    "shipping": "Shipping address",
+    "shipping": "Shipping Address",
     "payment": "Payment",
     "discountCode": "Discount code",
     "apply": "Apply",
     "invalidCode": "Invalid discount code",
     "payWithCard": "Pay with card",
     "payWithVipps": "Pay with Vipps",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "addressLine2": "Address line 2 (optional)",
+    "city": "City",
+    "postalCode": "Postal code",
+    "country": "Country",
+    "subtotal": "Subtotal",
+    "artistLevy": "Artist levy (5%)",
+    "artistLevyNote": "Applies to art over 2,500 kr",
+    "discount": "Discount",
+    "shippingCost": "Shipping",
+    "shippingFree": "Free",
+    "total": "Total",
+    "orderSummary": "Order Summary",
+    "includingVat": "incl. VAT",
+    "emptyCart": "Your cart is empty",
+    "paymentCanceled": "Payment was canceled",
+    "paymentCanceledDesc": "You can try again when you are ready.",
+    "paymentFailed": "Payment failed",
+    "paymentFailedDesc": "Your card was declined or an error occurred. Please try again.",
+    "genericError": "Something went wrong. Please try again.",
+    "fillAllFields": "Please fill in all required fields",
+    "acceptPrivacy": "I have read and accept the",
+    "privacyPolicy": "privacy policy",
+    "subscribeNewsletter": "Yes, I want to receive newsletters with news and offers",
+    "acceptPrivacyRequired": "You must accept the privacy policy to continue",
+    "discountApplied": "Discount applied!",
+    "discountValidationFailed": "Failed to validate discount code",
+    "vippsIncomplete": "Vipps payment was not completed. Please try again.",
+    "shippingMethod": "Shipping method",
+    "selectShipping": "Select shipping method",
+    "shippingLoading": "Loading shipping options...",
+    "noShippingOptions": "No shipping options available",
+    "shippingRequired": "Please select a shipping method to continue"
   },
   "success": {
     "title": "Thank you for your order!",
     "message": "We have received your order and will send you a confirmation by email.",
     "orderNumber": "Order number",
-    "emailSent": "Confirmation sent to"
+    "emailSent": "Confirmation sent to",
+    "shippingNote": "We will contact you soon with shipping information.",
+    "backToShop": "Back to shop",
+    "total": "Total paid",
+    "loading": "Loading order details...",
+    "yourOrder": "Your order"
   },
   "newsletter": {
     "title": "Stay updated",
+    "subtitle": "Get notified about new works and exclusive offers",
     "placeholder": "Your email address",
     "subscribe": "Subscribe",
-    "success": "Thank you for subscribing!"
+    "success": "Check your email!",
+    "successMessage": "We've sent you a confirmation link. Click it to complete your subscription.",
+    "alreadySubscribed": "You're already subscribed!",
+    "error": "Something went wrong. Try again."
   },
   "footer": {
     "privacy": "Privacy",
     "terms": "Terms",
-    "copyright": "All rights reserved"
+    "cookies": "Cookies",
+    "myData": "My Data",
+    "copyright": "All rights reserved",
+    "returns": "14-day returns",
+    "securePayment": "Secure payment",
+    "shop": "Shop",
+    "collections": "Collections",
+    "allProducts": "All products"
   },
   "language": {
     "switchTo": "Norsk"
@@ -91,5 +151,70 @@
   "artist": {
     "title": "About Dotty.",
     "statement": "Pop-art that challenges the ordinary and celebrates the unexpected."
+  },
+  "contact": {
+    "greeting": "Hey there!",
+    "title": "Let's talk",
+    "subtitle": "Have a question, want to order something special, or just say hi? I always reply personally.",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "Your email",
+    "messagePlaceholder": "What's on your mind?",
+    "send": "Send message",
+    "sending": "Sending...",
+    "success": "Thanks! I'll get back to you soon.",
+    "error": "Something went wrong. Try again!",
+    "privacyNotice": "By sending this message, you agree that we store and process your information according to our",
+    "privacyLink": "privacy policy"
+  },
+  "cookies": {
+    "title": "We use cookies",
+    "description": "We only use essential cookies for cart and login. No tracking.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "learnMore": "Learn more"
+  },
+  "productDetail": {
+    "backToShop": "Back to shop",
+    "dimensions": "Size",
+    "year": "Year",
+    "availability": "Availability",
+    "available": "Available",
+    "soldOut": "Sold out",
+    "addToCart": "Add to Cart",
+    "addedToCart": "Added to cart",
+    "viewCart": "View cart",
+    "original": "Painting",
+    "print": "Print",
+    "inquiryOnly": "Inquiry required",
+    "inquiryDescription": "This artwork is not sold directly. Leave your email and we will contact you.",
+    "emailPlaceholder": "Your email address",
+    "sendInquiry": "Send inquiry",
+    "inquirySent": "Thank you! We will be in touch soon.",
+    "inquiryError": "Something went wrong. Please try again.",
+    "soldOutInterest": "Interested?",
+    "soldOutDescription": "This artwork is sold, but I can create something similar. Leave your email!",
+    "contactArtist": "Contact artist"
+  },
+  "shipping": {
+    "title": "Select shipping",
+    "loading": "Loading shipping options...",
+    "enterPostalCode": "Enter postal code to see shipping options",
+    "noOptions": "No shipping options available",
+    "estimated": "Estimated delivery",
+    "fossilFree": "fossil-free transport",
+    "pickup": "Pickup point",
+    "homeDelivery": "Home delivery",
+    "error": "Could not load shipping options"
+  },
+  "soldPage": {
+    "title": "Sold Works",
+    "description": "These originals have found new homes. Interested in similar work? Get in touch!",
+    "empty": "No sold works yet."
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about buying art from Dotty.",
+    "moreQuestions": "Have more questions?",
+    "contact": "Get in touch"
   }
 }

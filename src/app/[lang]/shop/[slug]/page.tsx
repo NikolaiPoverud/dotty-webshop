@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
-import { locales } from '@/lib/i18n/get-dictionary';
+import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { createPublicClient } from '@/lib/supabase/public';
 import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo';
 import { CollectionJsonLd } from '@/components/seo/collection-jsonld';
@@ -148,16 +148,6 @@ async function getCollectionInfo(collectionId: string | null): Promise<Collectio
   };
 }
 
-const pageText = {
-  no: {
-    backToShop: 'Tilbake til shop',
-    allProducts: 'Alle produkter',
-  },
-  en: {
-    backToShop: 'Back to shop',
-    allProducts: 'All products',
-  },
-};
 
 function buildAlternates(lang: string, slug: string) {
   const url = `${BASE_URL}/${lang}/shop/${slug}`;
@@ -280,11 +270,12 @@ function getHomeName(locale: Locale): string {
 export default async function ShopSlugPage({ params }: Props) {
   const { lang, slug } = await params;
   const locale = lang as Locale;
+  const dictionary = await getDictionary(locale);
+  const t = dictionary.shop;
 
   const collection = await getCollection(slug);
 
   if (collection) {
-    const t = pageText[locale];
     const [products, allCollections] = await Promise.all([
       getProductsForCollection(collection.id),
       getAllCollections(),
@@ -322,6 +313,7 @@ export default async function ShopSlugPage({ params }: Props) {
               products={products}
               collections={allCollections}
               lang={locale}
+              dictionary={dictionary}
               initialCollection={collection.id}
             />
           </div>
@@ -358,6 +350,7 @@ export default async function ShopSlugPage({ params }: Props) {
         collectionName={collectionInfo.name}
         collectionSlug={collectionInfo.slug}
         lang={locale}
+        dictionary={dictionary}
       />
       {relatedProducts.length > 0 && (
         <RelatedProducts products={relatedProducts} lang={locale} />

@@ -1,10 +1,10 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
-import type { Locale } from '@/types';
+import type { Dictionary, Locale } from '@/types';
 
 interface FAQ {
   question: string;
@@ -98,6 +98,8 @@ const faqs: Record<Locale, FAQ[]> = {
   ],
 };
 
+// Note: This is a client component - dictionary will be fetched via useEffect
+// For now, keeping the static text for FAQ page content which is different from other pages
 const pageText = {
   no: {
     title: 'Ofte stilte spørsmål',

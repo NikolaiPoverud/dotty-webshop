@@ -4,58 +4,11 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Check, ArrowLeft, Mail, Send, Loader2 } from 'lucide-react';
-import type { Locale, Product, GalleryImage, ProductSize } from '@/types';
+import type { Dictionary, Locale, Product, GalleryImage, ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { ProductGallery } from './product-gallery';
-
-const text = {
-  no: {
-    backToShop: 'Tilbake til butikk',
-    dimensions: 'Størrelse',
-    year: 'År',
-    availability: 'Tilgjengelighet',
-    available: 'Tilgjengelig',
-    soldOut: 'Utsolgt',
-    addToCart: 'Legg i Handlekurv',
-    addedToCart: 'Lagt i handlekurv',
-    viewCart: 'Se handlekurv',
-    original: 'Maleri',
-    print: 'Prints',
-    inquiryOnly: 'Forespørsel påkrevd',
-    inquiryDescription: 'Dette verket selges ikke direkte. Legg igjen din e-post, så tar vi kontakt.',
-    emailPlaceholder: 'Din e-postadresse',
-    sendInquiry: 'Send forespørsel',
-    inquirySent: 'Takk! Vi tar kontakt snart.',
-    inquiryError: 'Noe gikk galt. Prøv igjen.',
-    soldOutInterest: 'Interessert?',
-    soldOutDescription: 'Dette verket er solgt, men jeg kan lage lignende. Legg igjen din e-post!',
-    contactArtist: 'Kontakt kunstner',
-  },
-  en: {
-    backToShop: 'Back to shop',
-    dimensions: 'Size',
-    year: 'Year',
-    availability: 'Availability',
-    available: 'Available',
-    soldOut: 'Sold out',
-    addToCart: 'Add to Cart',
-    addedToCart: 'Added to cart',
-    viewCart: 'View cart',
-    original: 'Painting',
-    print: 'Print',
-    inquiryOnly: 'Inquiry required',
-    inquiryDescription: 'This artwork is not sold directly. Leave your email and we will contact you.',
-    emailPlaceholder: 'Your email address',
-    sendInquiry: 'Send inquiry',
-    inquirySent: 'Thank you! We will be in touch soon.',
-    inquiryError: 'Something went wrong. Please try again.',
-    soldOutInterest: 'Interested?',
-    soldOutDescription: 'This artwork is sold, but I can create something similar. Leave your email!',
-    contactArtist: 'Contact artist',
-  },
-};
 
 type InquiryStatus = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -144,10 +97,11 @@ interface ProductDetailProps {
   collectionName: string | null;
   collectionSlug?: string | null;
   lang: Locale;
+  dictionary: Dictionary;
 }
 
-export function ProductDetail({ product, collectionName, collectionSlug, lang }: ProductDetailProps): React.ReactElement {
-  const t = text[lang];
+export function ProductDetail({ product, collectionName, collectionSlug, lang, dictionary }: ProductDetailProps): React.ReactElement {
+  const t = dictionary.productDetail;
   const { addItem, cart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
   const [inquiryEmail, setInquiryEmail] = useState('');
