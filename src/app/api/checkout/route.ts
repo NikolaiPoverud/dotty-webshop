@@ -4,23 +4,8 @@ import { getStripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import { validateCheckoutToken, generateCheckoutToken } from '@/lib/checkout-token';
+import { validateCheckoutRequest } from '@/lib/schemas/checkout';
 import type { ShippingAddress, OrderItem, Locale } from '@/types';
-
-interface CheckoutRequestBody {
-  items: OrderItem[];
-  customer_email: string;
-  customer_name: string;
-  customer_phone: string;
-  shipping_address: ShippingAddress;
-  discount_code?: string;
-  discount_amount?: number;
-  shipping_cost?: number;
-  artist_levy?: number;
-  locale?: Locale;
-  privacy_accepted?: boolean;
-  newsletter_opt_in?: boolean;
-  checkout_token?: string;
-}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Rate limiting: 5 requests per minute per IP for checkout
@@ -37,7 +22,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const body = await request.json() as CheckoutRequestBody;
+  // ARCH-002: Zod schema validation of request body
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+  }
+
+  const validationResult = validateCheckoutRequest(rawBody);
+  if (!validationResult.success) {
+    return NextResponse.json(
+      { error: validationResult.error },
+      { status: 400 },
+    );
+  }
+
+  const body = validationResult.data;
 
   // SEC-002: Validate checkout token to ensure request originated from legitimate checkout
   const tokenValidation = validateCheckoutToken(body.checkout_token);
@@ -55,31 +56,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     customer_phone,
     shipping_address,
     discount_code,
-    discount_amount = 0,
-    shipping_cost = 0,
-    artist_levy = 0,
-    locale = 'no',
-    privacy_accepted = false,
-    newsletter_opt_in = false,
+    shipping_cost,
+    locale,
+    privacy_accepted,
+    newsletter_opt_in,
   } = body;
 
-  if (!items || items.length === 0) {
-    return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
-  }
-
-  if (!customer_email || !customer_name || !customer_phone || !shipping_address) {
-    return NextResponse.json({ error: 'Missing customer information' }, { status: 400 });
-  }
-
   // ARCH-001: Server-side cart validation - fetch actual prices from database
-  const validationResult = await validateCartServerSide(items, discount_code);
-  if (!validationResult.valid) {
-    return NextResponse.json({ error: validationResult.error }, { status: 400 });
+  const cartValidationResult = await validateCartServerSide(items, discount_code);
+  if (!cartValidationResult.valid) {
+    return NextResponse.json({ error: cartValidationResult.error }, { status: 400 });
   }
 
   // Use server-validated prices and discount
-  const validatedItems = validationResult.items!;
-  const validatedDiscountAmount = validationResult.discountAmount ?? 0;
+  const validatedItems = cartValidationResult.items!;
+  const validatedDiscountAmount = cartValidationResult.discountAmount ?? 0;
 
   const stripe = getStripe();
   const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);

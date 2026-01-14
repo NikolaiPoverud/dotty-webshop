@@ -29,7 +29,8 @@
     "resend": "^6.6.0",
     "server-only": "^0.0.1",
     "stripe": "^20.1.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
