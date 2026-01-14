@@ -1,6 +1,21 @@
 /**
  * Vipps ePayment API Client
  * Documentation: https://developer.vippsmobilepay.com/docs/APIs/epayment-api/
+ *
+ * SEC-010: CREDENTIAL ROTATION REMINDER
+ * ======================================
+ * Vipps credentials should be rotated regularly:
+ * - CLIENT_SECRET: Rotate every 6 months
+ * - SUBSCRIPTION_KEY: Rotate every 12 months
+ *
+ * To rotate credentials:
+ * 1. Generate new credentials in Vipps Portal (portal.vippsmobilepay.com)
+ * 2. Update environment variables in production (Vercel/hosting)
+ * 3. Verify payment flow still works in test environment
+ * 4. Deploy to production
+ * 5. Revoke old credentials in Vipps Portal
+ *
+ * Set calendar reminders for rotation dates!
  */
 
 const VIPPS_API_URL = process.env.NODE_ENV === 'production'
