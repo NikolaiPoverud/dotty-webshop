@@ -10,7 +10,7 @@ const DOMAINS = {
   // Norwegian domain (primary)
   NO: ['dotty.no', 'www.dotty.no'],
   // English domain
-  EN: ['dottyartworks.com', 'www.dottyartworks.com'],
+  EN: ['dottyartworks.com', 'www.dottyartworks.com', 'dottyartwork.com', 'www.dottyartwork.com'],
   // Redirect domains (redirect to NO domain)
   REDIRECT: ['dottyartworks.no', 'www.dottyartworks.no'],
 };
