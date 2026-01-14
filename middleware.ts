@@ -5,6 +5,30 @@ const locales = ['no', 'en'] as const;
 type Locale = (typeof locales)[number];
 const defaultLocale: Locale = 'no';
 
+// Domain configuration
+const DOMAINS = {
+  // Norwegian domain (primary)
+  NO: ['dotty.no', 'www.dotty.no'],
+  // English domain
+  EN: ['dottyartworks.com', 'www.dottyartworks.com'],
+  // Redirect domains (redirect to NO domain)
+  REDIRECT: ['dottyartworks.no', 'www.dottyartworks.no'],
+};
+
+// Get locale based on hostname
+function getLocaleForDomain(hostname: string): Locale | null {
+  const host = hostname.split(':')[0]; // Remove port if present
+  if (DOMAINS.NO.includes(host)) return 'no';
+  if (DOMAINS.EN.includes(host)) return 'en';
+  return null;
+}
+
+// Check if hostname should redirect to main domain
+function shouldRedirectToMain(hostname: string): boolean {
+  const host = hostname.split(':')[0];
+  return DOMAINS.REDIRECT.includes(host);
+}
+
 // Paths that bypass locale handling
 const localeBypasses = [
   '/api',
@@ -72,6 +96,13 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.redirect(url, 308));
   }
 
+  // Redirect dottyartworks.no to dotty.no (Norwegian main domain)
+  if (shouldRedirectToMain(hostname)) {
+    const url = new URL(`https://dotty.no${pathname}`);
+    url.search = request.nextUrl.search;
+    return addSecurityHeaders(NextResponse.redirect(url, 308));
+  }
+
   // For admin routes, handle authentication
   if (pathname.startsWith('/admin')) {
     return handleAdminAuth(request);
@@ -87,15 +118,30 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
+  // Determine locale based on domain
+  const domainLocale = getLocaleForDomain(hostname);
+  const targetLocale = domainLocale || defaultLocale;
+
   // Handle i18n locale routing
   const pathnameLocale = getPathnameLocale(pathname);
+
+  // If pathname has a locale, check if it matches the domain's locale
   if (pathnameLocale) {
+    // If domain enforces a specific locale and pathname has different locale,
+    // redirect to the correct locale for this domain
+    if (domainLocale && pathnameLocale !== domainLocale) {
+      const url = request.nextUrl.clone();
+      // Replace the locale in the pathname
+      const pathWithoutLocale = pathname.replace(`/${pathnameLocale}`, '') || '/';
+      url.pathname = `/${domainLocale}${pathWithoutLocale === '/' ? '' : pathWithoutLocale}`;
+      return addSecurityHeaders(NextResponse.redirect(url));
+    }
     return addSecurityHeaders(NextResponse.next());
   }
 
-  // No locale in pathname - redirect to add one
+  // No locale in pathname - redirect to add the appropriate one for this domain
   const url = request.nextUrl.clone();
-  url.pathname = `/${defaultLocale}${pathname === '/' ? '' : pathname}`;
+  url.pathname = `/${targetLocale}${pathname === '/' ? '' : pathname}`;
   return addSecurityHeaders(NextResponse.redirect(url));
 }
 
