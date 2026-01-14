@@ -8,6 +8,7 @@ import {
   FileImage,
   FileText,
   FolderOpen,
+  ImageIcon,
   LayoutDashboard,
   Mail,
   MessageSquareQuote,
@@ -37,6 +38,7 @@ const navItems = [
   { href: '/admin/testimonials', label: 'Tilbakemeldinger', icon: MessageSquareQuote },
   { href: '/admin/email-test', label: 'Test e-post', icon: Send },
   { href: '/admin/pdf-converter', label: 'PDF til PNG', icon: FileImage },
+  { href: '/admin/webp-converter', label: 'WebP Converter', icon: ImageIcon },
   { href: '/admin/gdpr', label: 'Personvern', icon: Shield },
   { href: '/admin/audit-log', label: 'Aktivitetslogg', icon: FileText },
 ];
