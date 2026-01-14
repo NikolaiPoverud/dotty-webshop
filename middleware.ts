@@ -37,6 +37,24 @@ function getPathnameLocale(pathname: string): Locale | null {
   return null;
 }
 
+// SEC-009: Security headers for all responses
+const SECURITY_HEADERS = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // Note: HSTS should be enabled in production with proper domain setup
+  // 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+};
+
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
 // ARCH-003: Consolidated middleware - handles i18n, auth, and session management
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -51,7 +69,7 @@ export async function middleware(request: NextRequest) {
   if (hostname.includes('vercel.app') && !pathname.startsWith('/api')) {
     const url = new URL(`https://dotty.no${pathname}`);
     url.search = request.nextUrl.search;
-    return NextResponse.redirect(url, 308);
+    return addSecurityHeaders(NextResponse.redirect(url, 308));
   }
 
   // For admin routes, handle authentication
@@ -59,26 +77,26 @@ export async function middleware(request: NextRequest) {
     return handleAdminAuth(request);
   }
 
-  // For API routes, skip locale handling
+  // For API routes, skip locale handling but add security headers
   if (pathname.startsWith('/api')) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   // Skip other locale bypasses
   if (localeBypasses.some(path => pathname.startsWith(path))) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   // Handle i18n locale routing
   const pathnameLocale = getPathnameLocale(pathname);
   if (pathnameLocale) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   // No locale in pathname - redirect to add one
   const url = request.nextUrl.clone();
   url.pathname = `/${defaultLocale}${pathname === '/' ? '' : pathname}`;
-  return NextResponse.redirect(url);
+  return addSecurityHeaders(NextResponse.redirect(url));
 }
 
 // Handle admin authentication with Supabase session
@@ -91,9 +109,9 @@ async function handleAdminAuth(request: NextRequest) {
 
   // Skip auth check for login and reset-password pages
   if (pathname === '/admin/login' || pathname === '/admin/reset-password') {
-    return NextResponse.next({
+    return addSecurityHeaders(NextResponse.next({
       request: { headers: requestHeaders },
-    });
+    }));
   }
 
   let response = NextResponse.next({
@@ -129,10 +147,10 @@ async function handleAdminAuth(request: NextRequest) {
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/login';
-    return NextResponse.redirect(url);
+    return addSecurityHeaders(NextResponse.redirect(url));
   }
 
-  return response;
+  return addSecurityHeaders(response);
 }
 
 export const config = {
