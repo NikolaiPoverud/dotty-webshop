@@ -65,7 +65,9 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [hostname, setHostname] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [activeHash, setActiveHash] = useState('');
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   const { itemCount } = useCart();
   const pathname = usePathname();
@@ -76,17 +78,46 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
   const isHomePage = pathname === `/${lang}` || pathname === '/';
   const langSwitchUrl = getLanguageSwitchUrl(pathname, lang, hostname);
 
+  // Check if we're on a product detail page (shop/[slug] but not shop index)
+  const isProductPage = pathname?.match(/\/shop\/[^/]+$/) !== null;
+
+  // Reset hidden state when leaving product pages
+  useEffect(() => {
+    if (!isProductPage) {
+      setIsHidden(false);
+    }
+  }, [isProductPage]);
+
   // Initialize client-side state and set up event listeners
   useEffect(() => {
     setHostname(window.location.hostname);
     setActiveHash(window.location.hash);
+    setLastScrollY(window.scrollY);
 
     function handleHashChange(): void {
       setActiveHash(window.location.hash);
     }
 
     function handleScroll(): void {
-      setIsVisible(window.scrollY > 100);
+      const currentScrollY = window.scrollY;
+      setIsVisible(currentScrollY > 100);
+
+      // On product pages, hide header when scrolling down, show when scrolling up
+      if (isProductPage) {
+        const scrollDelta = currentScrollY - lastScrollY;
+
+        // Only trigger hide/show after scrolling a minimum distance (10px)
+        if (Math.abs(scrollDelta) > 10) {
+          if (scrollDelta > 0 && currentScrollY > 100) {
+            // Scrolling down - hide header
+            setIsHidden(true);
+          } else if (scrollDelta < 0) {
+            // Scrolling up - show header
+            setIsHidden(false);
+          }
+          setLastScrollY(currentScrollY);
+        }
+      }
     }
 
     window.addEventListener('hashchange', handleHashChange);
@@ -96,7 +127,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [isProductPage, lastScrollY]);
 
   function handleLogoClick(): void {
     if (isHomePage) {
@@ -123,8 +154,9 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out',
-        isVisible ? 'bg-background/90 backdrop-blur-md' : 'bg-transparent'
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out',
+        isVisible ? 'bg-background/90 backdrop-blur-md' : 'bg-transparent',
+        isHidden && isProductPage ? '-translate-y-full' : 'translate-y-0'
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
