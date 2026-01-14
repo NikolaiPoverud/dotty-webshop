@@ -167,26 +167,22 @@ async function handleCheckoutCompletedFallback(
 }
 
 async function decrementDiscountCode(supabase: SupabaseClient, code: string): Promise<void> {
-  const normalizedCode = code.toUpperCase();
+  // SEC-006: Use atomic database function to prevent race conditions
+  const { data, error } = await supabase.rpc('decrement_discount_code', {
+    p_code: code,
+  });
 
-  const { data: discountData } = await supabase
-    .from('discount_codes')
-    .select('uses_remaining')
-    .eq('code', normalizedCode)
-    .single();
-
-  if (!discountData?.uses_remaining || discountData.uses_remaining <= 0) {
+  if (error) {
+    console.warn(`Failed to decrement discount code ${code}:`, error.message);
     return;
   }
 
-  const { error } = await supabase
-    .from('discount_codes')
-    .update({ uses_remaining: Math.max(0, discountData.uses_remaining - 1) })
-    .eq('code', normalizedCode);
-
-  if (error) {
-    console.warn(`Failed to decrement discount code ${normalizedCode}:`, error.message);
+  if (!data?.success) {
+    console.warn(`Discount code ${code} could not be decremented:`, data?.error);
+    return;
   }
+
+  console.log(`Discount code ${code} decremented, remaining: ${data.remaining}`);
 }
 
 async function updateInventory(supabase: SupabaseClient, items: OrderItemInput[]): Promise<void> {
