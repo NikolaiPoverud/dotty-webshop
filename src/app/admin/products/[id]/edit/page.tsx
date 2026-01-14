@@ -164,7 +164,14 @@ export default function EditProductPage() {
   }, [productId, buildSaveData, title, price, toast]);
 
   // Trigger auto-save when user clicks away from an input (blur)
-  const handleAutoSaveBlur = useCallback(() => {
+  const handleAutoSaveBlur = useCallback((e: React.FocusEvent) => {
+    // Only trigger from actual input elements
+    const target = e.target as HTMLElement;
+    const tagName = target.tagName.toLowerCase();
+    if (tagName !== 'input' && tagName !== 'textarea' && tagName !== 'select') {
+      return;
+    }
+
     // Don't auto-save until data is loaded
     if (!dataLoaded || isLoading) return;
 
