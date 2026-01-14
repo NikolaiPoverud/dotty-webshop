@@ -241,6 +241,38 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Auto-refresh when tab becomes visible or window regains focus
+  // This ensures fresh data after returning from edit page
+  useEffect(() => {
+    let lastFetchTime = 0;
+    const MIN_FETCH_INTERVAL = 1000; // Prevent double-fetches within 1 second
+
+    function throttledFetch(): void {
+      const now = Date.now();
+      if (now - lastFetchTime > MIN_FETCH_INTERVAL) {
+        lastFetchTime = now;
+        fetchProducts();
+      }
+    }
+
+    function handleVisibilityChange(): void {
+      if (document.visibilityState === 'visible') {
+        throttledFetch();
+      }
+    }
+
+    function handleFocus(): void {
+      throttledFetch();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchProducts]);
+
   const deleteProduct = async (id: string) => {
     if (!confirm('Er du sikker pa at du vil slette dette produktet?')) return;
 
