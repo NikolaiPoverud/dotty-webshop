@@ -336,6 +336,7 @@ export default function EditProductPage() {
                 id="stock"
                 type="number"
                 min="0"
+                step="1"
                 value={stockQuantity}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -344,10 +345,11 @@ export default function EditProductPage() {
                     setIsAvailable(false);
                   }
                 }}
+                onWheel={(e) => e.currentTarget.blur()}
                 className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 placeholder="1"
               />
-              <p className="text-xs text-muted-foreground">Sett til 0 for a markere som solgt</p>
+              <p className="text-xs text-muted-foreground">Sett til 0 for å markere som solgt</p>
             </div>
 
             <div className="space-y-2">
