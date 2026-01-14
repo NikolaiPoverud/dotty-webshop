@@ -44,18 +44,18 @@ function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactE
       onClick={onClick}
       aria-label={isLeft ? 'Previous products' : 'Next products'}
       className={`group absolute top-1/2 -translate-y-1/2 z-20
-                  w-12 h-12 sm:w-14 sm:h-14
-                  bg-background border-[3px] border-primary
+                  w-10 h-10 sm:w-14 sm:h-14
+                  bg-background border-2 sm:border-[3px] border-primary
                   flex items-center justify-center
                   transition-all duration-200
                   hover:bg-primary
                   ${isLeft
-                    ? 'left-0 -translate-x-2 sm:-translate-x-3 hover:translate-x-0 shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[6px_6px_0_0_theme(colors.primary)]'
-                    : 'right-0 translate-x-2 sm:translate-x-3 hover:-translate-x-0 shadow-[-4px_4px_0_0_theme(colors.primary)] hover:shadow-[-6px_6px_0_0_theme(colors.primary)]'
+                    ? 'left-1 sm:left-0 sm:-translate-x-3 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]'
+                    : 'right-1 sm:right-0 sm:translate-x-3 shadow-[-2px_2px_0_0_theme(colors.primary)] sm:shadow-[-4px_4px_0_0_theme(colors.primary)]'
                   }`}
     >
       <Icon
-        className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors"
+        className="w-5 h-5 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors"
         strokeWidth={3}
       />
     </motion.button>

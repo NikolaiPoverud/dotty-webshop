@@ -46,7 +46,7 @@ export function Hero({ lang }: HeroProps): React.ReactNode {
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
 
       <motion.div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/8 rounded-full blur-[120px]"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[280px] h-[180px] sm:w-[400px] sm:h-[280px] lg:w-[600px] lg:h-[400px] bg-primary/8 rounded-full blur-[80px] sm:blur-[100px] lg:blur-[120px]"
         {...pulseAnimation}
       />
 
@@ -73,12 +73,12 @@ export function Hero({ lang }: HeroProps): React.ReactNode {
       <motion.button
         onClick={scrollToArt}
         className="group absolute bottom-8 left-1/2 -translate-x-1/2 z-10
-                   w-12 h-12 sm:w-14 sm:h-14
-                   bg-background border-[3px] border-primary
+                   w-11 h-11 sm:w-14 sm:h-14
+                   bg-background border-2 sm:border-[3px] border-primary
                    flex items-center justify-center
                    transition-all duration-200
                    hover:bg-primary
-                   shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)]
+                   shadow-[0_3px_0_0_theme(colors.primary)] sm:shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_4px_0_0_theme(colors.primary)] sm:hover:shadow-[0_6px_0_0_theme(colors.primary)]
                    hover:-translate-y-1 cursor-pointer"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

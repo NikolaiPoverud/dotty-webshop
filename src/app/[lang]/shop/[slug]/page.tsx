@@ -304,12 +304,12 @@ export default async function ShopSlugPage({ params }: Props) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
               href={`/${locale}/shop`}
-              className="group inline-flex items-center gap-3 mb-6"
+              className="group inline-flex items-center gap-2 sm:gap-3 mb-6"
             >
-              <span className="flex items-center justify-center w-10 h-10 bg-background border-2 border-muted-foreground/30 group-hover:border-primary group-hover:text-primary transition-all duration-200 shadow-[2px_2px_0_0_theme(colors.border)] group-hover:shadow-[3px_3px_0_0_theme(colors.primary)]">
-                <ArrowLeft className="w-4 h-4" />
+              <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-background border sm:border-2 border-muted-foreground/30 group-hover:border-primary group-hover:text-primary transition-all duration-200 shadow-[1px_1px_0_0_theme(colors.border)] sm:shadow-[2px_2px_0_0_theme(colors.border)] group-hover:shadow-[2px_2px_0_0_theme(colors.primary)] sm:group-hover:shadow-[3px_3px_0_0_theme(colors.primary)]">
+                <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </span>
-              <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
                 {t.backToShop}
               </span>
             </Link>

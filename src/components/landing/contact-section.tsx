@@ -161,7 +161,7 @@ export function ContactSection({ lang }: ContactSectionProps): React.ReactElemen
           <motion.button
             type="submit"
             disabled={formState === 'loading'}
-            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-background border-[3px] border-primary text-primary font-bold uppercase tracking-widest transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 disabled:hover:bg-background disabled:hover:text-primary shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+            className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-background border-2 sm:border-[3px] border-primary text-primary font-bold uppercase tracking-wider sm:tracking-widest text-sm sm:text-base transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 disabled:hover:bg-background disabled:hover:text-primary shadow-[0_3px_0_0_theme(colors.primary)] sm:shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_4px_0_0_theme(colors.primary)] sm:hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
             whileTap={{ scale: 0.98, y: 2 }}
           >
             {getButtonContent(formState, t)}

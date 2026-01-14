@@ -34,9 +34,9 @@ export function FilterTabs({ options, activeId, onChange, centered = false }: Fi
   }, [activeId, options]);
 
   return (
-    <div className={cn('relative', centered && 'flex justify-center')}>
+    <div className={cn('relative -mx-4 px-4 overflow-x-auto scrollbar-hide', centered && 'flex justify-center')}>
       <motion.div
-        className="relative inline-flex items-center gap-1 bg-background border-[3px] border-primary p-1 shadow-[4px_4px_0_0_theme(colors.primary)]"
+        className="relative inline-flex items-center gap-1 bg-background border-2 sm:border-[3px] border-primary p-1 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
@@ -63,7 +63,7 @@ export function FilterTabs({ options, activeId, onChange, centered = false }: Fi
             }}
             onClick={() => onChange(option.id)}
             className={cn(
-              'relative z-10 px-5 py-2.5 text-sm font-bold uppercase tracking-wider transition-all duration-200',
+              'relative z-10 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap',
               activeId === option.id
                 ? 'text-background'
                 : 'text-muted-foreground hover:text-primary'

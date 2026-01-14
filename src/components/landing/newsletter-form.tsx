@@ -124,13 +124,13 @@ export function NewsletterForm({ lang }: NewsletterFormProps): React.ReactElemen
             placeholder={t.placeholder}
             required
             disabled={status === 'loading'}
-            className="flex-1 px-4 py-3 bg-background border-[3px] border-muted-foreground/30 focus:outline-none focus:border-primary focus:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all disabled:opacity-50"
+            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-background border-2 sm:border-[3px] border-muted-foreground/30 focus:outline-none focus:border-primary focus:shadow-[2px_2px_0_0_theme(colors.primary)] sm:focus:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all disabled:opacity-50 text-sm sm:text-base"
           />
 
           <motion.button
             type="submit"
             disabled={status === 'loading'}
-            className="px-6 py-3 bg-background border-[3px] border-primary text-primary font-bold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 flex items-center justify-center gap-2 shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[6px_6px_0_0_theme(colors.primary)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-background border-2 sm:border-[3px] border-primary text-primary font-bold uppercase tracking-wider text-sm sm:text-base transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 flex items-center justify-center gap-2 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[3px_3px_0_0_theme(colors.primary)] sm:hover:shadow-[6px_6px_0_0_theme(colors.primary)] hover:-translate-x-0.5 hover:-translate-y-0.5"
             whileTap={{ scale: 0.98, x: 2, y: 2 }}
           >
             {status === 'loading' ? (
@@ -138,7 +138,7 @@ export function NewsletterForm({ lang }: NewsletterFormProps): React.ReactElemen
             ) : (
               <Send className="w-4 h-4" />
             )}
-            <span>{t.subscribe}</span>
+            <span className="hidden sm:inline">{t.subscribe}</span>
           </motion.button>
         </motion.form>
       )}

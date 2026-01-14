@@ -91,7 +91,7 @@ export const ProductCard = memo(function ProductCard({
 
           {isSold && (
             <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-              <span className="px-6 py-2 bg-foreground border-[3px] border-foreground text-background text-lg font-bold uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
+              <span className="px-4 sm:px-6 py-1.5 sm:py-2 bg-foreground border-2 sm:border-[3px] border-foreground text-background text-sm sm:text-lg font-bold uppercase tracking-widest shadow-[2px_2px_0_0_rgba(0,0,0,0.3)] sm:shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
                 {t.sold}
               </span>
             </div>
@@ -101,20 +101,20 @@ export const ProductCard = memo(function ProductCard({
             <motion.div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           )}
 
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
             <span className={cn(
-              "px-3 py-1 text-xs uppercase tracking-wider font-bold border-2 shadow-[2px_2px_0_0_theme(colors.primary)]",
+              "px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs uppercase tracking-wider font-bold border sm:border-2 shadow-[1px_1px_0_0_theme(colors.primary)] sm:shadow-[2px_2px_0_0_theme(colors.primary)]",
               product.product_type === 'original'
                 ? "bg-background text-primary border-primary"
-                : "bg-background text-foreground border-foreground shadow-[2px_2px_0_0_theme(colors.foreground)]"
+                : "bg-background text-foreground border-foreground shadow-[1px_1px_0_0_theme(colors.foreground)] sm:shadow-[2px_2px_0_0_theme(colors.foreground)]"
             )}>
               {productTypeLabel}
             </span>
           </div>
 
           {isLowStock && (
-            <div className="absolute top-4 right-4">
-              <span className="px-3 py-1 bg-warning text-background text-xs uppercase tracking-wider font-bold border-2 border-warning shadow-[2px_2px_0_0_theme(colors.warning)]">
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+              <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-warning text-background text-[10px] sm:text-xs uppercase tracking-wider font-bold border sm:border-2 border-warning shadow-[1px_1px_0_0_theme(colors.warning)] sm:shadow-[2px_2px_0_0_theme(colors.warning)]">
                 {product.stock_quantity} {t.left}
               </span>
             </div>

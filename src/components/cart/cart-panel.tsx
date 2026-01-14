@@ -177,7 +177,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
 
           <motion.div
             {...panelAnimation}
-            className="fixed right-0 top-0 w-full max-w-md bg-[#0a0a0a] border-l border-border z-[80] flex flex-col shadow-2xl"
+            className="fixed right-0 top-0 w-full sm:max-w-md bg-[#0a0a0a] border-l border-border z-[80] flex flex-col shadow-2xl"
             style={{ height: '100vh' }}
           >
             <div className="flex items-center justify-between p-4 border-b-[3px] border-primary">

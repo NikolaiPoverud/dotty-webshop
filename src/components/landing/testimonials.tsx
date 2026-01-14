@@ -40,16 +40,16 @@ function NavButton({ direction, onClick }: NavButtonProps): React.ReactElement {
   const isPrev = direction === 'prev';
   const Icon = isPrev ? ChevronLeft : ChevronRight;
   const positionClass = isPrev
-    ? 'left-0 sm:-left-14 shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)]'
-    : 'right-0 sm:-right-14 shadow-[-3px_3px_0_0_theme(colors.primary)] hover:shadow-[-4px_4px_0_0_theme(colors.primary)]';
+    ? '-left-1 sm:-left-14 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[3px_3px_0_0_theme(colors.primary)]'
+    : '-right-1 sm:-right-14 shadow-[-2px_2px_0_0_theme(colors.primary)] sm:shadow-[-3px_3px_0_0_theme(colors.primary)]';
 
   return (
     <button
       onClick={onClick}
-      className={`group absolute ${positionClass} z-10 w-10 h-10 sm:w-12 sm:h-12 bg-background border-2 border-primary flex items-center justify-center transition-all duration-200 hover:bg-primary`}
+      className={`group absolute ${positionClass} z-10 w-9 h-9 sm:w-12 sm:h-12 bg-background border-2 border-primary flex items-center justify-center transition-all duration-200 hover:bg-primary`}
       aria-label={`${isPrev ? 'Previous' : 'Next'} testimonial`}
     >
-      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
+      <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
     </button>
   );
 }
@@ -95,7 +95,7 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
         <div className="relative flex items-center">
           {showNavigation && <NavButton direction="prev" onClick={goToPrev} />}
 
-          <div className="flex-1 text-center px-12 sm:px-16 min-h-[200px] flex flex-col items-center justify-center">
+          <div className="flex-1 text-center px-8 sm:px-14 lg:px-16 min-h-[180px] sm:min-h-[200px] flex flex-col items-center justify-center">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={currentIndex}
@@ -111,7 +111,7 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
                   {getSourceIcon(current.source)}
                 </div>
 
-                <p className="text-xl sm:text-2xl lg:text-3xl text-foreground font-medium mb-6 leading-relaxed">
+                <p className="text-base sm:text-xl lg:text-2xl text-foreground font-medium mb-4 sm:mb-6 leading-relaxed">
                   "{current.feedback}"
                 </p>
 
