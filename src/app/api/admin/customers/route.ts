@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { getResend, emailConfig } from '@/lib/email/resend';
 import { NewsletterEmail } from '@/emails/newsletter';
-import { logAudit } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -188,6 +188,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       sent,
       failed,
     },
+    ...getAuditHeadersFromRequest(request),
   });
 
   return NextResponse.json({

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 interface RouteParams {
@@ -40,7 +40,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       actor_type: 'admin',
       actor_id: auth.user.id,
       details: { is_read, email: data?.email },
-      ip_address: getIpFromRequest(request),
+      ...getAuditHeadersFromRequest(request),
     });
 
     return NextResponse.json({ data });
@@ -85,7 +85,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       actor_type: 'admin',
       actor_id: auth.user.id,
       details: { email: submission?.email, name: submission?.name },
-      ip_address: getIpFromRequest(request),
+      ...getAuditHeadersFromRequest(request),
     });
 
     return NextResponse.json({ success: true });

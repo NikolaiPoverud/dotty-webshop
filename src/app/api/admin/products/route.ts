@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify, generateRandomSuffix } from '@/lib/utils';
-import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 import { validateCreateProduct } from '@/lib/schemas/product';
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       actor_type: 'admin',
       actor_id: auth.user.id,
       details: { title: product.title, price: product.price, product_type: product.product_type },
-      ip_address: getIpFromRequest(request),
+      ...getAuditHeadersFromRequest(request),
     });
 
     // Return created product with 201 status

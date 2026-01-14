@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { logAudit } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -120,6 +120,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       entity_type: 'system',
       actor_type: 'system',
       details: { results: ctx.results, errors: ctx.cleanupErrors },
+      ...getAuditHeadersFromRequest(request),
     });
 
     const totalProcessed = Object.values(ctx.results).reduce((a, b) => a + b, 0);

@@ -34,22 +34,22 @@ Three specialist audits were performed: Security, Architecture, and Database. Th
 - [x] **ARCH-003**: Standardize API error responses - use `api-response.ts` helpers consistently – Done – Agent 1 – 5f9af4f
 - [x] **ARCH-004**: Extract business logic from API routes to service layer – Done – Agent 1 – e115919
 - [x] **ARCH-005**: Generate Supabase types: `npx supabase gen types typescript` – Done – Agent 1 – 46dde3b
-- [x] **DB-003**: In progress – Agent 1
+- [x] **DB-003**: Remove JSONB `items` column from orders (use `order_items` table only) – Done – Agent 1 – c285caa
 - [x] **DB-004**: Add `deleted_at IS NULL` filter to public products API – Done – Agent 2 – Already present (3c05999)
 - [x] **DB-005**: Add cascade trigger for collection soft delete – Done – Agent 2 – beb6fe4
-- [ ] **DB-006**: Make `payment_session_id` index unique after data cleanup
+- [x] **DB-006**: Make `payment_session_id` index unique after data cleanup – Done – Agent 1 – 6735416
 - [x] **DB-007**: Add `line_total` computed column to `order_items` – Done – Agent 2 – beb6fe4
 - [x] **DB-008**: Add CHECK constraint: `stock_quantity >= 0` – Done – Agent 2 – 8b92e98
 
 ### MEDIUM - Fix Within 2 Weeks
 
 - [x] **SEC-009**: Add security headers in middleware (CSP, X-Frame-Options, HSTS) – Done – Agent 2 – 1967f60
-- [ ] **SEC-010**: Add Vipps credential rotation reminders
-- [ ] **SEC-011**: Schedule `cleanup_expired_reservations()` via cron
+- [x] **SEC-010**: Add Vipps credential rotation reminders – Done – Agent 1 – 4b11067
+- [x] **SEC-011**: Schedule `cleanup_expired_reservations()` via cron – Done – Agent 1 – ca8a1e9
 - [x] **SEC-012**: Add index on `orders.payment_session_id` – Done – Agent 2 – 707bb8e
-- [ ] **SEC-013**: Return generic error messages to clients, log details server-side
-- [ ] **SEC-014**: Add request ID correlation in logs
-- [ ] **SEC-015**: Add user_agent and referer to audit logs
+- [x] **SEC-013**: Return generic error messages to clients, log details server-side – Done – Agent 1 – 6f4517e
+- [x] **SEC-014**: Add request ID correlation in logs – Done – Agent 1 – 636bec8
+- [ ] **SEC-015**: Add user_agent and referer to audit logs – In progress – Agent 1
 - [ ] **ARCH-006**: Split checkout page (589 lines) into smaller components
 - [ ] **ARCH-007**: Add error boundaries for public-facing routes
 - [ ] **ARCH-008**: Consolidate cart calculation logic into CartService

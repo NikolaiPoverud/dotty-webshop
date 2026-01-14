@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
-import { logAudit } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 
 function daysAgo(days: number): string {
   const date = new Date();
@@ -15,7 +15,7 @@ function yearsAgo(years: number): string {
   return date.toISOString();
 }
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: Request): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
@@ -116,6 +116,7 @@ export async function POST(): Promise<NextResponse> {
     actor_type: 'admin',
     actor_id: auth.user.id,
     details: { results, errors },
+    ...getAuditHeadersFromRequest(request),
   });
 
   const totalDeleted = Object.values(results).reduce((a, b) => a + b, 0);

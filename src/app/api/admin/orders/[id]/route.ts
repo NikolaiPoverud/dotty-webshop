@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendShippingNotification, sendDeliveryConfirmation } from '@/lib/email/send';
 import type { Order, OrderWithItems, OrderItem } from '@/types';
-import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 // DB-003: Helper to load order items from junction table
@@ -79,7 +79,7 @@ export async function PUT(
         customer_email: updatedOrder.customer_email,
         changes: Object.keys(body),
       },
-      ip_address: getIpFromRequest(request),
+      ...getAuditHeadersFromRequest(request),
     });
 
     return NextResponse.json({ data });

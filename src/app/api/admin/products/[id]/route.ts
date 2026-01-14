@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify, generateRandomSuffix } from '@/lib/utils';
-import { logAudit, getIpFromRequest } from '@/lib/audit';
+import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 interface RouteParams {
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
       actor_type: 'admin',
       actor_id: auth.user.id,
       details: { title: product.title, changes: Object.keys(updateData) },
-      ip_address: getIpFromRequest(request),
+      ...getAuditHeadersFromRequest(request),
     });
 
     return NextResponse.json({ data: product });
@@ -139,7 +139,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
       actor_type: 'admin',
       actor_id: auth.user.id,
       details: { image_path: product?.image_path },
-      ip_address: getIpFromRequest(request),
+      ...getAuditHeadersFromRequest(request),
     });
 
     return NextResponse.json({ success: true });
