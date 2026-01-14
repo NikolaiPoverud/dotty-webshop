@@ -10,23 +10,26 @@ import { verifyAdminAuth } from '@/lib/auth/admin-guard';
  * This ensures updated product info (sizes, prices, etc.) appears immediately.
  */
 function revalidateProductPages(slug?: string): void {
-  // Revalidate shop pages for both locales
-  revalidatePath('/no/shop', 'page');
-  revalidatePath('/en/shop', 'page');
+  // Revalidate entire shop section for both locales (includes all subpages)
+  revalidatePath('/no/shop');
+  revalidatePath('/en/shop');
 
   // Revalidate the specific product page if slug is known
   if (slug) {
-    revalidatePath(`/no/shop/${slug}`, 'page');
-    revalidatePath(`/en/shop/${slug}`, 'page');
+    revalidatePath(`/no/shop/${slug}`);
+    revalidatePath(`/en/shop/${slug}`);
   }
 
   // Revalidate homepage (featured products)
-  revalidatePath('/no', 'page');
-  revalidatePath('/en', 'page');
+  revalidatePath('/no');
+  revalidatePath('/en');
 
   // Revalidate sold pages
-  revalidatePath('/no/solgt', 'page');
-  revalidatePath('/en/sold', 'page');
+  revalidatePath('/no/solgt');
+  revalidatePath('/en/sold');
+
+  // Also revalidate the root layout to be thorough
+  revalidatePath('/', 'layout');
 }
 
 interface RouteParams {

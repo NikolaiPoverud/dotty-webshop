@@ -5,7 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 
 /**
  * Creates a public Supabase client for read-only operations that don't need auth.
- * Allows pages to be statically cached (ISR) instead of dynamic.
+ *
+ * IMPORTANT: We disable fetch caching to ensure fresh data is fetched on each
+ * revalidation cycle. The page-level `revalidate` setting controls how often
+ * the page is regenerated, and we want fresh DB data each time.
  */
 export function createPublicClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -20,5 +23,16 @@ export function createPublicClient(): SupabaseClient {
     throw new Error(`Missing environment variables: ${missing.join(', ')}`);
   }
 
-  return createClient(supabaseUrl, anonKey);
+  return createClient(supabaseUrl, anonKey, {
+    global: {
+      fetch: (url, options) => {
+        // Disable Next.js fetch caching for Supabase requests
+        // This ensures we get fresh data on each page revalidation
+        return fetch(url, {
+          ...options,
+          cache: 'no-store',
+        });
+      },
+    },
+  });
 }
