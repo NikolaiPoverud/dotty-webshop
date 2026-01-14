@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, Loader2, Check, AlertCircle, Cloud } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Check, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
@@ -14,7 +14,7 @@ import type { Product, ProductSize, Collection, GalleryImage, ShippingSize } fro
 import { SHIPPING_SIZE_INFO } from '@/types';
 
 const SHIPPING_SIZE_OPTIONS = Object.keys(SHIPPING_SIZE_INFO) as ShippingSize[];
-const AUTO_SAVE_DELAY = 1000; // 1 second debounce
+const AUTO_SAVE_DELAY = 2000; // 2 seconds after blur before saving
 
 type AutoSaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
@@ -153,7 +153,7 @@ export default function EditProductPage() {
 
       setAutoSaveStatus('saved');
       setLastSaved(new Date());
-      toast.success('Automatisk lagret');
+      // Don't show toast on success - the header indicator is enough
       setTimeout(() => setAutoSaveStatus('idle'), 2000);
     } catch (err) {
       setAutoSaveStatus('error');
@@ -163,30 +163,21 @@ export default function EditProductPage() {
     }
   }, [productId, buildSaveData, title, price, toast]);
 
-  // Trigger auto-save on any field change (debounced)
-  useEffect(() => {
+  // Trigger auto-save when user clicks away from an input (blur)
+  const handleAutoSaveBlur = useCallback(() => {
     // Don't auto-save until data is loaded
     if (!dataLoaded || isLoading) return;
 
-    // Clear existing timeout
+    // Clear existing timeout (in case user clicks between fields quickly)
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    setAutoSaveStatus('pending');
-
-    // Set new timeout for auto-save
+    // Set timeout for auto-save (gives user time to click another field)
     autoSaveTimeoutRef.current = setTimeout(() => {
       performAutoSave();
     }, AUTO_SAVE_DELAY);
-
-    // Cleanup on unmount or before next effect run
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [dataLoaded, isLoading, performAutoSave, title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
+  }, [dataLoaded, isLoading, performAutoSave]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -271,18 +262,6 @@ export default function EditProductPage() {
 
         {/* Auto-save status indicator */}
         <AnimatePresence mode="wait">
-          {autoSaveStatus === 'pending' && (
-            <motion.div
-              key="pending"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full text-sm text-muted-foreground"
-            >
-              <Cloud className="w-4 h-4" />
-              <span>Ulagrede endringer...</span>
-            </motion.div>
-          )}
           {autoSaveStatus === 'saving' && (
             <motion.div
               key="saving"
@@ -322,7 +301,7 @@ export default function EditProductPage() {
         </AnimatePresence>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} onBlur={handleAutoSaveBlur} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-4">
             <label className="block text-sm font-medium">Produktbilde</label>
