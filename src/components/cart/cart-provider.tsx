@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import type { Product, CartProduct, CartItem, Cart } from '@/types';
-import { calculateArtistLevy } from '@/lib/utils';
+import { calculateCartTotalsSimple, type CartItemInput } from '@/lib/services/cart-service';
 
 // Cart actions
 type CartAction =
@@ -41,26 +41,18 @@ const initialCart: Cart = {
   total: 0,
 };
 
-// Calculate totals including shipping and artist levy (kunsteravgift)
+// ARCH-008: Use CartService for consistent calculations
 function calculateTotals(items: CartItem[], discountAmount: number): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-
-  // Highest shipping cost approach: customer pays shipping for the most expensive item
-  const shippingCost = items.reduce((max, item) => Math.max(max, item.product.shipping_cost ?? 0), 0);
-
-  // Artist levy (5% for items over 2500 NOK)
-  const levyItems = items.map(item => ({
-    id: item.product.id,
+  // Convert CartItem[] to CartItemInput[] for the service
+  const serviceItems: CartItemInput[] = items.map(item => ({
+    productId: item.product.id,
     title: item.product.title,
     price: item.product.price,
     quantity: item.quantity,
+    shippingCost: item.product.shipping_cost,
   }));
-  const { totalLevy: artistLevy } = calculateArtistLevy(levyItems);
 
-  // Discount applies only to subtotal, not shipping or artist levy
-  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const total = discountedSubtotal + shippingCost + artistLevy;
-  return { subtotal, shippingCost, artistLevy, total };
+  return calculateCartTotalsSimple(serviceItems, discountAmount);
 }
 
 // Helper to create updated cart state with recalculated totals
