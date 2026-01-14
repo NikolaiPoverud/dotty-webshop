@@ -14,27 +14,9 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
   async redirects() {
-    return [
-      // www to non-www redirects - exclude API routes for webhooks
-      {
-        source: '/((?!api).*)',
-        has: [{ type: 'host', value: 'www.dotty.no' }],
-        destination: 'https://dotty.no/:path*',
-        permanent: true,
-      },
-      {
-        source: '/((?!api).*)',
-        has: [{ type: 'host', value: 'www.dottyartwork.no' }],
-        destination: 'https://dottyartwork.no/:path*',
-        permanent: true,
-      },
-      {
-        source: '/((?!api).*)',
-        has: [{ type: 'host', value: 'www.dottyartwork.com' }],
-        destination: 'https://dottyartwork.com/:path*',
-        permanent: true,
-      },
-    ];
+    // Domain redirects are handled by Vercel and middleware
+    // Do NOT add www redirects here - they conflict with Vercel's domain config
+    return [];
   },
   async rewrites() {
     return {
