@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { validate, collectionSchema } from '@/lib/validation';
+import { invalidateCollectionCache } from '@/lib/services/collection-service';
 
 export async function GET(): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
@@ -45,6 +46,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.error('Failed to create collection:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Invalidate collection cache after mutation
+  invalidateCollectionCache();
 
   return NextResponse.json({ data }, { status: 201 });
 }

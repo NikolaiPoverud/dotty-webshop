@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { invalidateCollectionCache } from '@/lib/services/collection-service';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -29,6 +30,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Invalidate collection cache after mutation
+  invalidateCollectionCache();
+
   return NextResponse.json({ data });
 }
 
@@ -48,6 +52,9 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams): Pr
     console.error('Failed to delete collection:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Invalidate collection cache after mutation
+  invalidateCollectionCache();
 
   return NextResponse.json({ success: true });
 }
