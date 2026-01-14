@@ -4,7 +4,7 @@ import { getStripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import { validateCheckoutToken, generateCheckoutToken } from '@/lib/checkout-token';
-import type { ShippingAddress, OrderItem, Locale, DiscountCode } from '@/types';
+import type { ShippingAddress, OrderItem, Locale } from '@/types';
 
 interface CheckoutRequestBody {
   items: OrderItem[];
@@ -71,22 +71,37 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Missing customer information' }, { status: 400 });
   }
 
-  const stripe = getStripe();
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal + shipping_cost + artist_levy - discount_amount;
+  // ARCH-001: Server-side cart validation - fetch actual prices from database
+  const validationResult = await validateCartServerSide(items, discount_code);
+  if (!validationResult.valid) {
+    return NextResponse.json({ error: validationResult.error }, { status: 400 });
+  }
 
-  const lineItems = buildLineItems(items, shipping_cost, artist_levy, locale);
+  // Use server-validated prices and discount
+  const validatedItems = validationResult.items!;
+  const validatedDiscountAmount = validationResult.discountAmount ?? 0;
+
+  const stripe = getStripe();
+  const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // Recalculate artist levy (5% on artwork over 2,500 kr)
+  const calculatedArtistLevy = subtotal >= 250000 ? Math.floor(subtotal * 0.05) : 0;
+
+  // Use server-calculated values
+  const total = subtotal + shipping_cost + calculatedArtistLevy - validatedDiscountAmount;
+
+  const lineItems = buildLineItems(validatedItems, shipping_cost, calculatedArtistLevy, locale);
   const metadata = buildOrderMetadata({
     customer_email,
     customer_name,
     customer_phone,
     shipping_address,
-    items,
+    items: validatedItems,
     subtotal,
     discount_code,
-    discount_amount,
+    discount_amount: validatedDiscountAmount,
     shipping_cost,
-    artist_levy,
+    artist_levy: calculatedArtistLevy,
     total,
     privacy_accepted,
     newsletter_opt_in,
@@ -119,8 +134,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
       },
     },
-    discounts: discount_amount > 0
-      ? [{ coupon: await createStripeCoupon(stripe, discount_amount, discount_code) }]
+    discounts: validatedDiscountAmount > 0
+      ? [{ coupon: await createStripeCoupon(stripe, validatedDiscountAmount, discount_code) }]
       : undefined,
   });
 
@@ -229,4 +244,119 @@ async function createStripeCoupon(
     name: code || 'Discount',
   });
   return coupon.id;
+}
+
+interface CartValidationResult {
+  valid: boolean;
+  error?: string;
+  items?: OrderItem[];
+  discountAmount?: number;
+}
+
+/**
+ * ARCH-001: Server-side cart validation
+ * Validates prices against database and recalculates discount amounts
+ */
+async function validateCartServerSide(
+  clientItems: OrderItem[],
+  discountCode?: string,
+): Promise<CartValidationResult> {
+  const supabase = createAdminClient();
+  const productIds = clientItems.map(item => item.product_id);
+
+  // Fetch actual product data from database
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id, title, price, is_available, stock_quantity, product_type, image_url')
+    .in('id', productIds)
+    .is('deleted_at', null);
+
+  if (productsError) {
+    console.error('Failed to fetch products for validation:', productsError);
+    return { valid: false, error: 'Failed to validate cart items' };
+  }
+
+  if (!products || products.length !== productIds.length) {
+    return { valid: false, error: 'One or more products not found' };
+  }
+
+  // Create a map for easy lookup
+  const productMap = new Map(products.map(p => [p.id, p]));
+
+  // Validate each item and build validated items list
+  const validatedItems: OrderItem[] = [];
+
+  for (const clientItem of clientItems) {
+    const dbProduct = productMap.get(clientItem.product_id);
+
+    if (!dbProduct) {
+      return { valid: false, error: `Product ${clientItem.product_id} not found` };
+    }
+
+    if (!dbProduct.is_available) {
+      return { valid: false, error: `${dbProduct.title} is no longer available` };
+    }
+
+    // Check stock for prints
+    if (dbProduct.product_type === 'print' && dbProduct.stock_quantity !== null) {
+      if (dbProduct.stock_quantity < clientItem.quantity) {
+        return {
+          valid: false,
+          error: `Not enough stock for ${dbProduct.title}. Available: ${dbProduct.stock_quantity}`,
+        };
+      }
+    }
+
+    // Build validated item with server prices
+    validatedItems.push({
+      product_id: dbProduct.id,
+      title: dbProduct.title,
+      price: dbProduct.price, // Use database price, not client price
+      quantity: clientItem.quantity,
+      image_url: dbProduct.image_url,
+    });
+  }
+
+  // Validate and calculate discount if provided
+  let discountAmount = 0;
+
+  if (discountCode) {
+    const normalizedCode = discountCode.toUpperCase();
+
+    const { data: discount, error: discountError } = await supabase
+      .from('discount_codes')
+      .select('*')
+      .eq('code', normalizedCode)
+      .eq('is_active', true)
+      .single();
+
+    if (discountError || !discount) {
+      return { valid: false, error: 'Invalid discount code' };
+    }
+
+    // Check if code has remaining uses
+    if (discount.uses_remaining !== null && discount.uses_remaining <= 0) {
+      return { valid: false, error: 'Discount code has been used up' };
+    }
+
+    // Check expiration
+    if (discount.expires_at && new Date(discount.expires_at) < new Date()) {
+      return { valid: false, error: 'Discount code has expired' };
+    }
+
+    // Calculate discount amount
+    const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    if (discount.discount_percent) {
+      discountAmount = Math.floor(subtotal * (discount.discount_percent / 100));
+    } else if (discount.discount_amount) {
+      discountAmount = discount.discount_amount;
+    }
+  }
+
+  return {
+    valid: true,
+    items: validatedItems,
+    discountAmount,
+  };
 }
