@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import { useState, use, useEffect, Suspense } from 'react';
 import { CreditCard, Loader2, AlertCircle, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import type { Locale } from '@/types';
+import type { Locale, ShippingOption } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
+import { ShippingSelector } from '@/components/checkout/shipping-selector';
 import { formatPrice } from '@/lib/utils';
 import { getCheckoutText, type CheckoutText } from '@/lib/i18n/cart-checkout-text';
 
@@ -225,11 +226,18 @@ interface OrderSummaryProps {
   t: CheckoutText;
   isLoading: boolean;
   onCheckout: (provider: 'stripe' | 'vipps') => void;
+  selectedShipping: ShippingOption | null;
 }
 
-function OrderSummary({ t, isLoading, onCheckout }: OrderSummaryProps): React.ReactElement {
+function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: OrderSummaryProps): React.ReactElement {
   const { cart } = useCart();
   const hasDiscount = cart.discountCode && cart.discountAmount > 0;
+
+  // Use selected shipping price if available, otherwise fall back to cart shipping
+  const shippingCost = selectedShipping?.priceWithVat ?? cart.shippingCost;
+
+  // Recalculate total with selected shipping
+  const total = cart.subtotal + shippingCost + cart.artistLevy - cart.discountAmount;
 
   return (
     <div className="bg-muted rounded-lg p-6">
@@ -269,10 +277,15 @@ function OrderSummary({ t, isLoading, onCheckout }: OrderSummaryProps): React.Re
           </div>
         )}
 
-        {cart.shippingCost > 0 ? (
+        {shippingCost > 0 ? (
           <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.shippingCost}</span>
-            <span>+{formatPrice(cart.shippingCost)}</span>
+            <div>
+              <span className="text-muted-foreground">{t.shippingCost}</span>
+              {selectedShipping && (
+                <p className="text-xs text-muted-foreground/70">{selectedShipping.name}</p>
+              )}
+            </div>
+            <span>+{formatPrice(shippingCost)}</span>
           </div>
         ) : (
           <div className="flex justify-between text-success">
@@ -283,7 +296,7 @@ function OrderSummary({ t, isLoading, onCheckout }: OrderSummaryProps): React.Re
 
         <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
           <span>{t.total}</span>
-          <span>{formatPrice(cart.total)}</span>
+          <span>{formatPrice(total)}</span>
         </div>
         <p className="text-xs text-muted-foreground">{t.includingVat}</p>
       </div>
@@ -335,6 +348,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [checkoutToken, setCheckoutToken] = useState<string | null>(null);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
 
   // SEC-002: Fetch checkout token when page loads
   useEffect(() => {
@@ -394,6 +408,12 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
       return false;
     }
 
+    // Require shipping selection for Norwegian addresses
+    if (formData.country === 'Norge' && !selectedShipping) {
+      setError(t.shippingRequired);
+      return false;
+    }
+
     if (!privacyAccepted) {
       setError(t.acceptPrivacyRequired);
       return false;
@@ -435,7 +455,9 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
           },
           discount_code: cart.discountCode,
           discount_amount: cart.discountAmount,
-          shipping_cost: cart.shippingCost,
+          shipping_cost: selectedShipping?.priceWithVat ?? cart.shippingCost,
+          shipping_option_id: selectedShipping?.id,
+          shipping_option_name: selectedShipping?.name,
           artist_levy: cart.artistLevy,
           locale,
           privacy_accepted: true,
@@ -557,6 +579,21 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
               />
             </form>
 
+            {/* Shipping Method Selection - Only for Norwegian addresses */}
+            {formData.country === 'Norge' && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-4">{t.shippingMethod}</h2>
+                <ShippingSelector
+                  postalCode={formData.postalCode}
+                  countryCode="NO"
+                  locale={locale}
+                  selectedOption={selectedShipping}
+                  onSelect={setSelectedShipping}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+
             <DiscountCodeInput
               t={t}
               onApplyDiscount={applyDiscount}
@@ -582,6 +619,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
               t={t}
               isLoading={isLoading}
               onCheckout={handleCheckout}
+              selectedShipping={selectedShipping}
             />
           </motion.div>
         </div>

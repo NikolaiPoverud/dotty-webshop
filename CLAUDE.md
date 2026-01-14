@@ -11,8 +11,9 @@ E-commerce application for selling original pop-art artworks and prints.
 - **Database**: Supabase (PostgreSQL)
 - **Auth**: Supabase Auth (email/password)
 - **Storage**: Supabase Storage (artwork bucket)
-- **Payments**: Stripe (Vipps placeholder)
-- **Email**: Resend API (placeholder)
+- **Payments**: Stripe, Vipps
+- **Shipping**: Bring Shipping Guide API
+- **Email**: Resend API
 
 ## Project Structure
 
@@ -121,6 +122,7 @@ npm run lint     # ESLint
 
 ### Public
 - `GET /api/products` - List available products
+- `POST /api/shipping/options` - Get Bring shipping options
 
 ## Environment Variables
 
@@ -162,11 +164,43 @@ Run migrations in order:
 - **Checkout Flow**: Stripe ready
 - **i18n**: Norwegian/English routing
 
+## Bring Shipping Integration
+
+The checkout uses Bring Shipping Guide API for dynamic shipping options.
+
+### Configuration
+Required environment variables:
+```
+BRING_API_UID=your-mybring-email@example.com
+BRING_API_KEY=your-api-key-from-mybring
+BRING_CUSTOMER_NUMBER=optional-for-net-pricing
+BRING_FROM_POSTAL_CODE=0173
+```
+
+### API Endpoints
+- `POST /api/shipping/options` - Get available shipping options for a postal code
+
+### Flow
+1. Customer enters postal code on checkout
+2. Frontend fetches shipping options from `/api/shipping/options`
+3. Customer selects shipping method
+4. Selected shipping cost is included in checkout total
+
+### Supported Services
+- Pickup point delivery (Servicepakke, Pakke til hentested)
+- Home delivery (Hjemlevering)
+- Mailbox delivery (for smaller items)
+
+### Fallback
+If Bring API is unavailable, static fallback options are returned.
+
+### Documentation
+- Bring Developer Portal: https://developer.bring.com/
+- Shipping Guide API: https://developer.bring.com/api/shipping-guide_2/
+- MyBring (API credentials): https://www.mybring.com/
+
 ## Pending Implementation
 
-- Stripe webhook handler
-- Vipps payment integration
-- Email notifications (Resend)
-- Order confirmation emails
 - Product detail pages (full implementation)
 - Password reset flow
+- Product dimensions for accurate shipping quotes

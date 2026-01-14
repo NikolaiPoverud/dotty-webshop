@@ -35,7 +35,7 @@ export default function AdminContactPage() {
     if (!response.ok) {
       setError(result.error || 'Failed to load');
     } else {
-      setSubmissions(result || []);
+      setSubmissions(result.data || []);
     }
     setIsLoading(false);
   }, []);

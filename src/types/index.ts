@@ -183,6 +183,22 @@ export interface NewsletterSubscriber {
   resend_synced: boolean;
 }
 
+// Shipping Types (Bring integration)
+export interface ShippingOption {
+  id: string;
+  name: string;
+  description: string;
+  deliveryType: string;
+  estimatedDelivery: string;
+  workingDays: number;
+  priceWithVat: number; // In øre (cents)
+  priceWithoutVat: number;
+  logo?: string;
+  environmentalInfo?: {
+    fossilFreePercentage?: number;
+  };
+}
+
 // i18n Types
 export type Locale = 'no' | 'en';
 

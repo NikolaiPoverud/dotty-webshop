@@ -1,6 +1,5 @@
 'use client';
 
-import DOMPurify from 'dompurify';
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -57,10 +56,18 @@ export default function CustomersPage() {
   const editorRef = useRef<HTMLDivElement>(null);
 
   // SEC-004: Sanitize HTML content to prevent XSS attacks in preview
+  // DOMPurify requires window, so we only use it on the client
   const sanitizedContent = useMemo(() => {
     if (!content) {
       return '<p class="text-gray-400">Ingen innhold enda...</p>';
     }
+    // Only sanitize on client-side where DOMPurify can access window
+    if (typeof window === 'undefined') {
+      return content;
+    }
+    // Dynamic import workaround - use the already loaded module
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const DOMPurify = require('dompurify');
     return DOMPurify.sanitize(content, {
       ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'],
       ALLOWED_ATTR: ['href', 'target', 'class', 'style'],

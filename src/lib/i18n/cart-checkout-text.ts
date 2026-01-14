@@ -67,6 +67,11 @@ export const checkoutText = {
     discountApplied: 'Rabattkode aktivert!',
     discountValidationFailed: 'Kunne ikke validere rabattkode',
     vippsIncomplete: 'Vipps-betalingen ble ikke fullført. Prøv igjen.',
+    shippingMethod: 'Fraktmetode',
+    selectShipping: 'Velg fraktmetode',
+    shippingLoading: 'Laster fraktalternativer...',
+    noShippingOptions: 'Ingen fraktalternativer tilgjengelig',
+    shippingRequired: 'Velg en fraktmetode for å fortsette',
   },
   en: {
     title: 'Checkout',
@@ -109,6 +114,11 @@ export const checkoutText = {
     discountApplied: 'Discount applied!',
     discountValidationFailed: 'Failed to validate discount code',
     vippsIncomplete: 'Vipps payment was not completed. Please try again.',
+    shippingMethod: 'Shipping method',
+    selectShipping: 'Select shipping method',
+    shippingLoading: 'Loading shipping options...',
+    noShippingOptions: 'No shipping options available',
+    shippingRequired: 'Please select a shipping method to continue',
   },
 } as const;
 
