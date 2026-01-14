@@ -9,10 +9,10 @@ const defaultLocale: Locale = 'no';
 const DOMAINS = {
   // Norwegian domain (primary)
   NO: ['dotty.no', 'www.dotty.no'],
-  // English domain
-  EN: ['dottyartworks.com', 'www.dottyartworks.com', 'dottyartwork.com', 'www.dottyartwork.com'],
-  // Redirect domains (redirect to NO domain)
-  REDIRECT: ['dottyartworks.no', 'www.dottyartworks.no'],
+  // English domain (.com)
+  EN: ['dottyartwork.com', 'www.dottyartwork.com'],
+  // Redirect domains (redirect to dotty.no)
+  REDIRECT: ['dottyartwork.no', 'www.dottyartwork.no'],
 };
 
 // Get locale based on hostname

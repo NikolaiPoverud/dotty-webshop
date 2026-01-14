@@ -2,22 +2,40 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Ruler } from 'lucide-react';
+import { Plus, X, Ruler, Loader2, Check } from 'lucide-react';
 import type { ProductSize } from '@/types';
 
 interface SizeInputProps {
   value: ProductSize[];
   onChange: (sizes: ProductSize[]) => void;
+  onAutoSave?: (sizes: ProductSize[]) => Promise<void>;
 }
 
 const INPUT_CLASS =
   'w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm';
 
-export function SizeInput({ value, onChange }: SizeInputProps): React.ReactElement {
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): React.ReactElement {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
-  function addSize(): void {
+  async function triggerAutoSave(newSizes: ProductSize[]): Promise<void> {
+    if (!onAutoSave) return;
+
+    setSaveStatus('saving');
+    try {
+      await onAutoSave(newSizes);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  }
+
+  async function addSize(): Promise<void> {
     const w = parseInt(width, 10);
     const h = parseInt(height, 10);
 
@@ -26,13 +44,18 @@ export function SizeInput({ value, onChange }: SizeInputProps): React.ReactEleme
     const exists = value.some((s) => s.width === w && s.height === h);
     if (exists) return;
 
-    onChange([...value, { width: w, height: h, label: `${w}x${h} cm` }]);
+    const newSizes = [...value, { width: w, height: h, label: `${w}x${h} cm` }];
+    onChange(newSizes);
     setWidth('');
     setHeight('');
+
+    await triggerAutoSave(newSizes);
   }
 
-  function removeSize(index: number): void {
-    onChange(value.filter((_, i) => i !== index));
+  async function removeSize(index: number): Promise<void> {
+    const newSizes = value.filter((_, i) => i !== index);
+    onChange(newSizes);
+    await triggerAutoSave(newSizes);
   }
 
   function handleKeyDown(e: React.KeyboardEvent): void {
@@ -108,9 +131,48 @@ export function SizeInput({ value, onChange }: SizeInputProps): React.ReactEleme
         </button>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Legg til tilgjengelige storrelser for kunstverket (bredde x hoyde i cm)
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">
+          Legg til tilgjengelige storrelser for kunstverket (bredde x hoyde i cm)
+        </p>
+        <AnimatePresence mode="wait">
+          {saveStatus === 'saving' && (
+            <motion.span
+              key="saving"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-1 text-xs text-muted-foreground"
+            >
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Lagrer...
+            </motion.span>
+          )}
+          {saveStatus === 'saved' && (
+            <motion.span
+              key="saved"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-1 text-xs text-success"
+            >
+              <Check className="w-3 h-3" />
+              Lagret
+            </motion.span>
+          )}
+          {saveStatus === 'error' && (
+            <motion.span
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-xs text-error"
+            >
+              Kunne ikke lagre
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

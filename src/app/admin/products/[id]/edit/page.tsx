@@ -151,6 +151,19 @@ export default function EditProductPage() {
     setImagePath('');
   }
 
+  async function handleSizesAutoSave(newSizes: ProductSize[]): Promise<void> {
+    const response = await adminFetch(`/api/admin/products/${productId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sizes: newSizes }),
+    });
+
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || 'Failed to save sizes');
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -354,7 +367,7 @@ export default function EditProductPage() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">Størrelser</label>
-              <SizeInput value={sizes} onChange={setSizes} />
+              <SizeInput value={sizes} onChange={setSizes} onAutoSave={handleSizesAutoSave} />
             </div>
 
             <div className="space-y-2">
