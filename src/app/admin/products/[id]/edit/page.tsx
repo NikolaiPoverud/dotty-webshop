@@ -36,8 +36,9 @@ export default function EditProductPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [autoSaveStatus, setAutoSaveStatus] = useState<AutoSaveStatus>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if initial data has been loaded
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isInitialLoadRef = useRef(true);
+  const skipNextAutoSaveRef = useRef(true); // Skip the first change after data loads
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -95,10 +96,12 @@ export default function EditProductPage() {
         toast.error(err instanceof Error ? err.message : 'Kunne ikke laste produkt');
       } finally {
         setIsLoading(false);
-        // Mark initial load as complete after a short delay
+        // Mark data as loaded after a short delay to let React finish state updates
         setTimeout(() => {
-          isInitialLoadRef.current = false;
-        }, 100);
+          setDataLoaded(true);
+          // Skip the first auto-save trigger that happens when dataLoaded changes
+          skipNextAutoSaveRef.current = true;
+        }, 200);
       }
     }
 
@@ -109,6 +112,9 @@ export default function EditProductPage() {
   const buildSaveData = useCallback(() => {
     const priceInOre = price ? Math.round(parseFloat(price) * 100) : 0;
     const shippingCostInOre = shippingCost ? Math.round(parseFloat(shippingCost) * 100) : null;
+    // Parse stock - allow 0 as valid value, default to 1 only if empty/NaN
+    const parsedStock = parseInt(stockQuantity, 10);
+    const stockValue = Number.isNaN(parsedStock) ? 1 : parsedStock;
 
     return {
       title,
@@ -117,7 +123,7 @@ export default function EditProductPage() {
       image_url: imageUrl,
       image_path: imagePath,
       product_type: productType,
-      stock_quantity: parseInt(stockQuantity, 10) || 1,
+      stock_quantity: stockValue,
       collection_id: collectionId || null,
       is_available: isAvailable,
       is_featured: isFeatured,
@@ -158,7 +164,14 @@ export default function EditProductPage() {
 
   // Trigger auto-save on any field change (debounced)
   const triggerAutoSave = useCallback(() => {
-    if (isInitialLoadRef.current || isLoading) return;
+    // Don't auto-save until data is loaded
+    if (!dataLoaded || isLoading) return;
+
+    // Skip one auto-save after initial load
+    if (skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false;
+      return;
+    }
 
     // Clear existing timeout
     if (autoSaveTimeoutRef.current) {
@@ -171,12 +184,12 @@ export default function EditProductPage() {
     autoSaveTimeoutRef.current = setTimeout(() => {
       performAutoSave();
     }, AUTO_SAVE_DELAY);
-  }, [isLoading, performAutoSave]);
+  }, [dataLoaded, isLoading, performAutoSave]);
 
   // Watch all form fields for changes
   useEffect(() => {
     triggerAutoSave();
-  }, [title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
+  }, [triggerAutoSave, title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
