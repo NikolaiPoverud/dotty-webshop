@@ -4,6 +4,7 @@ import { slugify, generateRandomSuffix } from '@/lib/utils';
 import { logAudit, getIpFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
+import { validateCreateProduct } from '@/lib/schemas/product';
 
 // GET /api/admin/products - List all products with pagination
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -52,11 +53,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     const supabase = createAdminClient();
-    const body = await request.json();
 
-    if (!body.title || !body.price) {
-      return NextResponse.json({ error: 'Title and price are required' }, { status: 400 });
+    // SEC-007: Zod validation of request body
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
+
+    const validationResult = validateCreateProduct(rawBody);
+    if (!validationResult.success) {
+      return NextResponse.json({ error: validationResult.error }, { status: 400 });
+    }
+
+    const body = validationResult.data;
 
     const slug = slugify(body.title);
     const { data: existing } = await supabase
@@ -80,20 +91,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         title: body.title,
         description: body.description ?? null,
         slug: finalSlug,
-        price: Math.round(body.price),
-        image_url: body.image_url ?? '',
-        image_path: body.image_path ?? '',
-        product_type: body.product_type ?? 'original',
-        stock_quantity: body.stock_quantity ?? 1,
+        price: body.price,
+        image_url: body.image_url,
+        image_path: body.image_path,
+        product_type: body.product_type,
+        stock_quantity: body.stock_quantity,
         collection_id: body.collection_id ?? null,
-        is_available: body.is_available ?? true,
-        is_featured: body.is_featured ?? false,
-        sizes: body.sizes ?? [],
-        gallery_images: body.gallery_images ?? [],
+        is_available: body.is_available,
+        is_featured: body.is_featured,
+        sizes: body.sizes,
+        gallery_images: body.gallery_images,
         display_order: (maxOrder?.display_order ?? 0) + 1,
         shipping_cost: body.shipping_cost ?? null,
         shipping_size: body.shipping_size ?? null,
-        requires_inquiry: body.requires_inquiry ?? false,
+        requires_inquiry: body.requires_inquiry,
+        year: body.year ?? null,
+        sku: body.sku ?? null,
       })
       .select()
       .single();
