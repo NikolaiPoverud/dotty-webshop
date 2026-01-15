@@ -139,15 +139,24 @@ export default function EditProductPage() {
 
   // Auto-save function
   const performAutoSave = useCallback(async () => {
-    if (!title || !price) return; // Don't save if required fields are missing
+    console.log('[AutoSave] performAutoSave called, title:', title, 'price:', price);
+    if (!title || !price) {
+      console.log('[AutoSave] Skipping - missing title or price');
+      return;
+    }
+
+    const saveData = buildSaveData();
+    console.log('[AutoSave] saveData:', saveData);
+    console.log('[AutoSave] stock_quantity:', saveData.stock_quantity);
 
     setAutoSaveStatus('saving');
     try {
       const response = await adminFetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildSaveData()),
+        body: JSON.stringify(saveData),
       });
+      console.log('[AutoSave] Response status:', response.status);
 
       if (!response.ok) {
         const result = await response.json();
@@ -201,6 +210,7 @@ export default function EditProductPage() {
   // Manual save (navigates back to products list)
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
+    console.log('[ManualSave] handleSubmit called');
 
     // Cancel any pending auto-save
     if (autoSaveTimeoutRef.current) {
@@ -209,12 +219,17 @@ export default function EditProductPage() {
 
     setIsSubmitting(true);
 
+    const saveData = buildSaveData();
+    console.log('[ManualSave] saveData:', saveData);
+    console.log('[ManualSave] stock_quantity:', saveData.stock_quantity);
+
     try {
       const response = await adminFetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildSaveData()),
+        body: JSON.stringify(saveData),
       });
+      console.log('[ManualSave] Response status:', response.status);
 
       const result = await response.json();
 
