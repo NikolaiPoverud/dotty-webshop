@@ -2,10 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import Link from 'next/link';
 import type { Dictionary, Locale } from '@/types';
 import { Logo } from '@/components/ui/logo';
-import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 40 },
@@ -63,19 +61,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           {t.subtitle}
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-          className="mt-8"
-        >
-          <Link
-            href={getLocalizedPath(lang, 'shop')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-background border-2 sm:border-[3px] border-primary text-primary font-bold uppercase tracking-widest text-sm sm:text-base transition-all duration-200 hover:bg-primary hover:text-background shadow-[0_3px_0_0_theme(colors.primary)] sm:shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_4px_0_0_theme(colors.primary)] sm:hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
-          >
-            {t.cta}
-          </Link>
-        </motion.div>
       </div>
 
       <motion.button

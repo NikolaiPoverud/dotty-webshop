@@ -115,7 +115,6 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const isSold = !product.is_available || product.stock_quantity === 0;
   const year = product.year ?? new Date(product.created_at).getFullYear();
   const sizes = parseJsonField<ProductSize[]>(product.sizes, []);
-  const dimensionsText = sizes.length > 0 ? sizes[0].label : '-';
   const galleryImages = parseJsonField<GalleryImage[]>(product.gallery_images, []);
 
   function handleAddToCart(): void {
@@ -309,11 +308,13 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Specifications */}
             <div className="space-y-3 mb-6">
-              {/* Dimensions */}
-              <div className="flex justify-between items-center pb-3 border-b border-border">
-                <span className="text-muted-foreground text-sm">{t.dimensions}</span>
-                <span className="font-medium text-sm">{dimensionsText}</span>
-              </div>
+              {/* Dimensions - only show if sizes exist */}
+              {sizes.length > 0 && (
+                <div className="flex justify-between items-center pb-3 border-b border-border">
+                  <span className="text-muted-foreground text-sm">{t.dimensions}</span>
+                  <span className="font-medium text-sm">{sizes[0].label}</span>
+                </div>
+              )}
 
               {/* Year */}
               <div className="flex justify-between items-center pb-3 border-b border-border">
