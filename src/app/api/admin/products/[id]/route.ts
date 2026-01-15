@@ -84,6 +84,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
     const supabase = createAdminClient();
     const body = await request.json();
 
+    // Debug: Log incoming request body
+    console.log('[Product Update] Received body:', JSON.stringify(body, null, 2));
+    console.log('[Product Update] stock_quantity in body:', body.stock_quantity, typeof body.stock_quantity);
+
     const updateData: Record<string, unknown> = {};
 
     // Handle title separately since it requires slug regeneration
@@ -106,12 +110,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
       }
     }
 
+    // Debug: Log what we're sending to database
+    console.log('[Product Update] updateData:', JSON.stringify(updateData, null, 2));
+    console.log('[Product Update] stock_quantity in updateData:', updateData.stock_quantity);
+
     const { data: product, error } = await supabase
       .from('products')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
+
+    // Debug: Log result
+    console.log('[Product Update] Result error:', error);
+    console.log('[Product Update] Result product stock_quantity:', product?.stock_quantity);
 
     if (error) return handleSupabaseError(error);
 
