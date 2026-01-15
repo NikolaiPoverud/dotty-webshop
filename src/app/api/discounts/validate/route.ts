@@ -1,7 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
+
+// SEC-014: Rate limit discount validation to prevent brute-force attacks
+const RATE_LIMIT_CONFIG = { maxRequests: 10, windowMs: 60 * 1000 };
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`discount:${clientIp}`, RATE_LIMIT_CONFIG);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please wait a minute and try again.', valid: false },
+      { status: 429, headers: getRateLimitHeaders(rateLimitResult) }
+    );
+  }
+
   try {
     const { code, subtotal } = await request.json();
 

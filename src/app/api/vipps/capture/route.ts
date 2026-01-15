@@ -135,9 +135,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
   } catch (error) {
+    // SEC-015: Log full error server-side but return generic message to client
     console.error('Vipps capture error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to process Vipps action' },
+      { error: 'Failed to process payment action. Please try again.' },
       { status: 500 },
     );
   }

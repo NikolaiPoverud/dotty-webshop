@@ -134,9 +134,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
+    // SEC-015: Log full error server-side but return generic message to client
     console.error('Vipps initiate error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to initiate Vipps payment' },
+      { error: 'Failed to initiate payment. Please try again.' },
       { status: 500 },
     );
   }

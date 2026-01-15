@@ -27,7 +27,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (search) {
-      query = query.or(`customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,order_number.ilike.%${search}%`);
+      // SEC-016: Escape special characters to prevent pattern injection in LIKE queries
+      const sanitizedSearch = search.replace(/[%_\\]/g, '\\$&');
+      query = query.or(`customer_name.ilike.%${sanitizedSearch}%,customer_email.ilike.%${sanitizedSearch}%,order_number.ilike.%${sanitizedSearch}%`);
     }
 
     const { data, error, count } = await query;
