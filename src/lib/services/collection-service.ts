@@ -19,6 +19,7 @@ export async function getCollections(): Promise<CollectionCard[]> {
       const { data, error } = await supabase
         .from('collections')
         .select(COLLECTION_FIELDS)
+        .eq('is_public', true)
         .is('deleted_at', null)
         .order('display_order', { ascending: true });
 
@@ -45,6 +46,7 @@ export async function getCollectionBySlug(slug: string): Promise<CollectionCard 
         .from('collections')
         .select(COLLECTION_FIELDS)
         .eq('slug', slug)
+        .eq('is_public', true)
         .is('deleted_at', null)
         .single();
 

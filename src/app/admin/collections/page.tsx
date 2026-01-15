@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, RefreshCw, Trash2, Truck } from 'lucide-react';
+import { ChevronDown, ChevronUp, Eye, EyeOff, Loader2, Pencil, Plus, RefreshCw, Trash2, Truck } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { adminFetch, adminFetchJson } from '@/lib/admin-fetch';
@@ -24,7 +24,7 @@ export default function AdminCollectionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
-  const [formData, setFormData] = useState({ name: '', slug: '', description: '', shipping_cost: 0 });
+  const [formData, setFormData] = useState({ name: '', slug: '', description: '', shipping_cost: 0, is_public: true });
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
@@ -44,7 +44,7 @@ export default function AdminCollectionsPage() {
 
   function openNewModal(): void {
     setEditingCollection(null);
-    setFormData({ name: '', slug: '', description: '', shipping_cost: 0 });
+    setFormData({ name: '', slug: '', description: '', shipping_cost: 0, is_public: true });
     setIsModalOpen(true);
   }
 
@@ -55,6 +55,7 @@ export default function AdminCollectionsPage() {
       slug: collection.slug,
       description: collection.description || '',
       shipping_cost: collection.shipping_cost || 0,
+      is_public: collection.is_public ?? true,
     });
     setIsModalOpen(true);
   }
@@ -75,6 +76,7 @@ export default function AdminCollectionsPage() {
         slug: formData.slug,
         description: formData.description || null,
         shipping_cost: formData.shipping_cost,
+        is_public: formData.is_public,
         display_order: editingCollection?.display_order || collections.length + 1,
       }),
     });
@@ -98,6 +100,26 @@ export default function AdminCollectionsPage() {
       return;
     }
     setCollections((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  async function toggleVisibility(id: string, isPublic: boolean): Promise<void> {
+    // Optimistic update
+    setCollections((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, is_public: isPublic } : c))
+    );
+
+    const response = await adminFetch(`/api/admin/collections/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_public: isPublic }),
+    });
+
+    if (!response.ok) {
+      // Revert on error
+      setCollections((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, is_public: !isPublic } : c))
+      );
+    }
   }
 
   function generateSlug(name: string): string {
@@ -199,6 +221,7 @@ export default function AdminCollectionsPage() {
                 <th className="text-left px-6 py-3 text-sm font-medium">Navn</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Slug</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Frakt</th>
+                <th className="text-center px-4 py-3 text-sm font-medium">Synlig</th>
                 <th className="text-left px-6 py-3 text-sm font-medium">Beskrivelse</th>
                 <th className="text-right px-6 py-3 text-sm font-medium">Handlinger</th>
               </tr>
@@ -207,7 +230,7 @@ export default function AdminCollectionsPage() {
               {collections.map((collection, index) => (
                 <tr
                   key={collection.id}
-                  className="hover:bg-muted-foreground/5"
+                  className={`hover:bg-muted-foreground/5 ${!collection.is_public ? 'opacity-60' : ''}`}
                 >
                   <td className="px-4 py-4">
                     <div className="flex flex-col gap-0.5">
@@ -242,6 +265,19 @@ export default function AdminCollectionsPage() {
                         {collection.shipping_cost === 0 ? 'Gratis' : formatPrice(collection.shipping_cost)}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <button
+                      onClick={() => toggleVisibility(collection.id, !collection.is_public)}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        collection.is_public
+                          ? 'text-success hover:bg-success/10'
+                          : 'text-muted-foreground hover:bg-muted-foreground/10'
+                      }`}
+                      title={collection.is_public ? 'Synlig - klikk for å skjule' : 'Skjult - klikk for å vise'}
+                    >
+                      {collection.is_public ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground truncate max-w-xs">
                     {collection.description || '—'}
@@ -338,6 +374,21 @@ export default function AdminCollectionsPage() {
                   Fraktkostnaden vises på produktsidene for denne samlingen
                 </p>
               </div>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_public}
+                  onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
+                  className="w-5 h-5 rounded text-primary"
+                />
+                <div>
+                  <span className="font-medium">Synlig i butikken</span>
+                  <p className="text-xs text-muted-foreground">
+                    Skru av for å skjule samlingen fra navigasjon og shop
+                  </p>
+                </div>
+              </label>
             </div>
 
             <div className="flex gap-3 mt-6">

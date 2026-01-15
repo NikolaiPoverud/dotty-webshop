@@ -316,9 +316,10 @@ export async function getFeaturedProducts(
 
   const { data, error } = await supabase
     .from('products')
-    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
+    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry')
     .eq('is_featured', true)
     .eq('is_available', true)
+    .eq('is_public', true)
     .is('deleted_at', null)
     .order('display_order', { ascending: true })
     .limit(limit);

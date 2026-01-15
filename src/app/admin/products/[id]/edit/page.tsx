@@ -49,6 +49,7 @@ export default function EditProductPage() {
   const [collectionId, setCollectionId] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [shippingCost, setShippingCost] = useState('');
@@ -85,6 +86,7 @@ export default function EditProductPage() {
         setCollectionId(product.collection_id || '');
         setIsAvailable(product.is_available);
         setIsFeatured(product.is_featured);
+        setIsPublic(product.is_public ?? true);
         setSizes(product.sizes || []);
         setGalleryImages(parseGalleryImages(product.gallery_images));
         setShippingCost(product.shipping_cost ? String(product.shipping_cost / 100) : '');
@@ -125,6 +127,7 @@ export default function EditProductPage() {
       collection_id: collectionId || null,
       is_available: isAvailable,
       is_featured: isFeatured,
+      is_public: isPublic,
       sizes,
       gallery_images: galleryImages,
       shipping_cost: shippingCostInOre,
@@ -132,7 +135,7 @@ export default function EditProductPage() {
       requires_inquiry: requiresInquiry,
       year: year ? parseInt(year, 10) : null,
     };
-  }, [title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
+  }, [title, description, price, imageUrl, imagePath, productType, stockQuantity, collectionId, isAvailable, isFeatured, isPublic, sizes, galleryImages, shippingCost, shippingSize, requiresInquiry, year]);
 
   // Auto-save function
   const performAutoSave = useCallback(async () => {
@@ -497,6 +500,20 @@ export default function EditProductPage() {
             </div>
 
             <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                  className="w-5 h-5 rounded text-primary"
+                />
+                <div>
+                  <span>Synlig i butikken</span>
+                  <p className="text-xs text-muted-foreground">
+                    Skru av for å skjule fra shop og forsiden
+                  </p>
+                </div>
+              </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"

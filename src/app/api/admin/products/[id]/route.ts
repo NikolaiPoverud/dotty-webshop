@@ -39,7 +39,7 @@ interface RouteParams {
 const UPDATABLE_FIELDS = [
   'description', 'price', 'image_url', 'image_path', 'product_type',
   'stock_quantity', 'collection_id', 'is_available', 'is_featured',
-  'sizes', 'gallery_images', 'display_order', 'shipping_cost',
+  'is_public', 'sizes', 'gallery_images', 'display_order', 'shipping_cost',
   'shipping_size', 'requires_inquiry',
 ] as const;
 

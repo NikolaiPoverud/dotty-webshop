@@ -34,6 +34,7 @@ export interface Product {
   collection_id: string | null;
   is_available: boolean;
   is_featured: boolean;
+  is_public: boolean;
   display_order: number;
   shipping_cost: number | null;
   shipping_size: ShippingSize | null;
@@ -47,7 +48,7 @@ export interface Product {
 
 export type ProductListItem = Pick<Product,
   | 'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type'
-  | 'is_available' | 'is_featured' | 'stock_quantity' | 'collection_id' | 'requires_inquiry'
+  | 'is_available' | 'is_featured' | 'is_public' | 'stock_quantity' | 'collection_id' | 'requires_inquiry'
 > & { sizes?: ProductSize[] };
 
 export type ProductCard = ProductListItem;
@@ -61,6 +62,7 @@ export interface Collection {
   description: string | null;
   display_order: number;
   shipping_cost: number;
+  is_public: boolean;
   created_at: string;
 }
 

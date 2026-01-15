@@ -18,8 +18,9 @@ async function getFeaturedProducts(): Promise<ProductListItem[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
-    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry')
+    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry')
     .is('deleted_at', null)
+    .eq('is_public', true)
     .order('display_order', { ascending: true })
     .limit(12);
 
@@ -37,6 +38,7 @@ async function getCollections(): Promise<CollectionCard[]> {
     .from('collections')
     .select('id, name, slug, description')
     .is('deleted_at', null)
+    .eq('is_public', true)
     .order('display_order', { ascending: true });
 
   if (error) {

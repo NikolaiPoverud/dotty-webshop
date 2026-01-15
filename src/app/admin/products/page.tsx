@@ -3,7 +3,7 @@
 import { motion, Reorder, useDragControls } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Loader2, RefreshCw, GripVertical, CheckSquare, Square, Edit3 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, RefreshCw, GripVertical, CheckSquare, Square, Edit3, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Product, Collection } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -20,12 +20,13 @@ interface DraggableProductRowProps {
   product: Product;
   gradientIndex: number;
   onDelete: (id: string) => void;
+  onToggleVisibility: (id: string, isPublic: boolean) => void;
   isSelected: boolean;
   onToggleSelect: (id: string) => void;
   selectionMode: boolean;
 }
 
-function DraggableProductRow({ product, gradientIndex, onDelete, isSelected, onToggleSelect, selectionMode }: DraggableProductRowProps) {
+function DraggableProductRow({ product, gradientIndex, onDelete, onToggleVisibility, isSelected, onToggleSelect, selectionMode }: DraggableProductRowProps) {
   const dragControls = useDragControls();
   const gradient = PLACEHOLDER_GRADIENTS[gradientIndex % PLACEHOLDER_GRADIENTS.length];
 
@@ -34,9 +35,9 @@ function DraggableProductRow({ product, gradientIndex, onDelete, isSelected, onT
       value={product}
       dragListener={false}
       dragControls={dragControls}
-      className={`grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-4 hover:bg-muted-foreground/5 border-b border-border cursor-default transition-colors ${
+      className={`grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_60px_100px_100px] gap-4 items-center px-6 py-4 hover:bg-muted-foreground/5 border-b border-border cursor-default transition-colors ${
         isSelected ? 'bg-primary/10' : 'bg-muted'
-      }`}
+      } ${!product.is_public ? 'opacity-60' : ''}`}
       whileDrag={{
         scale: 1.02,
         backgroundColor: 'rgba(236, 72, 153, 0.1)',
@@ -97,6 +98,20 @@ function DraggableProductRow({ product, gradientIndex, onDelete, isSelected, onT
         ) : (
           <span>{product.stock_quantity}</span>
         )}
+      </div>
+
+      <div>
+        <button
+          onClick={() => onToggleVisibility(product.id, !product.is_public)}
+          className={`p-1.5 rounded-lg transition-colors ${
+            product.is_public
+              ? 'text-success hover:bg-success/10'
+              : 'text-muted-foreground hover:bg-muted-foreground/10'
+          }`}
+          title={product.is_public ? 'Synlig - klikk for å skjule' : 'Skjult - klikk for å vise'}
+        >
+          {product.is_public ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+        </button>
       </div>
 
       <div>
@@ -289,6 +304,34 @@ export default function AdminProductsPage() {
     }
   };
 
+  const toggleVisibility = async (id: string, isPublic: boolean) => {
+    // Optimistic update
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, is_public: isPublic } : p))
+    );
+
+    try {
+      const response = await adminFetch(`/api/admin/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_public: isPublic }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setProducts((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, is_public: !isPublic } : p))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle visibility:', err);
+      // Revert on error
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, is_public: !isPublic } : p))
+      );
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -393,7 +436,7 @@ export default function AdminProductsPage() {
         </div>
       ) : (
         <div className="bg-muted rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
+          <div className="grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_60px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
             <button
               onClick={selectAll}
               className="p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -411,6 +454,7 @@ export default function AdminProductsPage() {
             <div>Type</div>
             <div>Pris</div>
             <div>Lager</div>
+            <div>Synlig</div>
             <div>Status</div>
             <div className="text-right">Handlinger</div>
           </div>
@@ -427,6 +471,7 @@ export default function AdminProductsPage() {
                 product={product}
                 gradientIndex={index}
                 onDelete={deleteProduct}
+                onToggleVisibility={toggleVisibility}
                 isSelected={selectedIds.has(product.id)}
                 onToggleSelect={toggleSelect}
                 selectionMode={selectionMode}

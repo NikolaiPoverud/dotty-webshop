@@ -98,6 +98,10 @@ export const createProductSchema = z.object({
     .optional()
     .default(false),
 
+  is_public: z.boolean()
+    .optional()
+    .default(true),
+
   sizes: z.array(productSizeSchema)
     .max(20, 'Too many sizes')
     .optional()

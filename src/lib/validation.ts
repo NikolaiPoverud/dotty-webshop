@@ -100,7 +100,9 @@ export const collectionSchema: ValidationSchema = {
   slug: { type: 'string', required: true, minLength: 1, maxLength: 100, pattern: /^[a-z0-9-]+$/ },
   description: { type: 'string', maxLength: 500 },
   display_order: { type: 'number', min: 0, max: 1000 },
+  shipping_cost: { type: 'number', min: 0, max: 100000000 },
   is_active: { type: 'boolean' },
+  is_public: { type: 'boolean' },
 };
 
 // Discount code schema

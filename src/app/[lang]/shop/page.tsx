@@ -24,7 +24,7 @@ type Props = {
 };
 
 
-const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry';
+const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
 
 async function getProducts(): Promise<ProductListItem[]> {
   const supabase = createPublicClient();
@@ -32,6 +32,7 @@ async function getProducts(): Promise<ProductListItem[]> {
     .from('products')
     .select(PRODUCT_LIST_COLUMNS)
     .is('deleted_at', null)
+    .eq('is_public', true)
     .order('display_order', { ascending: true });
 
   if (error) {
@@ -47,6 +48,7 @@ async function getCollections(): Promise<CollectionCard[]> {
     .from('collections')
     .select('id, name, slug, description')
     .is('deleted_at', null)
+    .eq('is_public', true)
     .order('display_order', { ascending: true });
 
   if (error) {

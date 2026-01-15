@@ -111,6 +111,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         collection_id: body.collection_id ?? null,
         is_available: body.is_available,
         is_featured: body.is_featured,
+        is_public: body.is_public ?? true,
         sizes: body.sizes,
         gallery_images: body.gallery_images,
         display_order: (maxOrder?.display_order ?? 0) + 1,

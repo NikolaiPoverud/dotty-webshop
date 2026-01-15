@@ -14,7 +14,7 @@ import { RelatedProducts } from '@/components/shop/related-products';
 import { ShopContent } from '@/components/shop/shop-content';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
-const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, stock_quantity, collection_id, requires_inquiry';
+const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
 
 // Revalidate every 60 seconds - balances freshness with caching
 export const revalidate = 60;
@@ -52,6 +52,7 @@ async function getCollection(slug: string): Promise<CollectionCard | null> {
     .from('collections')
     .select('id, name, slug, description')
     .eq('slug', slug)
+    .eq('is_public', true)
     .is('deleted_at', null)
     .single();
 
@@ -78,6 +79,7 @@ async function getProductsForCollection(collectionId: string): Promise<ProductLi
     .from('products')
     .select(PRODUCT_LIST_COLUMNS)
     .eq('collection_id', collectionId)
+    .eq('is_public', true)
     .is('deleted_at', null)
     .order('display_order', { ascending: true });
 
@@ -90,6 +92,7 @@ async function getAllCollections(): Promise<CollectionCard[]> {
   const { data, error } = await supabase
     .from('collections')
     .select('id, name, slug, description')
+    .eq('is_public', true)
     .is('deleted_at', null)
     .order('display_order', { ascending: true });
 
@@ -111,6 +114,7 @@ async function getRelatedProducts(
       .eq('collection_id', collectionId)
       .neq('id', productId)
       .eq('is_available', true)
+      .eq('is_public', true)
       .is('deleted_at', null)
       .limit(limit);
 
@@ -124,6 +128,7 @@ async function getRelatedProducts(
     .select(PRODUCT_LIST_COLUMNS)
     .neq('id', productId)
     .eq('is_available', true)
+    .eq('is_public', true)
     .is('deleted_at', null)
     .order('display_order', { ascending: true })
     .limit(limit);
