@@ -75,8 +75,8 @@ export async function generateMetadata({
   const isNorwegian = lang === 'no';
 
   const title = isNorwegian
-    ? 'Dotty. | Pop-Art Kunst fra Norge - Originaler & Trykk'
-    : 'Dotty. | Pop-Art from Norway - Originals & Prints';
+    ? 'Dotty. | Pop-Art fra Norge – Originaler & Trykk'
+    : 'Dotty. | Pop-Art from Norway – Originals & Prints';
 
   const description = isNorwegian
     ? 'Oppdag unik pop-art med personlighet. Kjøp originale kunstverk og limiterte trykk som bringer energi og farge til ditt hjem. Gratis frakt i Norge.'

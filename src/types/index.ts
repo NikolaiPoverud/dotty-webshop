@@ -218,11 +218,13 @@ export interface Dictionary {
   };
   hero: {
     title: string;
+    headline: string;
     subtitle: string;
     cta: string;
   };
   shop: {
     title: string;
+    sectionTitle: string;
     allCollections: string;
     addToCart: string;
     soldOut: string;

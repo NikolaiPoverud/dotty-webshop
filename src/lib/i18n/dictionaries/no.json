@@ -12,11 +12,13 @@
   },
   "hero": {
     "title": "Pop-art med personlighet",
+    "headline": "Pop-Art fra Norge – Originaler & Trykk",
     "subtitle": "Et kunstunivers med sterke farger og en leken strek. Uten filter. Begrensede prints og originale verk.",
     "cta": "Utforsk shop"
   },
   "shop": {
     "title": "Shop",
+    "sectionTitle": "Utforsk Kunsten",
     "allCollections": "Alle verk",
     "addToCart": "Legg i handlekurv",
     "soldOut": "Utsolgt",

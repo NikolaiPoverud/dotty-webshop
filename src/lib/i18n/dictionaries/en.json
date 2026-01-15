@@ -12,11 +12,13 @@
   },
   "hero": {
     "title": "Pop-art with personality",
+    "headline": "Pop-Art from Norway – Originals & Prints",
     "subtitle": "An art universe with bold colors and a playful stroke. Unfiltered. Limited prints and original works.",
     "cta": "Explore shop"
   },
   "shop": {
     "title": "Shop",
+    "sectionTitle": "Explore the Art",
     "allCollections": "All works",
     "addToCart": "Add to cart",
     "soldOut": "Sold out",
