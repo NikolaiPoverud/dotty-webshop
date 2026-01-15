@@ -39,6 +39,14 @@ export default function AdminDiscountsPage() {
     fetchDiscounts();
   }, [fetchDiscounts]);
 
+  // Auto-clear errors after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   function openNewModal(): void {
     setEditingDiscount(null);
     setFormData({

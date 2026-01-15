@@ -40,7 +40,7 @@ const UPDATABLE_FIELDS = [
   'description', 'price', 'image_url', 'image_path', 'product_type',
   'stock_quantity', 'collection_id', 'is_available', 'is_featured',
   'is_public', 'sizes', 'gallery_images', 'display_order', 'shipping_cost',
-  'shipping_size', 'requires_inquiry',
+  'shipping_size', 'requires_inquiry', 'year',
 ] as const;
 
 function handleSupabaseError(error: { code: string; message: string }): NextResponse {

@@ -152,6 +152,7 @@ export default function AdminProductsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const originalOrderRef = useRef<string[]>([]);
+  const pendingOperationsRef = useRef<Set<string>>(new Set());
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -189,6 +190,14 @@ export default function AdminProductsPage() {
       setIsLoading(false);
     }
   }, []);
+
+  // Auto-clear errors after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -256,38 +265,6 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Auto-refresh when tab becomes visible or window regains focus
-  // This ensures fresh data after returning from edit page
-  useEffect(() => {
-    let lastFetchTime = 0;
-    const MIN_FETCH_INTERVAL = 1000; // Prevent double-fetches within 1 second
-
-    function throttledFetch(): void {
-      const now = Date.now();
-      if (now - lastFetchTime > MIN_FETCH_INTERVAL) {
-        lastFetchTime = now;
-        fetchProducts();
-      }
-    }
-
-    function handleVisibilityChange(): void {
-      if (document.visibilityState === 'visible') {
-        throttledFetch();
-      }
-    }
-
-    function handleFocus(): void {
-      throttledFetch();
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [fetchProducts]);
-
   const deleteProduct = async (id: string) => {
     if (!confirm('Er du sikker pa at du vil slette dette produktet?')) return;
 
@@ -305,6 +282,10 @@ export default function AdminProductsPage() {
   };
 
   const toggleVisibility = async (id: string, isPublic: boolean) => {
+    // Prevent rapid clicks on the same item
+    if (pendingOperationsRef.current.has(id)) return;
+    pendingOperationsRef.current.add(id);
+
     // Optimistic update
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, is_public: isPublic } : p))
@@ -329,6 +310,8 @@ export default function AdminProductsPage() {
       setProducts((prev) =>
         prev.map((p) => (p.id === id ? { ...p, is_public: !isPublic } : p))
       );
+    } finally {
+      pendingOperationsRef.current.delete(id);
     }
   };
 

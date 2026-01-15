@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, Eye, EyeOff, Loader2, Pencil, Plus, RefreshCw, Trash2, Truck } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 
 import { adminFetch, adminFetchJson } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
@@ -25,6 +25,7 @@ export default function AdminCollectionsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [formData, setFormData] = useState({ name: '', slug: '', description: '', shipping_cost: 0, is_public: true });
+  const pendingOperationsRef = useRef<Set<string>>(new Set());
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
@@ -41,6 +42,14 @@ export default function AdminCollectionsPage() {
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
+
+  // Auto-clear errors after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   function openNewModal(): void {
     setEditingCollection(null);
@@ -103,22 +112,30 @@ export default function AdminCollectionsPage() {
   }
 
   async function toggleVisibility(id: string, isPublic: boolean): Promise<void> {
+    // Prevent rapid clicks on the same item
+    if (pendingOperationsRef.current.has(id)) return;
+    pendingOperationsRef.current.add(id);
+
     // Optimistic update
     setCollections((prev) =>
       prev.map((c) => (c.id === id ? { ...c, is_public: isPublic } : c))
     );
 
-    const response = await adminFetch(`/api/admin/collections/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_public: isPublic }),
-    });
+    try {
+      const response = await adminFetch(`/api/admin/collections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_public: isPublic }),
+      });
 
-    if (!response.ok) {
-      // Revert on error
-      setCollections((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, is_public: !isPublic } : c))
-      );
+      if (!response.ok) {
+        // Revert on error
+        setCollections((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, is_public: !isPublic } : c))
+        );
+      }
+    } finally {
+      pendingOperationsRef.current.delete(id);
     }
   }
 
