@@ -4,3 +4,4 @@ export { FAQJsonLd } from './faq-jsonld';
 export { OrganizationJsonLd } from './organization-jsonld';
 export { ProductJsonLd } from './product-jsonld';
 export { ReviewJsonLd } from './review-jsonld';
+export { WebsiteJsonLd } from './website-jsonld';

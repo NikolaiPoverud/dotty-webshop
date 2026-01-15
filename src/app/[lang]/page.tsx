@@ -6,7 +6,7 @@ import { ArtistStatement } from '@/components/landing/artist-statement';
 import { Testimonials } from '@/components/landing/testimonials';
 import { ContactSection } from '@/components/landing/contact-section';
 import { createPublicClient } from '@/lib/supabase/public';
-import { OrganizationJsonLd } from '@/components/seo';
+import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/seo';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
@@ -134,7 +134,8 @@ export default async function HomePage({
   return (
     <>
       <OrganizationJsonLd />
-      <Hero dictionary={dictionary} />
+      <WebsiteJsonLd lang={locale} />
+      <Hero lang={locale} dictionary={dictionary} />
       <FeaturedGrid lang={locale} products={products} collections={collections} dictionary={dictionary} />
       <ArtistStatement lang={locale} />
       <Testimonials testimonials={testimonials} />

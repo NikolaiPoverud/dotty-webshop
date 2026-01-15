@@ -2,13 +2,15 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { Locale } from '@/types';
+import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
 interface Props {
   lang: Locale;
 }
 
-const artistText: Record<Locale, { title: string; paragraphs: string[] }> = {
+const artistText: Record<Locale, { title: string; paragraphs: string[]; cta: string }> = {
   no: {
     title: 'Om Dotty.',
     paragraphs: [
@@ -16,6 +18,7 @@ const artistText: Record<Locale, { title: string; paragraphs: string[] }> = {
       'Kunsten er ment å gi energi og karakter til rommet, enten det får deg til å trekke på smilebåndet eller stoppe opp og reflektere over livets oppturer og nedturer. Selv om uttrykket ofte er lekent og fargerikt, tar kunsten ofte utgangspunkt i seriøse temaer.',
       'Ambisjonen er å utfordre uten å støte, være direkte uten å belære, og formidle erfaringer og perspektiver på en ærlig måte.',
     ],
+    cta: 'Se alle verk',
   },
   en: {
     title: 'About Dotty.',
@@ -24,6 +27,7 @@ const artistText: Record<Locale, { title: string; paragraphs: string[] }> = {
       'The art is meant to give energy and character to a space, whether it makes you smile or pause to reflect on life\'s ups and downs. Although the expression is often playful and colorful, the art often stems from serious themes.',
       'The ambition is to challenge without offending, be direct without lecturing, and convey experiences and perspectives in an honest way.',
     ],
+    cta: 'View all works',
   },
 };
 
@@ -73,17 +77,25 @@ export function ArtistStatement({ lang }: Props): React.ReactElement {
             </div>
 
             {/* Signature dots */}
-            <div className="mt-8 flex gap-2">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-3 h-3 rounded-full bg-primary"
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
-                />
-              ))}
+            <div className="mt-8 flex items-center gap-4">
+              <div className="flex gap-2">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-3 h-3 rounded-full bg-primary"
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.6 + i * 0.1 }}
+                  />
+                ))}
+              </div>
+              <Link
+                href={getLocalizedPath(lang, 'shop')}
+                className="text-primary font-medium hover:underline transition-colors"
+              >
+                {t.cta} →
+              </Link>
             </div>
           </motion.div>
         </div>
