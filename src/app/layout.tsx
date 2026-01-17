@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geologica } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/cart-provider";
 
@@ -94,6 +95,7 @@ export default function RootLayout({
         <CartProvider>
           {children}
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );
