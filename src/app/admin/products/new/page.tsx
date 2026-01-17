@@ -204,7 +204,10 @@ export default function NewProductPage() {
                     name="productType"
                     value="original"
                     checked={productType === 'original'}
-                    onChange={() => setProductType('original')}
+                    onChange={() => {
+                      setProductType('original');
+                      setStockQuantity('1');
+                    }}
                     className="w-4 h-4 text-primary"
                   />
                   <span>Maleri</span>
@@ -279,30 +282,32 @@ export default function NewProductPage() {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="stock" className="block text-sm font-medium">
-                Antall på lager {productType === 'original' && <span className="text-muted-foreground">(vanligvis 1)</span>}
-              </label>
-              <input
-                id="stock"
-                type="number"
-                min="0"
-                step="1"
-                value={stockQuantity}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setStockQuantity(val);
-                  // Auto-set unavailable when stock is 0
-                  if (parseInt(val, 10) === 0) {
-                    setIsAvailable(false);
-                  }
-                }}
-                onWheel={(e) => e.currentTarget.blur()}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="1"
-              />
-              <p className="text-xs text-muted-foreground">Sett til 0 for å markere som solgt</p>
-            </div>
+            {productType === 'print' && (
+              <div className="space-y-2">
+                <label htmlFor="stock" className="block text-sm font-medium">
+                  Antall på lager
+                </label>
+                <input
+                  id="stock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={stockQuantity}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setStockQuantity(val);
+                    // Auto-set unavailable when stock is 0
+                    if (parseInt(val, 10) === 0) {
+                      setIsAvailable(false);
+                    }
+                  }}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="1"
+                />
+                <p className="text-xs text-muted-foreground">Sett til 0 for å markere som utsolgt</p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">Størrelser</label>

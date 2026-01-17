@@ -6,8 +6,10 @@ import { ArrowLeft } from 'lucide-react';
 
 import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { createPublicClient } from '@/lib/supabase/public';
-import { BreadcrumbJsonLd } from '@/components/seo';
+import { BreadcrumbJsonLd, FacetNavigation } from '@/components/seo';
 import { ShopContent } from '@/components/shop/shop-content';
+import { getShopInternalLinks } from '@/lib/seo/internal-linking';
+import { getAvailableYears, getAllFacetCounts } from '@/lib/seo/facets/queries';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -105,13 +107,18 @@ export default async function ShopPage({ params }: Props) {
   const { lang } = await params;
   const locale = lang as Locale;
 
-  const [products, collections, dictionary] = await Promise.all([
+  const [products, collections, dictionary, availableYears, facetCounts] = await Promise.all([
     getProducts(),
     getCollections(),
     getDictionary(locale),
+    getAvailableYears(),
+    getAllFacetCounts(),
   ]);
 
   const t = dictionary.shop;
+
+  // Get internal linking data for the shop page
+  const { facetGroups } = getShopInternalLinks(locale, availableYears, facetCounts);
 
   const breadcrumbItems = [
     { name: locale === 'no' ? 'Hjem' : 'Home', url: `/${locale}` },
@@ -138,6 +145,11 @@ export default async function ShopPage({ params }: Props) {
           <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
             <span className="gradient-text">{t.title}</span>
           </h1>
+
+          {/* Facet Navigation for SEO internal linking */}
+          {facetGroups && facetGroups.length > 0 && (
+            <FacetNavigation groups={facetGroups} locale={locale} compact />
+          )}
 
           <ShopContent
             products={products}

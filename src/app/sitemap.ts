@@ -1,69 +1,47 @@
-import type { MetadataRoute } from 'next';
+/**
+ * Sitemap Index
+ *
+ * Generates a sitemap index that points to segmented sitemaps.
+ * This pattern supports 100k+ pages by splitting URLs across multiple sitemaps.
+ *
+ * Sitemap segments:
+ * - /sitemap/static/sitemap.xml - Static pages (home, about, privacy, terms)
+ * - /sitemap/products/sitemap.xml - Product pages (chunked if needed)
+ * - /sitemap/collections/sitemap.xml - Collection pages
+ * - /sitemap/facets/sitemap.xml - Faceted pages (type, year, price, size)
+ * - /sitemap/paginated/sitemap.xml - Paginated listing pages
+ */
 
-import { createAdminClient } from '@/lib/supabase/admin';
+import type { MetadataRoute } from 'next';
+import { generateSitemapIndex, type SitemapIndexEntry } from '@/lib/seo/sitemap';
 
 const DOMAIN_NO = process.env.NEXT_PUBLIC_DOMAIN_NO || 'https://dotty.no';
-const DOMAIN_EN = process.env.NEXT_PUBLIC_DOMAIN_EN || 'https://dottyartwork.com';
 
-interface SitemapItem {
-  slug: string;
-  updated_at: string | null;
-}
-
-function createLocalizedUrls(
-  path: string,
-  lastModified: Date,
-  changeFrequency: 'daily' | 'weekly' | 'monthly',
-  priorityNo: number,
-  priorityEn: number
-): MetadataRoute.Sitemap {
-  return [
-    { url: `${DOMAIN_NO}/no${path}`, lastModified, changeFrequency, priority: priorityNo },
-    { url: `${DOMAIN_EN}/en${path}`, lastModified, changeFrequency, priority: priorityEn },
-  ];
-}
-
-function createItemUrls(
-  items: SitemapItem[],
-  pathPrefix: string,
-  now: Date,
-  priorityNo: number,
-  priorityEn: number
-): MetadataRoute.Sitemap {
-  return items.flatMap((item) => {
-    const lastModified = item.updated_at ? new Date(item.updated_at) : now;
-    return createLocalizedUrls(`${pathPrefix}/${item.slug}`, lastModified, 'weekly', priorityNo, priorityEn);
-  });
-}
+// Revalidate every hour
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let products: SitemapItem[] = [];
-  let collections: SitemapItem[] = [];
-
   try {
-    const supabase = createAdminClient();
+    // Generate sitemap index entries
+    const indexEntries: SitemapIndexEntry[] = await generateSitemapIndex(DOMAIN_NO);
 
-    const [productsResult, collectionsResult] = await Promise.all([
-      supabase.from('products').select('slug, updated_at').eq('is_available', true),
-      supabase.from('collections').select('slug, updated_at'),
-    ]);
-
-    products = productsResult.data ?? [];
-    collections = collectionsResult.data ?? [];
+    // Convert to Next.js sitemap format
+    // Note: Next.js sitemap() doesn't natively support sitemap index format,
+    // but we return the sitemaps as URLs so crawlers can discover them
+    return indexEntries.map((entry) => ({
+      url: entry.url,
+      lastModified: entry.lastModified,
+    }));
   } catch (error) {
-    console.warn('Could not fetch data for sitemap:', error);
+    console.error('Failed to generate sitemap index:', error);
+
+    // Fallback: Return basic sitemap with main pages
+    const now = new Date();
+    return [
+      { url: `${DOMAIN_NO}/sitemap/static/sitemap.xml`, lastModified: now },
+      { url: `${DOMAIN_NO}/sitemap/products/sitemap.xml`, lastModified: now },
+      { url: `${DOMAIN_NO}/sitemap/collections/sitemap.xml`, lastModified: now },
+      { url: `${DOMAIN_NO}/sitemap/facets/sitemap.xml`, lastModified: now },
+    ];
   }
-
-  const now = new Date();
-
-  return [
-    ...createLocalizedUrls('', now, 'daily', 1.0, 1.0),
-    ...createLocalizedUrls('/shop', now, 'daily', 0.9, 0.9),
-    { url: `${DOMAIN_NO}/no/solgt`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
-    { url: `${DOMAIN_EN}/en/sold`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
-    ...createItemUrls(products, '/shop', now, 0.8, 0.7),
-    ...createItemUrls(collections, '/shop', now, 0.8, 0.7),
-    ...createLocalizedUrls('/privacy', now, 'monthly', 0.3, 0.3),
-    ...createLocalizedUrls('/terms', now, 'monthly', 0.3, 0.3),
-  ];
 }
