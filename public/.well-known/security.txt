@@ -1,0 +1,4 @@
+# Dotty. Security Contact
+Contact: mailto:security@dotty.no
+Preferred-Languages: no, en
+Canonical: https://dotty.no/.well-known/security.txt

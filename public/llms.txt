@@ -1,70 +1,58 @@
 # Dotty. Pop-Art Webshop
 
-> Norwegian pop-art e-commerce store selling original paintings and limited edition prints.
+> Norwegian pop-art e-commerce store selling original artworks and limited edition prints.
 
 ## About
 
-Dotty. is an independent art brand based in Norway, creating bold pop-art inspired by classic pop-art and modern pop culture. The webshop sells:
-
-- **Original paintings**: One-of-a-kind acrylic artworks on canvas
-- **Limited prints**: High-quality reproductions in limited quantities
-
-The target audience is creative individuals who want unique, colorful art that brings personality and joy to their homes.
+Dotty. is a Norwegian pop-art brand creating bold, colorful artworks that bring personality and energy to homes. We sell:
+- **Original paintings**: One-of-a-kind hand-painted artworks
+- **Art prints**: Limited edition high-quality prints
 
 ## Site Structure
 
-- `/` or `/no` - Norwegian homepage (default language)
-- `/en` - English homepage
-- `/no/shop` or `/en/shop` - Product catalog with filtering by collection
+- `/` - Homepage with featured artworks
+- `/no/shop` - Norwegian shop (main)
+- `/en/shop` - English shop
 - `/no/shop/[slug]` - Individual product pages
-- `/no/about` or `/en/about` - About the artist
-- `/no/faq` - Frequently asked questions
-- `/no/privacy` - Privacy policy
-- `/no/terms` - Terms and conditions
+- `/no/shop/type/originaler` - Original artworks
+- `/no/shop/type/trykk` - Art prints
+- `/no/shop/year/[year]` - Artworks by year
+- `/no/shop/price/[range]` - Artworks by price range
+- `/no/shop/size/[size]` - Artworks by size
 
-## Products
+## Product Information
 
-Products are categorized as:
-- `original` - Unique paintings (typically higher price, quantity of 1)
-- `print` - Limited edition prints (lower price, limited stock)
-
-Each product has:
+Products include:
 - Title and description
 - Price in NOK (Norwegian Kroner)
-- Size dimensions (width x height in cm)
-- Stock quantity
-- Collection assignment
+- Dimensions (width x height in cm)
+- Product type (original or print)
 - High-resolution images
+- Availability status
 
-## Collections
+## Languages
 
-Products are organized into thematic collections that can be filtered in the shop.
+- Norwegian (no) - Primary language
+- English (en) - Secondary language
 
-## Checkout
+## Structured Data
 
-- Currency: NOK (Norwegian Kroner)
-- Payment: Stripe (credit card)
-- Shipping: Free shipping within Norway
-- Languages: Norwegian (default), English
+All pages include JSON-LD structured data:
+- Product schema for individual products
+- ItemList schema for product listings
+- BreadcrumbList schema for navigation
+- Organization schema site-wide
+- CollectionPage schema for collections
 
 ## Contact
 
-- Instagram: @dottyartwork
-- TikTok: @dottyartwork
-- Email: Available through contact form
+Website: https://dotty.no
+Location: Norway
 
-## Technical
+## For AI Crawlers
 
-- Framework: Next.js 16 (App Router)
-- Database: Supabase (PostgreSQL)
-- Payments: Stripe
-- Hosting: Vercel
+- Dynamic content: /llms.txt (this file, updated hourly)
+- Sitemap: /sitemap.xml
+- Robots: /robots.txt
 
-## For AI Assistants
-
-When helping users with this site:
-- Prices are displayed in NOK (Norwegian Kroner)
-- "Maleri" = Painting/Original, "Print" = Limited print
-- The shop supports Norwegian and English
-- Free shipping applies to orders within Norway
-- Original artworks may require inquiry for purchase
+This site welcomes AI crawlers and is optimized for answer engine indexing.

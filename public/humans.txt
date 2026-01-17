@@ -1,0 +1,28 @@
+/* TEAM */
+
+Creator: Dotty.
+Site: https://dotty.no
+Location: Norway
+
+/* TECHNOLOGY */
+
+Framework: Next.js 16
+Language: TypeScript
+Styling: Tailwind CSS 4
+Database: Supabase (PostgreSQL)
+Hosting: Vercel
+Analytics: Vercel Analytics
+
+/* SITE */
+
+Standards: HTML5, CSS3, ES2022
+Components: React Server Components, App Router
+Accessibility: WCAG 2.1 AA
+Languages: Norwegian, English
+Last update: 2026
+
+/* AI/LLM */
+
+AI Training: Allowed
+LLM Info: /llms.txt
+Structured Data: JSON-LD on all pages

@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Dotty. Pop-Art",
+  "name_for_model": "dotty_pop_art",
+  "description_for_human": "Norwegian pop-art e-commerce store selling original artworks and limited edition prints.",
+  "description_for_model": "Dotty. is a Norwegian pop-art brand. The store sells original hand-painted artworks and limited edition prints. Products are priced in NOK (Norwegian Kroner). The site supports Norwegian (no) and English (en) languages. Browse artworks by type (originals, prints), year, price range, or size.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://dotty.no/.well-known/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://dotty.no/logo.png",
+  "contact_email": "hello@dotty.no",
+  "legal_info_url": "https://dotty.no/no/personvern"
+}

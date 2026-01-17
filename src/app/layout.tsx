@@ -88,6 +88,10 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://qjnqwpbhxcnbfypvdwip.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://qjnqwpbhxcnbfypvdwip.supabase.co" />
+        {/* AI/LLM crawler optimization */}
+        <link rel="author" href="/llms.txt" />
+        <meta name="ai-content-declaration" content="human-created" />
+        <meta name="ai-training-allowed" content="yes" />
       </head>
       <body
         className={`${geologica.variable} antialiased bg-background text-foreground`}

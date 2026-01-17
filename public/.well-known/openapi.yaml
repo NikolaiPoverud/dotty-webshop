@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  title: Dotty. Pop-Art Webshop
+  description: |
+    Norwegian pop-art e-commerce store selling original artworks and limited edition prints.
+    
+    ## Site Structure
+    - Homepage: /
+    - Shop: /no/shop (Norwegian), /en/shop (English)
+    - Products: /no/shop/{slug}
+    - Categories: /no/shop/type/{type}
+    - Years: /no/shop/year/{year}
+    - Price ranges: /no/shop/price/{range}
+    - Sizes: /no/shop/size/{size}
+    
+    ## Product Types
+    - `original` / `originaler` - One-of-a-kind hand-painted artworks
+    - `print` / `trykk` - Limited edition high-quality prints
+    
+    ## Languages
+    - `no` - Norwegian (primary)
+    - `en` - English
+    
+    ## Currency
+    All prices in NOK (Norwegian Kroner), stored in øre (1/100 NOK).
+  version: "1.0.0"
+  contact:
+    email: hello@dotty.no
+servers:
+  - url: https://dotty.no
+    description: Production
+paths:
+  /:
+    get:
+      summary: Homepage
+      description: Main landing page with featured artworks
+      responses:
+        '200':
+          description: HTML page
+  /{lang}/shop:
+    get:
+      summary: Shop listing
+      description: Browse all available artworks
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [no, en]
+      responses:
+        '200':
+          description: HTML page with product grid
+  /{lang}/shop/{slug}:
+    get:
+      summary: Product detail
+      description: Individual product page
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [no, en]
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: HTML product page with JSON-LD structured data
+  /{lang}/shop/type/{type}:
+    get:
+      summary: Products by type
+      description: Filter products by type (originals or prints)
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [no, en]
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [originaler, trykk, originals, prints]
+      responses:
+        '200':
+          description: HTML page with filtered products
+  /{lang}/shop/year/{year}:
+    get:
+      summary: Products by year
+      description: Filter products by creation year
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [no, en]
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 2020
+      responses:
+        '200':
+          description: HTML page with filtered products
+  /sitemap.xml:
+    get:
+      summary: Sitemap index
+      description: XML sitemap index pointing to segmented sitemaps
+      responses:
+        '200':
+          description: XML sitemap
+  /llms.txt:
+    get:
+      summary: LLM-friendly site description
+      description: Plain text file optimized for AI/LLM crawlers
+      responses:
+        '200':
+          description: Plain text site description
