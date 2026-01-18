@@ -109,15 +109,10 @@ async function processEmail(email: QueuedEmail): Promise<boolean> {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Verify this is a legitimate cron request
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (process.env.NODE_ENV === 'production') {
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // SEC-017: Verify cron request is authenticated
+  const { verifyCronAuth } = await import('@/lib/cron-auth');
+  const authResult = verifyCronAuth(request);
+  if (!authResult.authorized) return authResult.response!;
 
   try {
     const startTime = Date.now();

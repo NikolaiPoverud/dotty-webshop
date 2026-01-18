@@ -4,6 +4,19 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify, generateRandomSuffix } from '@/lib/utils';
 import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { z } from 'zod';
+
+// SEC-009: Zod schemas for nested object validation
+const productSizeSchema = z.object({
+  width: z.number().int().min(1).max(10000),
+  height: z.number().int().min(1).max(10000),
+  label: z.string().min(1).max(100),
+});
+
+const galleryImageSchema = z.object({
+  url: z.string().url().max(2000),
+  path: z.string().min(1).max(500).regex(/^products\/[a-zA-Z0-9\-]+\.[a-zA-Z0-9]+$/),
+});
 
 /**
  * Revalidate all cached pages that display product data.
@@ -103,10 +116,31 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
       updateData.slug = existing ? `${newSlug}-${generateRandomSuffix()}` : newSlug;
     }
 
-    // Copy other updatable fields if present
+    // Copy other updatable fields if present, with validation for nested objects
     for (const field of UPDATABLE_FIELDS) {
       if (body[field] !== undefined) {
-        updateData[field] = field === 'price' ? Math.round(body[field]) : body[field];
+        // SEC-009: Validate nested arrays before accepting them
+        if (field === 'sizes' && body[field] !== null) {
+          const sizesResult = z.array(productSizeSchema).max(20).safeParse(body[field]);
+          if (!sizesResult.success) {
+            return NextResponse.json(
+              { error: 'Invalid sizes data', details: sizesResult.error.flatten() },
+              { status: 400 }
+            );
+          }
+          updateData[field] = sizesResult.data;
+        } else if (field === 'gallery_images' && body[field] !== null) {
+          const galleryResult = z.array(galleryImageSchema).max(20).safeParse(body[field]);
+          if (!galleryResult.success) {
+            return NextResponse.json(
+              { error: 'Invalid gallery_images data', details: galleryResult.error.flatten() },
+              { status: 400 }
+            );
+          }
+          updateData[field] = galleryResult.data;
+        } else {
+          updateData[field] = field === 'price' ? Math.round(body[field]) : body[field];
+        }
       }
     }
 

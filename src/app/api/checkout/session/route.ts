@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 
 // Stripe session IDs follow specific patterns
 const STRIPE_SESSION_ID_PATTERN = /^cs_(test|live)_[a-zA-Z0-9]{20,}$/;
+
+// SEC-015: Rate limit per session ID to prevent enumeration attacks
+const SESSION_RATE_LIMIT_CONFIG = { maxRequests: 10, windowMs: 60 * 1000 };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const sessionId = request.nextUrl.searchParams.get('session_id');
@@ -15,6 +19,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Validate session_id format to prevent injection attacks
   if (!STRIPE_SESSION_ID_PATTERN.test(sessionId)) {
     return NextResponse.json({ error: 'Invalid session_id format' }, { status: 400 });
+  }
+
+  // SEC-015: Rate limit by session ID and IP to prevent enumeration
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`checkout-session:${clientIp}:${sessionId}`, SESSION_RATE_LIMIT_CONFIG);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests for this session' },
+      { status: 429, headers: getRateLimitHeaders(rateLimitResult) }
+    );
   }
 
   const stripe = getStripe();

@@ -17,10 +17,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  // SEC-004: Strong email validation regex
+  const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
   try {
     const { email } = await request.json();
 
-    if (!email || !email.includes('@')) {
+    if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
     }
 

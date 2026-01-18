@@ -38,8 +38,25 @@ export default function ResetPasswordPage(): React.ReactNode {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Passordet må være minst 6 tegn');
+    // SEC-011: Enforce strong password policy
+    if (password.length < 12) {
+      setError('Passordet må være minst 12 tegn');
+      return;
+    }
+
+    // Check for complexity requirements
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      setError('Passordet må inneholde store bokstaver, små bokstaver og tall');
+      return;
+    }
+
+    if (!hasSpecial) {
+      setError('Passordet må inneholde minst ett spesialtegn (!@#$%^&* osv.)');
       return;
     }
 
@@ -178,7 +195,7 @@ export default function ResetPasswordPage(): React.ReactNode {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Minst 6 tegn"
+                  placeholder="Minst 12 tegn, store/små bokstaver, tall og spesialtegn"
                   autoComplete="new-password"
                 />
               </div>

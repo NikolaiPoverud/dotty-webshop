@@ -87,7 +87,25 @@ export default function CustomersPage() {
     loadCustomers();
   }, []);
 
+  // SEC-013: URL validation for createLink command to prevent XSS
+  function isValidUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      // Only allow https and mailto protocols
+      return parsed.protocol === 'https:' || parsed.protocol === 'mailto:';
+    } catch {
+      return false;
+    }
+  }
+
   function applyFormatting(command: string, value?: string): void {
+    // SEC-013: Validate URLs before creating links
+    if (command === 'createLink' && value) {
+      if (!isValidUrl(value)) {
+        alert('Ugyldig URL. Bruk en gyldig https:// eller mailto: adresse.');
+        return;
+      }
+    }
     document.execCommand(command, false, value);
     editorRef.current?.focus();
   }

@@ -3,6 +3,36 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
+import { z } from 'zod';
+
+// SEC-003: Zod schema for order creation - whitelist allowed fields
+const orderItemSchema = z.object({
+  product_id: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  price: z.number().int().min(0),
+  quantity: z.number().int().min(1).max(100),
+  image_url: z.string().url().optional(),
+});
+
+const orderCreateSchema = z.object({
+  customer_email: z.string().email().max(254),
+  customer_name: z.string().min(1).max(200),
+  customer_phone: z.string().min(8).max(20),
+  shipping_address: z.union([
+    z.string().min(1).max(500),
+    z.object({
+      street: z.string().max(200).optional(),
+      city: z.string().max(100).optional(),
+      postal_code: z.string().max(20).optional(),
+      country: z.string().max(100).optional(),
+    }),
+  ]),
+  items: z.array(orderItemSchema).min(1).max(50),
+  discount_code: z.string().max(50).optional(),
+  discount_amount: z.number().int().min(0).optional(),
+  payment_provider: z.enum(['stripe', 'vipps']).optional(),
+  status: z.enum(['pending', 'paid', 'shipped', 'delivered', 'cancelled']).optional(),
+});
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
@@ -56,6 +86,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const supabase = createAdminClient();
     const body = await request.json();
 
+    // SEC-003: Validate input with Zod schema - prevents mass assignment
+    const parseResult = orderCreateSchema.safeParse(body);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: parseResult.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
     const {
       customer_email,
       customer_name,
@@ -66,11 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       discount_amount,
       payment_provider,
       status,
-    } = body;
-
-    if (!customer_email || !customer_name || !customer_phone || !shipping_address || !items?.length) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    } = parseResult.data;
 
     const subtotal = items.reduce(
       (sum: number, item: OrderItem) => sum + item.price * item.quantity,

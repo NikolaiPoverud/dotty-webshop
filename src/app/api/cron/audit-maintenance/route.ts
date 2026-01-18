@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyCronAuth } from '@/lib/cron-auth';
 
 /**
  * DB-013: Cron endpoint for audit log maintenance
@@ -8,16 +9,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
  * Configured in vercel.json to run monthly.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Verify this is a legitimate cron request
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  // In production, verify the request is from Vercel Cron or has correct secret
-  if (process.env.NODE_ENV === 'production') {
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // SEC-017: Verify cron request is authenticated
+  const authResult = verifyCronAuth(request);
+  if (!authResult.authorized) return authResult.response!;
 
   try {
     const supabase = createAdminClient();

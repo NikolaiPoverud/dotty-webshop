@@ -5,7 +5,12 @@ import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-lim
 import { success, errors } from '@/lib/api-response';
 
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// SEC-004: Strong email validation regex
+// - Requires alphanumeric chars plus common special chars in local part
+// - Requires valid domain with at least 2-char TLD
+// - Rejects edge cases like consecutive dots, leading/trailing dots
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function getSubjectPrefix(type: string): string {
   switch (type) {

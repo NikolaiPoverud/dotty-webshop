@@ -61,15 +61,34 @@ function getPathnameLocale(pathname: string): Locale | null {
   return null;
 }
 
-// SEC-009: Security headers for all responses
-const SECURITY_HEADERS = {
+// SEC-009 & SEC-012: Security headers for all responses
+const isProduction = process.env.NODE_ENV === 'production';
+
+const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  // Note: HSTS should be enabled in production with proper domain setup
-  // 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  // SEC-012: Enable HSTS in production
+  ...(isProduction && {
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  }),
+  // SEC-015: Content Security Policy
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://va.vercel-scripts.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https: http:",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.google-analytics.com https://vitals.vercel-insights.com",
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+  ].join('; '),
 };
 
 function addSecurityHeaders(response: NextResponse): NextResponse {

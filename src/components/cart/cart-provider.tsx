@@ -139,26 +139,66 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'dotty-cart';
+const CART_STORAGE_VERSION = 1;
+const CART_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+interface StoredCart {
+  version: number;
+  timestamp: number;
+  cart: Cart;
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, dispatch] = useReducer(cartReducer, initialCart);
 
-  // Load cart from localStorage on mount
+  // SEC-016: Load cart from localStorage with expiration check
   useEffect(() => {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as Cart;
-        dispatch({ type: 'LOAD_CART', payload: parsed });
+        const data = JSON.parse(stored);
+
+        // Handle legacy format (direct cart object)
+        if (!data.version) {
+          // Legacy cart without versioning - clear it
+          console.log('Clearing legacy cart format');
+          localStorage.removeItem(CART_STORAGE_KEY);
+          return;
+        }
+
+        const storedCart = data as StoredCart;
+
+        // Check version compatibility
+        if (storedCart.version !== CART_STORAGE_VERSION) {
+          console.log('Cart version mismatch, clearing cart');
+          localStorage.removeItem(CART_STORAGE_KEY);
+          return;
+        }
+
+        // Check if cart has expired
+        const age = Date.now() - storedCart.timestamp;
+        if (age > CART_MAX_AGE_MS) {
+          console.log('Cart expired, clearing');
+          localStorage.removeItem(CART_STORAGE_KEY);
+          return;
+        }
+
+        dispatch({ type: 'LOAD_CART', payload: storedCart.cart });
       } catch (e) {
         console.error('Failed to parse cart from localStorage:', e);
+        localStorage.removeItem(CART_STORAGE_KEY);
       }
     }
   }, []);
 
-  // Save cart to localStorage on change
+  // SEC-016: Save cart to localStorage with version and timestamp
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    const storedCart: StoredCart = {
+      version: CART_STORAGE_VERSION,
+      timestamp: Date.now(),
+      cart,
+    };
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(storedCart));
   }, [cart]);
 
   // Check for expired reservations periodically

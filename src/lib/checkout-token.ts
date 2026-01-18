@@ -12,8 +12,28 @@
 
 import { createHmac } from 'crypto';
 
-const TOKEN_SECRET = process.env.CHECKOUT_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// SEC-010: Require dedicated CHECKOUT_TOKEN_SECRET in production
+// Using SUPABASE_SERVICE_ROLE_KEY as fallback is a security risk
+const TOKEN_SECRET = process.env.CHECKOUT_TOKEN_SECRET;
 const TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+
+function getTokenSecret(): string {
+  if (!TOKEN_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'SEC-010: CHECKOUT_TOKEN_SECRET environment variable is required in production. ' +
+        'Generate a secure random string (32+ chars) and set it as CHECKOUT_TOKEN_SECRET.'
+      );
+    }
+    // Allow fallback only in development for convenience
+    console.warn(
+      'SEC-010 WARNING: CHECKOUT_TOKEN_SECRET not set. Using development fallback. ' +
+      'Set CHECKOUT_TOKEN_SECRET before deploying to production!'
+    );
+    return 'dev-only-insecure-fallback-token-secret-12345';
+  }
+  return TOKEN_SECRET;
+}
 
 interface TokenValidationResult {
   valid: boolean;
@@ -25,8 +45,9 @@ interface TokenValidationResult {
  * Called when the checkout page loads
  */
 export function generateCheckoutToken(): string {
+  const secret = getTokenSecret();
   const timestamp = Date.now().toString();
-  const signature = createHmac('sha256', TOKEN_SECRET)
+  const signature = createHmac('sha256', secret)
     .update(timestamp)
     .digest('hex');
 
@@ -67,7 +88,8 @@ export function validateCheckoutToken(token: string | null | undefined): TokenVa
   }
 
   // Validate signature
-  const expectedSignature = createHmac('sha256', TOKEN_SECRET)
+  const secret = getTokenSecret();
+  const expectedSignature = createHmac('sha256', secret)
     .update(timestamp)
     .digest('hex');
 

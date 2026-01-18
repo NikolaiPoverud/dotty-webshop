@@ -38,13 +38,16 @@ function generateFilename(ext: string): string {
   return `products/${timestamp}-${randomId}.${ext}`;
 }
 
+// SEC-014: Strict path validation to prevent path traversal
+// Using explicit ASCII character classes instead of \w which matches Unicode
 function isValidProductPath(path: string): boolean {
   const normalized = String(path).trim();
   return (
     normalized.startsWith('products/') &&
     !normalized.includes('..') &&
     !normalized.includes('//') &&
-    /^products\/[\w\-]+\.\w+$/.test(normalized)
+    // Only allow ASCII alphanumeric, hyphens in filename, and common image extensions
+    /^products\/[a-zA-Z0-9\-]+\.[a-zA-Z0-9]+$/.test(normalized)
   );
 }
 

@@ -4,6 +4,25 @@ import { sendShippingNotification, sendDeliveryConfirmation } from '@/lib/email/
 import type { Order, OrderWithItems, OrderItem } from '@/types';
 import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { z } from 'zod';
+
+// SEC-003: Zod schema for order updates - whitelist allowed fields only
+const orderUpdateSchema = z.object({
+  status: z.enum(['pending', 'paid', 'shipped', 'delivered', 'cancelled']).optional(),
+  shipping_address: z.union([
+    z.string().min(1).max(500),
+    z.object({
+      street: z.string().max(200).optional(),
+      city: z.string().max(100).optional(),
+      postal_code: z.string().max(20).optional(),
+      country: z.string().max(100).optional(),
+    }),
+  ]).optional(),
+  notes: z.string().max(1000).optional(),
+  tracking_number: z.string().max(100).optional(),
+  shipped_at: z.string().datetime().optional(),
+  delivered_at: z.string().datetime().optional(),
+}).strict(); // Reject any extra fields
 
 // DB-003: Helper to load order items from junction table
 async function loadOrderWithItems(order: Order): Promise<OrderWithItems> {
@@ -44,6 +63,17 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+
+    // SEC-003: Validate input with Zod schema - prevents mass assignment
+    const parseResult = orderUpdateSchema.safeParse(body);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: parseResult.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const validatedData = parseResult.data;
     const supabase = createAdminClient();
 
     const { data: currentOrder } = await supabase
@@ -56,7 +86,7 @@ export async function PUT(
 
     const { data, error } = await supabase
       .from('orders')
-      .update(body)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single();
@@ -77,7 +107,7 @@ export async function PUT(
         previous_status: previousStatus,
         new_status: updatedOrder.status,
         customer_email: updatedOrder.customer_email,
-        changes: Object.keys(body),
+        changes: Object.keys(validatedData),
       },
       ...getAuditHeadersFromRequest(request),
     });

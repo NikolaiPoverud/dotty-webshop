@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
-
-const CRON_SECRET = process.env.CRON_SECRET;
+import { verifyCronAuth } from '@/lib/cron-auth';
 
 function daysAgo(days: number): string {
   const date = new Date();
@@ -35,10 +34,9 @@ function recordResult(
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const authHeader = request.headers.get('authorization');
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // SEC-017: Verify cron request is authenticated
+  const authResult = verifyCronAuth(request);
+  if (!authResult.authorized) return authResult.response!;
 
   const supabase = createAdminClient();
   const ctx: CleanupContext = { results: {}, cleanupErrors: [] };
