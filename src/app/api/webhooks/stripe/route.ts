@@ -7,16 +7,20 @@ import { validateCheckoutToken } from '@/lib/checkout-token';
 import type { Order, OrderWithItems, OrderItem, ShippingAddress } from '@/types';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  console.log('Stripe webhook received');
+
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
   if (!signature) {
+    console.error('Stripe webhook: No signature provided');
     return NextResponse.json({ error: 'No signature provided' }, { status: 400 });
   }
 
   let event: Stripe.Event;
   try {
     event = constructWebhookEvent(body, signature);
+    console.log('Stripe webhook event verified:', event.type);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -24,7 +28,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   switch (event.type) {
     case 'checkout.session.completed':
+      console.log('Processing checkout.session.completed:', (event.data.object as Stripe.Checkout.Session).id);
       await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      console.log('Finished processing checkout.session.completed');
       break;
 
     case 'payment_intent.payment_failed': {
@@ -41,11 +47,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  console.log('handleCheckoutCompleted started for session:', session.id);
+
   const metadata = session.metadata;
   if (!metadata) {
-    console.error('No metadata in session');
+    console.error('No metadata in session:', session.id);
     return;
   }
+
+  console.log('Session metadata keys:', Object.keys(metadata));
 
   // SEC-003: Validate checkout token (warning only - Stripe signature already verifies authenticity)
   const tokenValidation = validateCheckoutToken(metadata.checkout_token);
@@ -55,6 +65,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   }
 
   const supabase = createAdminClient();
+  console.log('Supabase admin client created');
   const items = parseJSON<OrderItemInput[]>(metadata.items, []);
   const shippingAddress = parseJSON<ShippingAddress>(metadata.shipping_address, {} as ShippingAddress);
 
