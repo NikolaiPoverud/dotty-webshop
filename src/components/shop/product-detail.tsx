@@ -324,14 +324,6 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 </div>
               )}
 
-              {/* Material - show if available */}
-              {product.material && (
-                <div className="flex justify-between items-center pb-3 border-b border-border">
-                  <span className="text-muted-foreground text-sm">{t.material}</span>
-                  <span className="font-medium text-sm">{product.material}</span>
-                </div>
-              )}
-
               {/* Year */}
               <div className="flex justify-between items-center pb-3 border-b border-border">
                 <span className="text-muted-foreground text-sm">{t.year}</span>
