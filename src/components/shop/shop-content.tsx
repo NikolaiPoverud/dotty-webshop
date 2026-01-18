@@ -99,10 +99,14 @@ export function ShopContent({
     { id: 'print', label: `${lang === 'no' ? 'Trykk' : 'Prints'} (${typeCounts.print})` },
   ];
 
-  // Build collection filter options
+  // Build collection filter options (only show collections with products)
+  const collectionsWithProducts = collections.filter(c =>
+    products.some(p => p.collection_id === c.id)
+  );
+
   const collectionOptions: FilterOption[] = [
     { id: 'all', label: t.all },
-    ...collections.map(c => ({ id: c.id, label: c.name })),
+    ...collectionsWithProducts.map(c => ({ id: c.id, label: c.name })),
   ];
 
   return (
@@ -119,7 +123,7 @@ export function ShopContent({
         />
 
         {/* Collection Tabs */}
-        {collections.length > 0 && (
+        {collectionsWithProducts.length > 0 && (
           <FilterTabs
             options={collectionOptions}
             activeId={activeCollection}
