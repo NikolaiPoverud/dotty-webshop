@@ -8,9 +8,23 @@ export const cartText = {
     checkout: 'Gå til kassen',
     subtotal: 'Delsum',
     discount: 'Rabatt',
+    shipping: 'Frakt',
+    shippingNote: 'Beregnes ved kassen',
+    artistLevy: 'Kunsteravgift (5%)',
+    artistLevyNote: 'Gjelder kunst over 2 500 kr',
     total: 'Totalt',
     reservationWarning: 'Varer er reservert i begrenset tid',
     includingVat: 'inkl. MVA',
+    // Discount code
+    discountCode: 'Rabattkode',
+    apply: 'Bruk',
+    invalidDiscountCode: 'Ugyldig rabattkode',
+    discountApplied: 'Rabattkode aktivert!',
+    discountValidationFailed: 'Kunne ikke validere rabattkode',
+    // Consent checkboxes
+    acceptPrivacy: 'Jeg har lest og godtar',
+    privacyPolicy: 'personvernerklæringen',
+    subscribeNewsletter: 'Ja, jeg vil motta nyhetsbrev med nyheter og tilbud',
   },
   en: {
     title: 'Shopping Cart',
@@ -19,9 +33,23 @@ export const cartText = {
     checkout: 'Proceed to checkout',
     subtotal: 'Subtotal',
     discount: 'Discount',
+    shipping: 'Shipping',
+    shippingNote: 'Calculated at checkout',
+    artistLevy: 'Artist levy (5%)',
+    artistLevyNote: 'Applies to art over 2,500 kr',
     total: 'Total',
     reservationWarning: 'Items are reserved for limited time',
     includingVat: 'incl. VAT',
+    // Discount code
+    discountCode: 'Discount code',
+    apply: 'Apply',
+    invalidDiscountCode: 'Invalid discount code',
+    discountApplied: 'Discount applied!',
+    discountValidationFailed: 'Failed to validate discount code',
+    // Consent checkboxes
+    acceptPrivacy: 'I have read and accept the',
+    privacyPolicy: 'privacy policy',
+    subscribeNewsletter: 'Yes, I want to receive newsletters with news and offers',
   },
 } as const;
 

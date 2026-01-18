@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Truck, Package, MapPin, Leaf } from 'lucide-react';
 import type { Dictionary, ShippingOption, Locale } from '@/types';
@@ -68,6 +68,19 @@ export function ShippingSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use refs to avoid re-fetching when selection changes
+  const selectedOptionRef = useRef(selectedOption);
+  const onSelectRef = useRef(onSelect);
+
+  // Keep refs in sync
+  useEffect(() => {
+    selectedOptionRef.current = selectedOption;
+  }, [selectedOption]);
+
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
+
   const t = dictionary?.shipping ?? fallbackText[locale];
 
   const fetchShippingOptions = useCallback(async () => {
@@ -98,8 +111,8 @@ export function ShippingSelector({
       setOptions(data.data || []);
 
       // Auto-select cheapest option if none selected
-      if (data.data?.length > 0 && !selectedOption) {
-        onSelect(data.data[0]);
+      if (data.data?.length > 0 && !selectedOptionRef.current) {
+        onSelectRef.current(data.data[0]);
       }
     } catch (err) {
       console.error('Failed to fetch shipping options:', err);
@@ -107,7 +120,7 @@ export function ShippingSelector({
     } finally {
       setIsLoading(false);
     }
-  }, [postalCode, countryCode, locale, selectedOption, onSelect, t.error]);
+  }, [postalCode, countryCode, locale, t.error]);
 
   // Debounced fetch when postal code changes
   useEffect(() => {

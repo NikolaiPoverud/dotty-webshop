@@ -32,6 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const validationResult = validateCheckoutRequest(rawBody);
   if (!validationResult.success) {
+    console.error('Checkout validation failed:', validationResult.error, validationResult.details);
     return NextResponse.json(
       { error: validationResult.error },
       { status: 400 },

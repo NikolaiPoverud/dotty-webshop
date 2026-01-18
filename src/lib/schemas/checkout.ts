@@ -55,7 +55,9 @@ export const orderItemSchema = z.object({
     .min(1, 'Quantity must be at least 1')
     .max(100, 'Quantity exceeds maximum'),
   image_url: z.string()
-    .default(''), // Allow empty string as default, URL validation happens on server-validated data
+    .nullable()
+    .optional()
+    .transform(val => val ?? ''), // Allow null/undefined, default to empty string
 });
 
 /**

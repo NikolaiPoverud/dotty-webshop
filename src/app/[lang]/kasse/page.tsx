@@ -145,7 +145,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
             title: item.product.title,
             price: item.product.price,
             quantity: item.quantity,
-            image_url: item.product.image_url,
+            image_url: item.product.image_url ?? '',
           })),
           customer_email: formData.email,
           customer_name: formData.name,
@@ -157,12 +157,12 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
             postal_code: formData.postalCode,
             country: formData.country,
           },
-          discount_code: cart.discountCode,
-          discount_amount: cart.discountAmount,
-          shipping_cost: selectedShipping?.priceWithVat ?? cart.shippingCost,
+          discount_code: cart.discountCode || undefined,
+          discount_amount: cart.discountAmount ?? 0,
+          shipping_cost: selectedShipping?.priceWithVat ?? cart.shippingCost ?? 0,
           shipping_option_id: selectedShipping?.id,
           shipping_option_name: selectedShipping?.name,
-          artist_levy: cart.artistLevy,
+          artist_levy: cart.artistLevy ?? 0,
           locale,
           privacy_accepted: true,
           newsletter_opt_in: newsletterOptIn,
@@ -173,7 +173,10 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create checkout session');
+        // Show the actual API error message to help users understand what went wrong
+        setError(result.error || t.genericError);
+        setIsLoading(false);
+        return;
       }
 
       // Handle redirect URL (Stripe uses 'url', Vipps uses 'redirectUrl')
