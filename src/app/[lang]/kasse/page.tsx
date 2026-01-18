@@ -62,6 +62,16 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
         if (response.ok) {
           const data = await response.json();
           setCheckoutToken(data.token);
+        } else {
+          console.error('Failed to fetch checkout token:', response.status);
+          // Retry once after a short delay
+          setTimeout(async () => {
+            const retryResponse = await fetch('/api/checkout/token');
+            if (retryResponse.ok) {
+              const data = await retryResponse.json();
+              setCheckoutToken(data.token);
+            }
+          }, 1000);
         }
       } catch (err) {
         console.error('Failed to fetch checkout token:', err);
@@ -130,6 +140,12 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
     setError(null);
 
     if (!validateForm()) return;
+
+    // Check if checkout token was loaded
+    if (!checkoutToken) {
+      setError(t.sessionExpired || 'Checkout session expired. Please refresh the page and try again.');
+      return;
+    }
 
     setIsLoading(true);
 

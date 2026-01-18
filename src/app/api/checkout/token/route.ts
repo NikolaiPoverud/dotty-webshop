@@ -7,7 +7,14 @@ import { generateCheckoutToken } from '@/lib/checkout-token';
  * to prove the request originated from a legitimate checkout session
  */
 export async function GET(): Promise<NextResponse> {
-  const token = generateCheckoutToken();
-
-  return NextResponse.json({ token });
+  try {
+    const token = generateCheckoutToken();
+    return NextResponse.json({ token });
+  } catch (error) {
+    console.error('Failed to generate checkout token:', error);
+    return NextResponse.json(
+      { error: 'Failed to initialize checkout session' },
+      { status: 500 },
+    );
+  }
 }

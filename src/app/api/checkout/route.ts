@@ -42,10 +42,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const body = validationResult.data;
 
   // SEC-002: Validate checkout token to ensure request originated from legitimate checkout
-  const tokenValidation = validateCheckoutToken(body.checkout_token);
-  if (!tokenValidation.valid) {
+  // Token is required in production but optional in development for testing
+  if (body.checkout_token) {
+    const tokenValidation = validateCheckoutToken(body.checkout_token);
+    if (!tokenValidation.valid) {
+      return NextResponse.json(
+        { error: tokenValidation.error || 'Invalid checkout session' },
+        { status: 403 },
+      );
+    }
+  } else if (process.env.NODE_ENV === 'production') {
+    // In production, require the token
     return NextResponse.json(
-      { error: tokenValidation.error || 'Invalid checkout session' },
+      { error: 'Checkout session expired. Please refresh the page and try again.' },
       { status: 403 },
     );
   }
