@@ -1,4 +1,4 @@
-import { Heading, Hr, Section, Text } from '@react-email/components';
+import { Section, Text } from '@react-email/components';
 
 import type { OrderWithItems } from '@/types';
 
@@ -18,87 +18,191 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
     : null;
 
   return (
-    <EmailLayout preview={`Pakken din er pa vei! - Ordre ${order.order_number}`}>
-      <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
-        <EmailHeader subtitle="Forsendelsesbekreftelse" />
+    <EmailLayout preview={`Pakken din er på vei! – Ordre ${order.order_number}`}>
+      {/* Main Card */}
+      <Section style={{
+        backgroundColor: '#131316',
+        border: '3px solid #2a2a2f',
+        overflow: 'hidden',
+      }}>
+        <EmailHeader subtitle="Sendt!" />
 
-        <Section className="px-8 pb-8 text-center">
-          <Text className="mx-auto mb-4 text-5xl">
+        {/* Hero Section */}
+        <Section style={{
+          padding: '40px 32px',
+          textAlign: 'center',
+          backgroundColor: '#131316',
+        }}>
+          <Text style={{
+            margin: 0,
+            fontSize: '64px',
+            lineHeight: '1',
+          }}>
             📦
           </Text>
-          <Heading className="m-0 text-2xl font-bold text-foreground">
-            Ordren din er pa vei!
-          </Heading>
-          <Text className="mt-2 text-muted-foreground">
-            Ordrenummer: <span className="font-mono font-bold text-foreground">{order.order_number}</span>
+
+          <Text style={{
+            margin: '16px 0 0 0',
+            fontSize: '28px',
+            fontWeight: 900,
+            color: '#ffffff',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+          }}>
+            Pakken er på vei!
+          </Text>
+
+          <Text style={{
+            margin: '12px 0 0 0',
+            fontSize: '15px',
+            color: '#9ca3af',
+            lineHeight: '1.6',
+          }}>
+            Ordren din er nå sendt og på vei til deg.
+            <br />
+            Forventet leveringstid: <strong style={{ color: '#ffffff' }}>2–5 virkedager</strong>
+          </Text>
+
+          {/* Order number */}
+          <Text style={{
+            margin: '24px 0 0 0',
+            fontSize: '13px',
+            color: '#6b7280',
+          }}>
+            Ordrenummer: <span style={{ color: '#FE206A', fontWeight: 700, fontFamily: 'monospace' }}>{order.order_number}</span>
           </Text>
         </Section>
 
-        <Hr className="mx-8 border-border" />
-
-        <Section className="px-8 py-6">
-          <Section className="rounded-xl border-l-4 border-primary bg-muted p-6">
-            <Heading as="h2" className="m-0 mb-4 text-base font-bold uppercase tracking-wider text-foreground">
+        {/* Tracking Section */}
+        {(order.tracking_carrier || order.tracking_number) && (
+          <Section style={{
+            margin: '0 32px 32px 32px',
+            padding: '24px',
+            backgroundColor: '#1a1a1f',
+            border: '2px solid #FE206A',
+          }}>
+            <Text style={{
+              margin: '0 0 16px 0',
+              fontSize: '14px',
+              fontWeight: 700,
+              color: '#ffffff',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+            }}>
               Sporing
-            </Heading>
+            </Text>
 
-            {order.tracking_carrier && (
-              <table width="100%" cellSpacing="0" cellPadding="0" className="mb-2">
-                <tbody>
+            <table width="100%" cellSpacing="0" cellPadding="0">
+              <tbody>
+                {order.tracking_carrier && (
                   <tr>
-                    <td>
-                      <Text className="m-0 text-muted-foreground">Transportor</Text>
+                    <td style={{ padding: '8px 0' }}>
+                      <Text style={{ margin: 0, fontSize: '14px', color: '#9ca3af' }}>Transportør</Text>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <Text className="m-0 font-semibold text-foreground">{order.tracking_carrier}</Text>
+                    <td style={{ textAlign: 'right', padding: '8px 0' }}>
+                      <Text style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>
+                        {order.tracking_carrier}
+                      </Text>
                     </td>
                   </tr>
-                </tbody>
-              </table>
-            )}
-
-            {order.tracking_number && (
-              <table width="100%" cellSpacing="0" cellPadding="0">
-                <tbody>
+                )}
+                {order.tracking_number && (
                   <tr>
-                    <td>
-                      <Text className="m-0 text-muted-foreground">Sporingsnummer</Text>
+                    <td style={{ padding: '8px 0' }}>
+                      <Text style={{ margin: 0, fontSize: '14px', color: '#9ca3af' }}>Sporingsnummer</Text>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <Text className="m-0 font-mono font-semibold text-primary">{order.tracking_number}</Text>
+                    <td style={{ textAlign: 'right', padding: '8px 0' }}>
+                      <Text style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#FE206A', fontFamily: 'monospace' }}>
+                        {order.tracking_number}
+                      </Text>
                     </td>
                   </tr>
-                </tbody>
-              </table>
-            )}
+                )}
+              </tbody>
+            </table>
 
             {trackingUrl && (
-              <Section className="mt-6 text-center">
-                <Button href={trackingUrl}>Spor pakken</Button>
+              <Section style={{ marginTop: '20px', textAlign: 'center' }}>
+                <Button href={trackingUrl}>
+                  Spor pakken
+                </Button>
               </Section>
             )}
-
-            <Text className="m-0 mt-4 text-center text-sm text-muted-foreground">
-              Estimert levering: 3-5 virkedager
-            </Text>
           </Section>
-        </Section>
+        )}
 
-        <Section className="px-8 pb-8">
-          <Heading as="h2" className="mb-4 text-base font-bold uppercase tracking-wider text-foreground">
-            I denne pakken
-          </Heading>
-          <Section className="rounded-xl bg-muted p-4">
+        {/* Package Contents */}
+        <Section style={{ padding: '0 32px 32px 32px' }}>
+          <Text style={{
+            margin: '0 0 16px 0',
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#ffffff',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+          }}>
+            I pakken
+          </Text>
+
+          <Section style={{
+            padding: '20px',
+            backgroundColor: '#1a1a1f',
+            borderLeft: '4px solid #FE206A',
+          }}>
             {order.items.map((item) => (
-              <Text key={item.product_id} className="m-0 py-1 text-foreground">
-                • {item.title} {item.quantity > 1 ? `(${item.quantity}x)` : ''}
+              <Text key={item.product_id} style={{
+                margin: 0,
+                padding: '6px 0',
+                fontSize: '14px',
+                color: '#ffffff',
+                borderBottom: '1px solid #2a2a2f',
+              }}>
+                <span style={{ color: '#FE206A', marginRight: '8px' }}>●</span>
+                {item.title}
+                {item.quantity > 1 && (
+                  <span style={{ color: '#9ca3af', marginLeft: '8px' }}>×{item.quantity}</span>
+                )}
               </Text>
             ))}
           </Section>
         </Section>
+
+        {/* Delivery Address */}
+        <Section style={{ padding: '0 32px 32px 32px' }}>
+          <Text style={{
+            margin: '0 0 16px 0',
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#ffffff',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+          }}>
+            Leveres til
+          </Text>
+
+          <Section style={{
+            padding: '20px',
+            backgroundColor: '#1a1a1f',
+          }}>
+            <Text style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
+              {order.customer_name}
+            </Text>
+            <Text style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#9ca3af' }}>
+              {order.shipping_address.line1}
+            </Text>
+            {order.shipping_address.line2 && (
+              <Text style={{ margin: '2px 0 0 0', fontSize: '14px', color: '#9ca3af' }}>
+                {order.shipping_address.line2}
+              </Text>
+            )}
+            <Text style={{ margin: '2px 0 0 0', fontSize: '14px', color: '#9ca3af' }}>
+              {order.shipping_address.postal_code} {order.shipping_address.city}
+            </Text>
+          </Section>
+        </Section>
       </Section>
 
-      <EmailFooter transactionText="Sporsmål om leveransen? Kontakt oss." />
+      <EmailFooter transactionText="Spørsmål om leveransen? Svar på denne e-posten." />
     </EmailLayout>
   );
 }

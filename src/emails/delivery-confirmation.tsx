@@ -1,57 +1,136 @@
-import { Heading, Hr, Link, Section, Text } from '@react-email/components';
+import { Link, Section, Text } from '@react-email/components';
 
 import type { Order } from '@/types';
 
+import { Button } from './components/button';
 import { EmailFooter } from './components/footer';
 import { EmailHeader } from './components/header';
 import { EmailLayout } from './components/layout';
 
 interface DeliveryConfirmationEmailProps {
-  order: Order; // Delivery confirmation doesn't need items
+  order: Order;
 }
 
 export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailProps): React.ReactElement {
   return (
-    <EmailLayout preview={`Pakken din er levert! - Ordre ${order.order_number}`}>
-      <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
-        <EmailHeader subtitle="Levert" />
+    <EmailLayout preview={`Pakken din er levert! – Ordre ${order.order_number}`}>
+      {/* Main Card */}
+      <Section style={{
+        backgroundColor: '#131316',
+        border: '3px solid #2a2a2f',
+        overflow: 'hidden',
+      }}>
+        <EmailHeader subtitle="Levert!" />
 
-        <Section className="px-8 pb-8 text-center">
-          <Text className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/20 text-3xl">
-            ✓
+        {/* Success Message */}
+        <Section style={{
+          padding: '40px 32px',
+          textAlign: 'center',
+          backgroundColor: '#131316',
+        }}>
+          <Text style={{
+            margin: 0,
+            fontSize: '64px',
+            lineHeight: '1',
+          }}>
+            🎨
           </Text>
-          <Heading className="m-0 text-2xl font-bold text-foreground">
-            Pakken din er levert!
-          </Heading>
-          <Text className="mt-2 text-muted-foreground">
-            Ordrenummer: <span className="font-mono font-bold text-foreground">{order.order_number}</span>
+
+          <Text style={{
+            margin: '16px 0 0 0',
+            fontSize: '28px',
+            fontWeight: 900,
+            color: '#ffffff',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+          }}>
+            Pakken er levert!
+          </Text>
+
+          <Text style={{
+            margin: '12px 0 0 0',
+            fontSize: '13px',
+            color: '#6b7280',
+          }}>
+            Ordrenummer: <span style={{ color: '#FE206A', fontWeight: 700, fontFamily: 'monospace' }}>{order.order_number}</span>
           </Text>
         </Section>
 
-        <Hr className="mx-8 border-border" />
+        {/* Thank you message */}
+        <Section style={{
+          margin: '0 32px 32px 32px',
+          padding: '24px',
+          backgroundColor: '#1a1a1f',
+          borderLeft: '4px solid #FE206A',
+          textAlign: 'center',
+        }}>
+          <Text style={{
+            margin: 0,
+            fontSize: '16px',
+            color: '#ffffff',
+            lineHeight: '1.6',
+          }}>
+            Takk for at du handler hos Dotty!
+            <br />
+            <span style={{ color: '#9ca3af' }}>Vi håper du blir fornøyd med ditt nye kunstverk.</span>
+          </Text>
+        </Section>
 
-        <Section className="px-8 py-6">
-          <Section className="rounded-xl border-l-4 border-primary bg-muted p-6 text-center">
-            <Text className="m-0 text-foreground">
-              Takk for at du handler hos Dotty. Vi haper du er fornoyd med ditt nye kunstverk!
-            </Text>
+        {/* Share section */}
+        <Section style={{
+          padding: '0 32px 32px 32px',
+          textAlign: 'center',
+        }}>
+          <Text style={{
+            margin: '0 0 8px 0',
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#ffffff',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+          }}>
+            Del ditt kjøp!
+          </Text>
+
+          <Text style={{
+            margin: 0,
+            fontSize: '14px',
+            color: '#9ca3af',
+            lineHeight: '1.6',
+          }}>
+            Vi setter stor pris på om du deler ditt nye kunstverk
+            <br />
+            på Instagram eller TikTok.
+          </Text>
+
+          <Section style={{ marginTop: '16px' }}>
+            <Link
+              href="https://instagram.com/dotty.artwork"
+              style={{
+                color: '#FE206A',
+                fontSize: '16px',
+                fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              @dotty.artwork
+            </Link>
           </Section>
         </Section>
 
-        <Section className="px-8 pb-8 text-center">
-          <Heading as="h2" className="m-0 text-lg font-semibold text-muted-foreground">
-            Del ditt kjop
-          </Heading>
-          <Text className="mt-2 text-sm text-muted-foreground">
-            Vi setter pris pa om du deler ditt kjop pa Instagram eller TikTok.{' '}
-            <Link href="https://instagram.com/dottyartwork" className="font-semibold text-primary no-underline">
-              Tag oss @dottyartwork
-            </Link>
-          </Text>
+        {/* CTA */}
+        <Section style={{
+          padding: '24px 32px 40px 32px',
+          textAlign: 'center',
+          backgroundColor: '#0a0a0b',
+        }}>
+          <Button href="https://dotty.no/no/shop">
+            Se flere kunstverk
+          </Button>
         </Section>
       </Section>
 
-      <EmailFooter transactionText="Problemer med leveransen? Kontakt oss." />
+      <EmailFooter transactionText="Problemer med leveransen? Svar på denne e-posten." />
     </EmailLayout>
   );
 }

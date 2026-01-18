@@ -102,6 +102,7 @@ export interface Order {
   discount_code: string | null;
   discount_amount: number;
   shipping_cost: number;
+  artist_levy: number;
   total: number;
   payment_provider: PaymentProvider | null;
   payment_session_id: string | null;

@@ -1,4 +1,4 @@
-import { Hr, Link, Section, Text } from '@react-email/components';
+import { Link, Section, Text } from '@react-email/components';
 
 import { EmailFooter } from './components/footer';
 import { EmailHeader } from './components/header';
@@ -15,27 +15,58 @@ export function NewsletterEmail({ subject, content, recipientEmail }: Newsletter
 
   return (
     <EmailLayout preview={subject}>
-      <Section className="overflow-hidden rounded-2xl bg-card shadow-lg">
+      {/* Main Card */}
+      <Section style={{
+        backgroundColor: '#131316',
+        border: '3px solid #2a2a2f',
+        overflow: 'hidden',
+      }}>
         <EmailHeader subtitle="Nyhetsbrev" />
 
-        <Section className="px-8 py-6">
+        {/* Content */}
+        <Section style={{
+          padding: '32px',
+          backgroundColor: '#131316',
+        }}>
           <div
-            className="prose prose-invert max-w-none text-foreground"
+            style={{
+              color: '#ffffff',
+              fontSize: '15px',
+              lineHeight: '1.7',
+            }}
             dangerouslySetInnerHTML={{ __html: content }}
           />
         </Section>
 
-        <Hr className="mx-8 border-border" />
+        {/* Divider */}
+        <Section style={{
+          height: '4px',
+          backgroundColor: '#FE206A',
+          margin: '0 32px',
+        }} />
 
         <EmailFooter />
 
-        <Section className="px-8 pb-6 text-center">
-          <Text className="m-0 text-xs text-muted-foreground">
+        {/* Unsubscribe */}
+        <Section style={{
+          padding: '16px 32px 24px 32px',
+          textAlign: 'center',
+          backgroundColor: '#0a0a0b',
+        }}>
+          <Text style={{
+            margin: 0,
+            fontSize: '11px',
+            color: '#6b7280',
+          }}>
             Du mottar denne e-posten fordi du er registrert som kunde eller abonnent hos Dotty.
           </Text>
           <Link
             href={unsubscribeUrl}
-            className="text-xs text-muted-foreground underline"
+            style={{
+              fontSize: '11px',
+              color: '#6b7280',
+              textDecoration: 'underline',
+            }}
           >
             Meld deg av nyhetsbrev
           </Link>
