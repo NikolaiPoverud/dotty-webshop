@@ -14,7 +14,7 @@ interface ConsentCheckboxesProps {
 
 export function ConsentCheckboxes({ locale, t, privacyAccepted, newsletterOptIn, onPrivacyChange, onNewsletterChange }: ConsentCheckboxesProps): React.ReactElement {
   return (
-    <div className="mt-8 space-y-4">
+    <div className="mt-6 space-y-3">
       <label className="flex items-start gap-3 cursor-pointer group">
         <input
           type="checkbox"

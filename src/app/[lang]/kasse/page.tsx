@@ -300,6 +300,15 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
                 value={formData.country}
                 onChange={handleInputChange}
               />
+
+              <ConsentCheckboxes
+                locale={locale}
+                t={t}
+                privacyAccepted={privacyAccepted}
+                newsletterOptIn={newsletterOptIn}
+                onPrivacyChange={setPrivacyAccepted}
+                onNewsletterChange={setNewsletterOptIn}
+              />
             </form>
 
             {/* Shipping Method Selection - Only for Norwegian addresses */}
@@ -322,15 +331,6 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
               onApplyDiscount={applyDiscount}
               existingCode={cart.discountCode}
               subtotal={cart.subtotal}
-            />
-
-            <ConsentCheckboxes
-              locale={locale}
-              t={t}
-              privacyAccepted={privacyAccepted}
-              newsletterOptIn={newsletterOptIn}
-              onPrivacyChange={setPrivacyAccepted}
-              onNewsletterChange={setNewsletterOptIn}
             />
           </motion.div>
 
