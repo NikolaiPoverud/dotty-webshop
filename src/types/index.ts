@@ -403,6 +403,11 @@ export interface Dictionary {
     soldOutInterest: string;
     soldOutDescription: string;
     contactArtist: string;
+    shippingEstimate: string;
+    returnPolicy: string;
+    material: string;
+    type: string;
+    aboutArtist: string;
   };
   shipping: {
     title: string;
