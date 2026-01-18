@@ -47,12 +47,12 @@ export function RelatedLinks({ links, title, locale }: RelatedLinksProps) {
           <Link
             key={link.href}
             href={link.href}
-            className="inline-flex items-center px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm"
+            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-muted-foreground border border-muted bg-background hover:border-primary hover:text-primary transition-all duration-200 hover:-translate-y-0.5"
             title={link.description}
           >
             {link.label}
             {link.count !== undefined && (
-              <span className="ml-1.5 text-muted-foreground">({link.count})</span>
+              <span className="ml-1.5 text-muted-foreground/70">({link.count})</span>
             )}
           </Link>
         ))}
@@ -80,17 +80,17 @@ export function FacetNavigation({ groups, locale, compact = false }: FacetNaviga
     return (
       <nav className="mb-8" aria-label="Facet filters">
         <h3 className="sr-only">{title}</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
           {groups.flatMap((group) =>
             group.links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary/50 text-secondary-foreground hover:bg-secondary transition-colors text-sm"
+                className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               >
                 {link.label}
                 {link.count !== undefined && link.count > 0 && (
-                  <span className="ml-1 text-muted-foreground text-xs">({link.count})</span>
+                  <span className="ml-1 text-muted-foreground/60 text-xs">({link.count})</span>
                 )}
               </Link>
             ))
@@ -101,12 +101,12 @@ export function FacetNavigation({ groups, locale, compact = false }: FacetNaviga
   }
 
   return (
-    <nav className="mb-8 p-6 bg-secondary/30 rounded-lg" aria-label="Facet filters">
-      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+    <nav className="mb-8 p-6 border-2 border-muted" aria-label="Facet filters">
+      <h3 className="text-lg font-bold mb-4">{title}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {groups.map((group) => (
           <div key={group.title}>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">{group.title}</h4>
+            <h4 className="font-bold text-sm text-muted-foreground mb-2 uppercase tracking-wide">{group.title}</h4>
             <ul className="space-y-1">
               {group.links.map((link) => (
                 <li key={link.href}>
