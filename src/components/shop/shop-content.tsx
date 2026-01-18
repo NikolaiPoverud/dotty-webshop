@@ -17,7 +17,6 @@ interface ShopContentProps {
   highlightedProduct?: string;
 }
 
-type ProductTypeFilter = 'all' | 'original' | 'print';
 
 export function ShopContent({
   products,
@@ -35,7 +34,6 @@ export function ShopContent({
   const collectionFromUrl = searchParams.get('collection');
 
   const [activeCollection, setActiveCollection] = useState(initialCollection || collectionFromUrl || 'all');
-  const [activeType, setActiveType] = useState<ProductTypeFilter>('all');
 
   // Scroll to highlighted product
   useEffect(() => {
@@ -62,42 +60,13 @@ export function ShopContent({
     window.history.replaceState(null, '', newPath);
   }, [activeCollection, collections, lang]);
 
-  // Filter products by collection and type
+  // Filter products by collection
   const filteredProducts = useMemo(() => {
-    let filtered = products;
-
-    // Filter by collection
-    if (activeCollection !== 'all') {
-      filtered = filtered.filter(p => p.collection_id === activeCollection);
+    if (activeCollection === 'all') {
+      return products;
     }
-
-    // Filter by type
-    if (activeType !== 'all') {
-      filtered = filtered.filter(p => p.product_type === activeType);
-    }
-
-    return filtered;
-  }, [products, activeCollection, activeType]);
-
-  // Count products by type (for showing counts)
-  const typeCounts = useMemo(() => {
-    const baseProducts = activeCollection === 'all'
-      ? products
-      : products.filter(p => p.collection_id === activeCollection);
-
-    return {
-      all: baseProducts.length,
-      original: baseProducts.filter(p => p.product_type === 'original').length,
-      print: baseProducts.filter(p => p.product_type === 'print').length,
-    };
+    return products.filter(p => p.collection_id === activeCollection);
   }, [products, activeCollection]);
-
-  // Build type filter options
-  const typeOptions: FilterOption[] = [
-    { id: 'all', label: `${lang === 'no' ? 'Alle' : 'All'} (${typeCounts.all})` },
-    { id: 'original', label: `${lang === 'no' ? 'Originaler' : 'Originals'} (${typeCounts.original})` },
-    { id: 'print', label: `${lang === 'no' ? 'Trykk' : 'Prints'} (${typeCounts.print})` },
-  ];
 
   // Build collection filter options (only show collections with products)
   const collectionsWithProducts = collections.filter(c =>
@@ -111,35 +80,24 @@ export function ShopContent({
 
   return (
     <LayoutGroup>
-      {/* Filter Section */}
-      <div className="mb-10 space-y-6">
-        {/* Type Toggle */}
-        <FilterTabs
-          options={typeOptions}
-          activeId={activeType}
-          onChange={(id) => setActiveType(id as ProductTypeFilter)}
-          centered
-          groupId="type"
-        />
-
-        {/* Collection Tabs */}
-        {collectionsWithProducts.length > 0 && (
+      {/* Collection Filter */}
+      {collectionsWithProducts.length > 0 && (
+        <div className="mb-10">
           <FilterTabs
             options={collectionOptions}
             activeId={activeCollection}
             onChange={handleCollectionChange}
             centered
-            groupId="collection"
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Products Grid */}
       <div className="min-h-[400px]">
         <AnimatePresence mode="wait">
           {filteredProducts.length > 0 ? (
             <motion.div
-              key={`${activeCollection}-${activeType}`}
+              key={activeCollection}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
               variants={staggerContainer}
               initial="hidden"
