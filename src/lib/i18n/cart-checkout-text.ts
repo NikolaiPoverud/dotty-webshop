@@ -101,6 +101,9 @@ export const checkoutText = {
     shippingLoading: 'Laster fraktalternativer...',
     noShippingOptions: 'Ingen fraktalternativer tilgjengelig',
     shippingRequired: 'Velg en fraktmetode for å fortsette',
+    securePayment: 'Sikker betaling med SSL-kryptering',
+    artistLevyExplainer: 'Lovpålagt avgift til Bildende Kunstneres Hjelpefond (BKH) for kunst over 2 500 kr. Les mer på bfrk.no',
+    needHelp: 'Trenger du hjelp?',
   },
   en: {
     title: 'Checkout',
@@ -149,6 +152,9 @@ export const checkoutText = {
     shippingLoading: 'Loading shipping options...',
     noShippingOptions: 'No shipping options available',
     shippingRequired: 'Please select a shipping method to continue',
+    securePayment: 'Secure payment with SSL encryption',
+    artistLevyExplainer: 'Mandatory fee to Norwegian Artist Fund for art over 2,500 kr. Learn more at bfrk.no',
+    needHelp: 'Need help?',
   },
 } as const;
 

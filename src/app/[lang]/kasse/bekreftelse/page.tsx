@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CheckCircle, Package, Loader2 } from 'lucide-react';
+import { CheckCircle, Package, Loader2, Share2 } from 'lucide-react';
 import { Suspense, use, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Locale, OrderItem } from '@/types';
@@ -72,6 +72,53 @@ function DecorativeDots(): React.ReactElement {
         />
       ))}
     </motion.div>
+  );
+}
+
+interface ShareButtonsProps {
+  locale: Locale;
+}
+
+function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement {
+  const [canShare, setCanShare] = useState(false);
+
+  useEffect(() => {
+    setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
+  }, []);
+
+  const shareText = locale === 'no'
+    ? 'Jeg kjøpte nettopp kunst fra Dotty! 🎨'
+    : 'I just bought art from Dotty! 🎨';
+
+  const shareUrl = typeof window !== 'undefined' ? 'https://dotty.no' : '';
+
+  async function handleShare(): Promise<void> {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Dotty.',
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled or error
+      }
+    }
+  }
+
+  if (!canShare) return <></>;
+
+  return (
+    <motion.button
+      onClick={handleShare}
+      className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.8 }}
+    >
+      <Share2 className="w-4 h-4" />
+      {locale === 'no' ? 'Del med venner' : 'Share with friends'}
+    </motion.button>
   );
 }
 
@@ -208,6 +255,7 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
+          className="space-y-4"
         >
           <Link href={getLocalizedPath(locale, 'shop')}>
             <motion.button
@@ -218,6 +266,10 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
               {t.backToShop}
             </motion.button>
           </Link>
+
+          <div className="flex justify-center">
+            <ShareButtons locale={locale} />
+          </div>
         </motion.div>
 
         <DecorativeDots />

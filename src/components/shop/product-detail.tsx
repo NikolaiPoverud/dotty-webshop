@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Check, ArrowLeft, Mail, Send, Loader2 } from 'lucide-react';
+import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw } from 'lucide-react';
 import type { Dictionary, Locale, Product, GalleryImage, ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
@@ -308,11 +308,27 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Specifications */}
             <div className="space-y-3 mb-6">
+              {/* Type */}
+              <div className="flex justify-between items-center pb-3 border-b border-border">
+                <span className="text-muted-foreground text-sm">{t.type}</span>
+                <span className="font-medium text-sm">
+                  {product.product_type === 'original' ? t.original : t.print}
+                </span>
+              </div>
+
               {/* Dimensions - only show if sizes exist */}
               {sizes.length > 0 && (
                 <div className="flex justify-between items-center pb-3 border-b border-border">
                   <span className="text-muted-foreground text-sm">{t.dimensions}</span>
                   <span className="font-medium text-sm">{sizes[0].label}</span>
+                </div>
+              )}
+
+              {/* Material - show if available */}
+              {product.material && (
+                <div className="flex justify-between items-center pb-3 border-b border-border">
+                  <span className="text-muted-foreground text-sm">{t.material}</span>
+                  <span className="font-medium text-sm">{product.material}</span>
                 </div>
               )}
 
@@ -329,7 +345,6 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                   {isSold ? t.soldOut : t.available}
                 </span>
               </div>
-
             </div>
 
             {/* Description */}
@@ -338,6 +353,18 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 {product.description}
               </p>
             )}
+
+            {/* Trust Badges - Shipping & Returns */}
+            <div className="flex flex-wrap gap-4 mb-6 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Truck className="w-4 h-4 text-primary" />
+                <span>{t.shippingEstimate}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RotateCcw className="w-4 h-4 text-primary" />
+                <span>{t.returnPolicy}</span>
+              </div>
+            </div>
 
             {/* Purchase / Inquiry Section */}
             {renderPurchaseSection()}
