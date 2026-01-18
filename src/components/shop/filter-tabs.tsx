@@ -33,10 +33,10 @@ export function FilterTabs({ options, activeId, onChange, centered = false }: Fi
               key={option.id}
               onClick={() => onChange(option.id)}
               className={cn(
-                'relative px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors duration-200',
+                'relative px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap',
                 isActive
-                  ? 'text-background'
-                  : 'text-primary hover:bg-primary/10'
+                  ? 'bg-primary text-background'
+                  : 'bg-transparent text-primary hover:bg-primary/10'
               )}
             >
               {/* Sliding background indicator */}
@@ -44,7 +44,6 @@ export function FilterTabs({ options, activeId, onChange, centered = false }: Fi
                 <motion.div
                   layoutId="filter-tab-indicator"
                   className="absolute inset-0 bg-primary"
-                  style={{ zIndex: -1 }}
                   transition={{
                     type: 'spring',
                     stiffness: 400,
