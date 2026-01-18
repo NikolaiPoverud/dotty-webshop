@@ -40,19 +40,19 @@ export function RelatedLinks({ links, title, locale }: RelatedLinksProps) {
   const defaultTitle = locale === 'no' ? 'Utforsk lignende' : 'Explore Similar';
 
   return (
-    <nav className="mt-8 pt-8 border-t border-border" aria-label="Related categories">
-      <h3 className="text-lg font-semibold mb-4">{title || defaultTitle}</h3>
-      <div className="flex flex-wrap gap-2">
+    <nav className="mt-8 pt-8 border-t-2 border-primary" aria-label="Related categories">
+      <h3 className="text-lg font-bold mb-4 text-primary uppercase tracking-wider">{title || defaultTitle}</h3>
+      <div className="flex flex-wrap gap-2 sm:gap-3">
         {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-muted-foreground border border-muted bg-background hover:border-primary hover:text-primary transition-all duration-200 hover:-translate-y-0.5"
+            className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold uppercase tracking-wider bg-background border-2 border-primary text-primary shadow-[2px_2px_0_0_theme(colors.primary)] hover:bg-primary hover:text-background hover:-translate-y-0.5 hover:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all duration-200"
             title={link.description}
           >
             {link.label}
             {link.count !== undefined && (
-              <span className="ml-1.5 text-muted-foreground/70">({link.count})</span>
+              <span className="ml-1.5 opacity-70">({link.count})</span>
             )}
           </Link>
         ))}
@@ -80,17 +80,17 @@ export function FacetNavigation({ groups, locale, compact = false }: FacetNaviga
     return (
       <nav className="mb-8" aria-label="Facet filters">
         <h3 className="sr-only">{title}</h3>
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
           {groups.flatMap((group) =>
             group.links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold uppercase tracking-wider bg-background border-2 border-primary text-primary shadow-[2px_2px_0_0_theme(colors.primary)] hover:bg-primary hover:text-background hover:-translate-y-0.5 hover:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all duration-200"
               >
                 {link.label}
                 {link.count !== undefined && link.count > 0 && (
-                  <span className="ml-1 text-muted-foreground/60 text-xs">({link.count})</span>
+                  <span className="ml-1.5 opacity-70">({link.count})</span>
                 )}
               </Link>
             ))
@@ -101,22 +101,22 @@ export function FacetNavigation({ groups, locale, compact = false }: FacetNaviga
   }
 
   return (
-    <nav className="mb-8 p-6 border-2 border-muted" aria-label="Facet filters">
-      <h3 className="text-lg font-bold mb-4">{title}</h3>
+    <nav className="mb-8 p-6 border-2 sm:border-[3px] border-primary shadow-[3px_3px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]" aria-label="Facet filters">
+      <h3 className="text-lg font-bold mb-4 text-primary uppercase tracking-wider">{title}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {groups.map((group) => (
           <div key={group.title}>
-            <h4 className="font-bold text-sm text-muted-foreground mb-2 uppercase tracking-wide">{group.title}</h4>
+            <h4 className="font-bold text-sm text-primary mb-2 uppercase tracking-wide">{group.title}</h4>
             <ul className="space-y-1">
               {group.links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm hover:text-primary transition-colors inline-flex items-center gap-1"
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
                   >
                     {link.label}
                     {link.count !== undefined && link.count > 0 && (
-                      <span className="text-muted-foreground text-xs">({link.count})</span>
+                      <span className="text-muted-foreground/60 text-xs">({link.count})</span>
                     )}
                   </Link>
                 </li>
