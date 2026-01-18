@@ -124,9 +124,11 @@ export const checkoutRequestSchema = z.object({
 
   newsletter_opt_in: z.boolean().optional().default(false),
 
-  checkout_token: z.string()
-    .min(1, 'Checkout token is required')
-    .optional(),
+  checkout_token: z.union([
+    z.string().min(1, 'Checkout token is required'),
+    z.null(),
+    z.undefined(),
+  ]).transform(val => val || undefined), // Convert null/empty to undefined
 });
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;

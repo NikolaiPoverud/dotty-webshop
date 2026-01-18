@@ -56,7 +56,6 @@ function OrderSummary({ locale, t, privacyAccepted, newsletterOptIn, onPrivacyCh
   const [discountSuccess, setDiscountSuccess] = useState('');
 
   const hasDiscount = cart.discountCode && cart.discountAmount > 0;
-  const hasShipping = cart.shippingCost > 0;
   const hasArtistLevy = cart.artistLevy > 0;
 
   async function handleApplyDiscount(): Promise<void> {
@@ -103,16 +102,6 @@ function OrderSummary({ locale, t, privacyAccepted, newsletterOptIn, onPrivacyCh
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t.subtotal}</span>
           <span>{formatPrice(cart.subtotal)}</span>
-        </div>
-
-        {/* Shipping */}
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">{t.shipping}</span>
-          {hasShipping ? (
-            <span>{formatPrice(cart.shippingCost)}</span>
-          ) : (
-            <span className="text-muted-foreground text-sm">{t.shippingNote}</span>
-          )}
         </div>
 
         {/* Artist Levy - only show if applicable */}
