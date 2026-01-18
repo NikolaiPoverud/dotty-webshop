@@ -5,10 +5,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import type { Dictionary, Locale, ProductListItem, CollectionCard } from '@/types';
 import { ProductCard } from './product-card';
-import { FilterTabs, type FilterOption } from './filter-tabs';
-import { staggerContainer, fadeUpItem, fadeBlur } from '@/lib/animations';
-
-const MAX_DESCRIPTION_CHARS = 150;
+import { staggerContainer, fadeUpItem } from '@/lib/animations';
 
 interface ShopContentProps {
   products: ProductListItem[];
@@ -19,39 +16,25 @@ interface ShopContentProps {
   highlightedProduct?: string;
 }
 
-interface ShopContentInnerProps extends ShopContentProps {
-  initialFilter: string;
-}
+type ProductTypeFilter = 'all' | 'original' | 'print';
 
-function ShopContentInner({
+export function ShopContent({
   products,
   collections,
   lang,
   dictionary,
+  initialCollection,
   highlightedProduct,
-  initialFilter,
-}: ShopContentInnerProps) {
+}: ShopContentProps) {
   const t = dictionary.shop;
   const searchParams = useSearchParams();
 
   const highlightFromUrl = searchParams.get('highlight');
   const highlightId = highlightFromUrl || highlightedProduct;
+  const collectionFromUrl = searchParams.get('collection');
 
-  const [activeFilter, setActiveFilter] = useState(initialFilter);
-
-  const handleFilterChange = useCallback((filterId: string) => {
-    if (filterId === activeFilter) return;
-
-    setActiveFilter(filterId);
-
-    // Update URL without navigation (shallow update)
-    const collection = collections.find(c => c.id === filterId);
-    const newPath = filterId === 'all'
-      ? `/${lang}/shop`
-      : `/${lang}/shop/${collection?.slug || filterId}`;
-
-    window.history.replaceState(null, '', newPath);
-  }, [activeFilter, collections, lang]);
+  const [activeCollection, setActiveCollection] = useState(initialCollection || collectionFromUrl || 'all');
+  const [activeType, setActiveType] = useState<ProductTypeFilter>('all');
 
   // Scroll to highlighted product
   useEffect(() => {
@@ -66,68 +49,124 @@ function ShopContentInner({
     }
   }, [highlightId]);
 
-  const filterOptions: FilterOption[] = useMemo(() => [
-    { id: 'all', label: t.all },
-    ...collections.map(c => ({ id: c.id, label: c.name })),
-  ], [collections, t.all]);
+  const handleCollectionChange = useCallback((collectionId: string) => {
+    if (collectionId === activeCollection) return;
+    setActiveCollection(collectionId);
 
+    // Update URL without navigation
+    const collection = collections.find(c => c.id === collectionId);
+    const newPath = collectionId === 'all'
+      ? `/${lang}/shop`
+      : `/${lang}/shop/${collection?.slug || collectionId}`;
+    window.history.replaceState(null, '', newPath);
+  }, [activeCollection, collections, lang]);
+
+  // Filter products by collection and type
   const filteredProducts = useMemo(() => {
-    if (activeFilter === 'all') return products;
-    return products.filter(p => p.collection_id === activeFilter);
-  }, [products, activeFilter]);
+    let filtered = products;
 
-  const activeDescription = useMemo(() => {
-    if (activeFilter === 'all') return null;
+    // Filter by collection
+    if (activeCollection !== 'all') {
+      filtered = filtered.filter(p => p.collection_id === activeCollection);
+    }
 
-    const description = collections.find(c => c.id === activeFilter)?.description;
-    if (!description) return null;
+    // Filter by type
+    if (activeType !== 'all') {
+      filtered = filtered.filter(p => p.product_type === activeType);
+    }
 
-    return description.length <= MAX_DESCRIPTION_CHARS
-      ? description
-      : `${description.slice(0, MAX_DESCRIPTION_CHARS).trim()}...`;
-  }, [activeFilter, collections]);
+    return filtered;
+  }, [products, activeCollection, activeType]);
+
+  // Count products by type (for showing counts)
+  const typeCounts = useMemo(() => {
+    const baseProducts = activeCollection === 'all'
+      ? products
+      : products.filter(p => p.collection_id === activeCollection);
+
+    return {
+      all: baseProducts.length,
+      original: baseProducts.filter(p => p.product_type === 'original').length,
+      print: baseProducts.filter(p => p.product_type === 'print').length,
+    };
+  }, [products, activeCollection]);
+
+  const typeLabels = {
+    all: lang === 'no' ? 'Alle' : 'All',
+    original: lang === 'no' ? 'Originaler' : 'Originals',
+    print: lang === 'no' ? 'Trykk' : 'Prints',
+  };
 
   return (
     <LayoutGroup>
-      <div className="mb-12">
-        {filterOptions.length > 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-          >
-            <FilterTabs
-              options={filterOptions}
-              activeId={activeFilter}
-              onChange={handleFilterChange}
-              centered
-            />
-          </motion.div>
-        )}
-
-        <div className="h-16 flex items-center justify-center mt-6">
-          <AnimatePresence mode="wait">
-            {activeDescription && (
-              <motion.p
-                key={activeFilter}
-                variants={fadeBlur}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="text-center text-muted-foreground max-w-2xl px-4"
+      {/* Filter Section */}
+      <div className="mb-10 space-y-6">
+        {/* Type Toggle */}
+        <div className="flex justify-center">
+          <div className="inline-flex bg-muted/50 p-1 rounded-sm gap-1">
+            {(['all', 'original', 'print'] as ProductTypeFilter[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => setActiveType(type)}
+                className={`
+                  px-4 py-2 text-sm font-bold uppercase tracking-wider transition-all duration-200
+                  ${activeType === type
+                    ? 'bg-primary text-white shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]'
+                    : 'text-muted-foreground hover:text-foreground'
+                  }
+                `}
               >
-                {activeDescription}
-              </motion.p>
-            )}
-          </AnimatePresence>
+                {typeLabels[type]}
+                {typeCounts[type] > 0 && (
+                  <span className="ml-1.5 opacity-70">({typeCounts[type]})</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Collection Tabs */}
+        {collections.length > 0 && (
+          <div className="flex justify-center">
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                onClick={() => handleCollectionChange('all')}
+                className={`
+                  px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 transition-all duration-200
+                  ${activeCollection === 'all'
+                    ? 'border-primary bg-primary text-white shadow-[2px_2px_0_0_theme(colors.primary/30)]'
+                    : 'border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary'
+                  }
+                `}
+              >
+                {t.all}
+              </button>
+              {collections.map((collection) => (
+                <button
+                  key={collection.id}
+                  onClick={() => handleCollectionChange(collection.id)}
+                  className={`
+                    px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 transition-all duration-200
+                    ${activeCollection === collection.id
+                      ? 'border-primary bg-primary text-white shadow-[2px_2px_0_0_theme(colors.primary/30)]'
+                      : 'border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary'
+                    }
+                  `}
+                >
+                  {collection.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Products Grid */}
       <div className="min-h-[400px]">
         <AnimatePresence mode="wait">
           {filteredProducts.length > 0 ? (
             <motion.div
-              key={activeFilter}
+              key={`${activeCollection}-${activeType}`}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
               variants={staggerContainer}
               initial="hidden"
@@ -166,33 +205,5 @@ function ShopContentInner({
         </AnimatePresence>
       </div>
     </LayoutGroup>
-  );
-}
-
-export function ShopContent({
-  products,
-  collections,
-  lang,
-  dictionary,
-  initialCollection,
-  highlightedProduct,
-}: ShopContentProps) {
-  const searchParams = useSearchParams();
-  const collectionFromUrl = searchParams.get('collection');
-
-  // Derive the initial filter from external sources
-  const initialFilter = initialCollection || collectionFromUrl || 'all';
-
-  // Key-based remount ensures state resets when external filter changes
-  return (
-    <ShopContentInner
-      key={initialFilter}
-      products={products}
-      collections={collections}
-      lang={lang}
-      dictionary={dictionary}
-      highlightedProduct={highlightedProduct}
-      initialFilter={initialFilter}
-    />
   );
 }

@@ -6,10 +6,8 @@ import { ArrowLeft } from 'lucide-react';
 
 import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { createPublicClient } from '@/lib/supabase/public';
-import { BreadcrumbJsonLd, FacetNavigation } from '@/components/seo';
+import { BreadcrumbJsonLd } from '@/components/seo';
 import { ShopContent } from '@/components/shop/shop-content';
-import { getShopInternalLinks } from '@/lib/seo/internal-linking';
-import { getAvailableYears, getAllFacetCounts } from '@/lib/seo/facets/queries';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -65,11 +63,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isNorwegian = lang === 'no';
 
   const title = isNorwegian
-    ? 'Kjop Pop-Art | Originaler & Kunsttrykk'
+    ? 'Kjøp Pop-Art | Originaler & Kunsttrykk'
     : 'Buy Pop-Art | Originals & Art Prints';
 
   const description = isNorwegian
-    ? 'Utforsk var samling av pop-art. Originale malerier og limiterte trykk. Hvert kunstverk er unikt og bringer personlighet til ditt hjem.'
+    ? 'Utforsk vår samling av pop-art. Originale malerier og limiterte trykk. Hvert kunstverk er unikt og bringer personlighet til ditt hjem.'
     : 'Explore our collection of pop-art. Original paintings and limited prints. Each artwork is unique and brings personality to your home.';
 
   const url = `${BASE_URL}/${lang}/shop`;
@@ -107,18 +105,13 @@ export default async function ShopPage({ params }: Props) {
   const { lang } = await params;
   const locale = lang as Locale;
 
-  const [products, collections, dictionary, availableYears, facetCounts] = await Promise.all([
+  const [products, collections, dictionary] = await Promise.all([
     getProducts(),
     getCollections(),
     getDictionary(locale),
-    getAvailableYears(),
-    getAllFacetCounts(),
   ]);
 
   const t = dictionary.shop;
-
-  // Get internal linking data for the shop page
-  const { facetGroups } = getShopInternalLinks(locale, availableYears, facetCounts);
 
   const breadcrumbItems = [
     { name: locale === 'no' ? 'Hjem' : 'Home', url: `/${locale}` },
@@ -145,11 +138,6 @@ export default async function ShopPage({ params }: Props) {
           <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
             <span className="gradient-text">{t.title}</span>
           </h1>
-
-          {/* Facet Navigation for SEO internal linking */}
-          {facetGroups && facetGroups.length > 0 && (
-            <FacetNavigation groups={facetGroups} locale={locale} compact />
-          )}
 
           <ShopContent
             products={products}
