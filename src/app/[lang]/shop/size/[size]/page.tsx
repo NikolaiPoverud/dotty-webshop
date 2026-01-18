@@ -16,7 +16,6 @@ import type { Locale, ShippingSize } from '@/types';
 import { locales } from '@/lib/i18n/get-dictionary';
 import { generateMetadata as generateSeoMetadata } from '@/lib/seo/metadata';
 import {
-  SIZE_FACET_SLUGS,
   SIZE_FACET_LABELS,
   SIZE_FACET_DESCRIPTIONS,
   getSizeValueFromSlug,

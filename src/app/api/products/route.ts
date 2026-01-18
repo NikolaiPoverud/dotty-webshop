@@ -50,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   // Return with cache headers
   const response = success<ProductListItem[]>(products ?? []);
-  CACHE_HEADERS && Object.entries(CACHE_HEADERS).forEach(([key, value]) => {
+  Object.entries(CACHE_HEADERS).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
   return response;

@@ -48,7 +48,7 @@ export function FacetedShopContent({
   breadcrumbs,
   relatedFacets,
   emptyMessage,
-}: FacetedShopContentProps) {
+}: FacetedShopContentProps): React.ReactElement {
   // Build breadcrumb items for JSON-LD
   const breadcrumbItems = breadcrumbs.map((crumb, index) => ({
     name: crumb.name,

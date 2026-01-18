@@ -6,6 +6,7 @@ import type { PanInfo } from 'framer-motion';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { GalleryImage } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface ProductGalleryProps {
   mainImage: string;
@@ -69,18 +70,14 @@ export function ProductGallery({
     }
   }
 
-  const containerClass = [
-    'relative aspect-[4/5] max-w-md mx-auto lg:max-w-full rounded-lg overflow-hidden bg-muted group',
-    isSold && 'grayscale-[30%]',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   const currentImage = allImages[currentIndex];
 
   return (
     <div className="space-y-4">
-      <div className={containerClass}>
+      <div className={cn(
+        'relative aspect-[4/5] max-w-md mx-auto lg:max-w-full rounded-lg overflow-hidden bg-muted group',
+        isSold && 'grayscale-[30%]'
+      )}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentIndex}
@@ -145,9 +142,10 @@ export function ProductGallery({
                 <button
                   key={index}
                   onClick={() => goToIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
+                  className={cn(
+                    'w-2 h-2 rounded-full transition-all',
                     index === currentIndex ? 'bg-primary w-4' : 'bg-foreground/40'
-                  }`}
+                  )}
                   aria-label={`Go to image ${index + 1}`}
                 />
               ))}
@@ -162,11 +160,12 @@ export function ProductGallery({
             <button
               key={index}
               onClick={() => goToIndex(index)}
-              className={`relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+              className={cn(
+                'relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all',
                 index === currentIndex
                   ? 'border-primary'
                   : 'border-transparent opacity-60 hover:opacity-100'
-              }`}
+              )}
             >
               <Image
                 src={image}

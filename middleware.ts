@@ -5,11 +5,11 @@ const locales = ['no', 'en'] as const;
 type Locale = (typeof locales)[number];
 const defaultLocale: Locale = 'no';
 
-// Domain configuration
+// Domain configuration - each domain maps to a specific locale
 const DOMAINS = {
-  // Norwegian domain (primary)
+  // Norwegian domain (primary) → /no/
   NO: ['dotty.no', 'www.dotty.no'],
-  // English domain (.com)
+  // English domain (.com) → /en/
   EN: ['dottyartwork.com', 'www.dottyartwork.com'],
   // Redirect domains (redirect to dotty.no)
   REDIRECT: ['dottyartwork.no', 'www.dottyartwork.no'],

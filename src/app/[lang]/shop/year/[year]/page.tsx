@@ -16,7 +16,6 @@ import {
   YEAR_FACET_LABELS,
   YEAR_FACET_DESCRIPTIONS,
   TYPE_FACET_LABELS,
-  TYPE_FACET_SLUGS,
 } from '@/lib/seo/facets';
 import {
   getProductsByYear,

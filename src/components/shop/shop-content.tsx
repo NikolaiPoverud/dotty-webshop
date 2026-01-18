@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import type { Dictionary, Locale, ProductListItem, CollectionCard } from '@/types';
@@ -48,17 +48,16 @@ export function ShopContent({
     }
   }, [highlightId]);
 
-  const handleCollectionChange = useCallback((collectionId: string) => {
+  function handleCollectionChange(collectionId: string): void {
     if (collectionId === activeCollection) return;
     setActiveCollection(collectionId);
 
-    // Update URL without navigation
     const collection = collections.find(c => c.id === collectionId);
     const newPath = collectionId === 'all'
       ? `/${lang}/shop`
       : `/${lang}/shop/${collection?.slug || collectionId}`;
     window.history.replaceState(null, '', newPath);
-  }, [activeCollection, collections, lang]);
+  }
 
   // Filter products by collection
   const filteredProducts = useMemo(() => {

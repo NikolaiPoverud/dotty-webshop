@@ -106,7 +106,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Get return URL
     const origin = getCanonicalOrigin(request);
-    const isEnglish = locale === 'en';
     const returnUrl = `${origin}/api/vipps/callback?reference=${reference}&locale=${locale}`;
 
     // Create Vipps payment
