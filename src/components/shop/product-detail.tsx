@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw } from 'lucide-react';
+import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw, User } from 'lucide-react';
 import type { Dictionary, Locale, Product, GalleryImage, ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
@@ -368,6 +368,32 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Purchase / Inquiry Section */}
             {renderPurchaseSection()}
+
+            {/* Artist Bio Section */}
+            <div className="mt-8 pt-6 border-t border-border">
+              <Link
+                href={`/${lang}/about`}
+                className="group flex items-start gap-4 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">
+                    {t.aboutArtist || (lang === 'no' ? 'Om kunstneren' : 'About the artist')}
+                  </h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {lang === 'no'
+                      ? 'Pop-art som utfordrer det vanlige og feirer det uventede. Skapt for å bringe glede og personlighet til ditt rom.'
+                      : 'Pop-art that challenges the ordinary and celebrates the unexpected. Created to bring joy and personality to your space.'}
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-xs text-primary mt-2 font-medium">
+                    {lang === 'no' ? 'Les mer' : 'Read more'}
+                    <ArrowLeft className="w-3 h-3 rotate-180" />
+                  </span>
+                </div>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </div>

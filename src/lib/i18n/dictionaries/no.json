@@ -199,7 +199,8 @@
     "shippingEstimate": "Frakt fra 99 kr",
     "returnPolicy": "14 dagers angrerett",
     "material": "Materiale",
-    "type": "Type"
+    "type": "Type",
+    "aboutArtist": "Om kunstneren"
   },
   "shipping": {
     "title": "Velg frakt",

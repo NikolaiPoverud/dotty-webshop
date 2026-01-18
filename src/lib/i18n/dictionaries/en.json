@@ -199,7 +199,8 @@
     "shippingEstimate": "Shipping from 99 kr",
     "returnPolicy": "14-day return policy",
     "material": "Material",
-    "type": "Type"
+    "type": "Type",
+    "aboutArtist": "About the artist"
   },
   "shipping": {
     "title": "Select shipping",
