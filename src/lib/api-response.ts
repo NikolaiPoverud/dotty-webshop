@@ -74,36 +74,3 @@ export function handleApiError(
   return errors.internal(userMessage);
 }
 
-/**
- * SEC-013: Safe database error handler
- * Never exposes database error messages to clients
- */
-export function handleDatabaseError(
-  context: string,
-  dbError: { message?: string; code?: string; details?: string } | null,
-  userMessage = 'A database error occurred. Please try again.'
-): NextResponse<ApiErrorResponse> {
-  if (dbError) {
-    console.error(`[${context}] Database error:`, {
-      message: dbError.message,
-      code: dbError.code,
-      details: dbError.details,
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  return errors.internal(userMessage);
-}
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-}
-
-export function paginated<T>(
-  items: T[],
-  pagination: Pagination
-): NextResponse<ApiSuccessResponse<{ items: T[]; pagination: Pagination }>> {
-  return success({ items, pagination });
-}

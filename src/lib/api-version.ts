@@ -1,5 +1,5 @@
 /**
- * API Versioning utilities
+ * API Versioning constants
  *
  * Current version: v1
  *
@@ -12,30 +12,3 @@
 
 export const API_VERSION = '1';
 export const API_VERSION_HEADER = 'X-API-Version';
-
-/**
- * Add API version header to response
- */
-export function withVersionHeader(headers: HeadersInit = {}): HeadersInit {
-  return {
-    ...headers,
-    [API_VERSION_HEADER]: API_VERSION,
-  };
-}
-
-/**
- * Create versioned response with standard headers
- */
-export function versionedJson(
-  data: unknown,
-  init?: ResponseInit
-): Response {
-  const headers = new Headers(init?.headers);
-  headers.set(API_VERSION_HEADER, API_VERSION);
-  headers.set('Content-Type', 'application/json');
-
-  return new Response(JSON.stringify(data), {
-    ...init,
-    headers,
-  });
-}
