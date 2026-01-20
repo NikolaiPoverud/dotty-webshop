@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, Loader2, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Check, AlertCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
@@ -39,6 +39,7 @@ export default function EditProductPage() {
   const [dataLoaded, setDataLoaded] = useState(false); // Track if initial data has been loaded
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -76,6 +77,7 @@ export default function EditProductPage() {
         }
 
         const product: Product = productResult.data;
+        setSlug(product.slug);
         setTitle(product.title);
         setDescription(product.description || '');
         setPrice(String(product.price / 100));
@@ -280,7 +282,20 @@ export default function EditProductPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Rediger produkt</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">Rediger produkt</h1>
+              {slug && (
+                <a
+                  href={`/no/shop/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1 text-sm text-primary hover:text-primary-light border border-primary/30 hover:border-primary rounded-full transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Se produkt
+                </a>
+              )}
+            </div>
             <p className="text-muted-foreground mt-1">Oppdater produktinformasjon</p>
           </div>
         </div>

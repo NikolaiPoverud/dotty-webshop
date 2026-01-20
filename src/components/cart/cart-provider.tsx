@@ -7,13 +7,23 @@ import { calculateCartTotalsSimple, type CartItemInput } from '@/lib/services/ca
 // Cart actions
 type CartAction =
   | { type: 'ADD_ITEM'; payload: { product: Product; quantity?: number; reservationId?: string; expiresAt?: string; selectedSize?: ProductSize } }
-  | { type: 'REMOVE_ITEM'; payload: { productId: string } }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
+  | { type: 'REMOVE_ITEM'; payload: { productId: string; selectedSize?: ProductSize } }
+  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number; selectedSize?: ProductSize } }
   | { type: 'APPLY_DISCOUNT'; payload: { code: string; amount: number } }
   | { type: 'CLEAR_DISCOUNT' }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: Cart }
   | { type: 'REMOVE_EXPIRED' };
+
+// Helper to generate unique item key
+function getItemKey(productId: string, size?: ProductSize): string {
+  return size ? `${productId}-${size.width}x${size.height}` : productId;
+}
+
+function itemMatchesKey(item: CartItem, targetKey: string): boolean {
+  const itemKey = getItemKey(item.product.id, item.selectedSize);
+  return itemKey === targetKey;
+}
 
 // ARCH-007: Extract only essential product fields for cart storage
 function toCartProduct(product: Product): CartProduct {
@@ -69,13 +79,8 @@ function cartReducer(state: Cart, action: CartAction): Cart {
       const cartProduct = toCartProduct(product);
 
       // For products with size pricing, treat each size as a separate item
-      const itemKey = selectedSize ? `${product.id}-${selectedSize.width}x${selectedSize.height}` : product.id;
-      const existingIndex = state.items.findIndex((item) => {
-        const existingKey = item.selectedSize
-          ? `${item.product.id}-${item.selectedSize.width}x${item.selectedSize.height}`
-          : item.product.id;
-        return existingKey === itemKey;
-      });
+      const targetKey = getItemKey(product.id, selectedSize);
+      const existingIndex = state.items.findIndex((item) => itemMatchesKey(item, targetKey));
 
       const newItems = existingIndex > -1
         ? state.items.map((item, index) =>
@@ -89,17 +94,20 @@ function cartReducer(state: Cart, action: CartAction): Cart {
     }
 
     case 'REMOVE_ITEM': {
-      const newItems = state.items.filter((item) => item.product.id !== action.payload.productId);
+      const { productId, selectedSize } = action.payload;
+      const targetKey = getItemKey(productId, selectedSize);
+      const newItems = state.items.filter((item) => !itemMatchesKey(item, targetKey));
       return withTotals(state, newItems);
     }
 
     case 'UPDATE_QUANTITY': {
-      const { productId, quantity } = action.payload;
+      const { productId, quantity, selectedSize } = action.payload;
       if (quantity <= 0) {
-        return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId } });
+        return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId, selectedSize } });
       }
+      const targetKey = getItemKey(productId, selectedSize);
       const newItems = state.items.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        itemMatchesKey(item, targetKey) ? { ...item, quantity } : item
       );
       return withTotals(state, newItems);
     }
@@ -137,8 +145,8 @@ function cartReducer(state: Cart, action: CartAction): Cart {
 interface CartContextType {
   cart: Cart;
   addItem: (product: Product, quantity?: number, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, selectedSize?: ProductSize) => void;
+  updateQuantity: (productId: string, quantity: number, selectedSize?: ProductSize) => void;
   applyDiscount: (code: string, amount: number) => void;
   clearDiscount: () => void;
   clearCart: () => void;
@@ -223,12 +231,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'ADD_ITEM', payload: { product, quantity, reservationId, expiresAt, selectedSize } });
   }
 
-  function removeItem(productId: string): void {
-    dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
+  function removeItem(productId: string, selectedSize?: ProductSize): void {
+    dispatch({ type: 'REMOVE_ITEM', payload: { productId, selectedSize } });
   }
 
-  function updateQuantity(productId: string, quantity: number): void {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
+  function updateQuantity(productId: string, quantity: number, selectedSize?: ProductSize): void {
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity, selectedSize } });
   }
 
   function applyDiscount(code: string, amount: number): void {

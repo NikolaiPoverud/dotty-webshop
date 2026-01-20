@@ -90,58 +90,68 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
     </div>
   );
 
-  const renderCartItem = (item: typeof cart.items[number]) => (
-    <motion.div
-      key={item.product.id}
-      {...itemAnimation}
-      className="flex gap-4 p-3 bg-muted rounded-lg"
-    >
-      <div className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0">
-        {item.product.image_url ? (
-          <Image
-            src={item.product.image_url}
-            alt={item.product.title}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent" />
-        )}
-      </div>
+  const renderCartItem = (item: typeof cart.items[number]) => {
+    const itemKey = item.selectedSize
+      ? `${item.product.id}-${item.selectedSize.width}x${item.selectedSize.height}`
+      : item.product.id;
+    const displayPrice = item.selectedSize?.price ?? item.product.price;
 
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium truncate">{item.product.title}</h3>
-        <p className="text-sm text-muted-foreground">
-          {formatPrice(item.product.price)}
-        </p>
-
-        <div className="flex items-center gap-2 mt-2">
-          <button
-            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-            className="p-1 hover:bg-background rounded transition-colors"
-            disabled={item.quantity <= 1}
-          >
-            <Minus className="w-4 h-4" />
-          </button>
-          <span className="w-8 text-center font-medium">{item.quantity}</span>
-          <button
-            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-            className="p-1 hover:bg-background rounded transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      <button
-        onClick={() => removeItem(item.product.id)}
-        className="self-start p-2 text-muted-foreground hover:text-destructive transition-colors"
-        title={t.remove}
+    return (
+      <motion.div
+        key={itemKey}
+        {...itemAnimation}
+        className="flex gap-4 p-3 bg-muted rounded-lg"
       >
-        <Trash2 className="w-4 h-4" />
-      </button>
-    </motion.div>
-  );
+        <div className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0">
+          {item.product.image_url ? (
+            <Image
+              src={item.product.image_url}
+              alt={item.product.title}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium truncate">{item.product.title}</h3>
+          <p className="text-sm text-muted-foreground">
+            {formatPrice(displayPrice)}
+            {item.selectedSize && (
+              <span className="ml-2 text-primary">• {item.selectedSize.label}</span>
+            )}
+          </p>
+
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedSize)}
+              className="p-1 hover:bg-background rounded transition-colors"
+              disabled={item.quantity <= 1}
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="w-8 text-center font-medium">{item.quantity}</span>
+            <button
+              onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize)}
+              className="p-1 hover:bg-background rounded transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={() => removeItem(item.product.id, item.selectedSize)}
+          className="self-start p-2 text-muted-foreground hover:text-destructive transition-colors"
+          title={t.remove}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </motion.div>
+    );
+  };
 
   const renderFooter = () => (
     <div className="shrink-0 p-4 border-t-[3px] border-primary space-y-3 bg-[#0a0a0a]">

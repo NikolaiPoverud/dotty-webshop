@@ -138,7 +138,9 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
   function handleAddToCart(): void {
     if (isSold) return;
-    addItem(product, 1);
+    // Pass selected size for prints with size-specific pricing
+    const sizeToAdd = isPrint && selectedSize ? selectedSize : undefined;
+    addItem(product, 1, undefined, undefined, sizeToAdd);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 3000);
   }
@@ -339,11 +341,9 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                   >
                     <span className="uppercase tracking-wider text-sm">
                       {selectedSize?.label || sizes[0]?.label}
-                      {selectedSize?.price && (
-                        <span className="ml-2 text-primary">
-                          {formatPrice(selectedSize.price)}
-                        </span>
-                      )}
+                    </span>
+                    <span className="text-primary font-bold">
+                      {formatPrice(displayPrice)}
                     </span>
                     <motion.span
                       animate={{ rotate: isSizeDropdownOpen ? 180 : 0 }}
@@ -367,28 +367,29 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                       exit={{ opacity: 0, y: -10 }}
                       className="absolute z-20 w-full mt-1 bg-background border-[3px] border-primary shadow-[4px_4px_0_0_theme(colors.primary)]"
                     >
-                      {sizes.map((size, index) => (
-                        <button
-                          key={`${size.width}x${size.height}`}
-                          type="button"
-                          onClick={() => {
-                            setSelectedSizeIndex(index);
-                            setIsSizeDropdownOpen(false);
-                          }}
-                          className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center ${
-                            selectedSizeIndex === index
-                              ? 'bg-primary text-background'
-                              : 'hover:bg-primary/10'
-                          }`}
-                        >
-                          <span>{size.label}</span>
-                          {size.price && (
-                            <span className={selectedSizeIndex === index ? 'text-background' : 'text-primary'}>
-                              {formatPrice(size.price)}
+                      {sizes.map((size, index) => {
+                        const sizePrice = size.price ?? product.price;
+                        return (
+                          <button
+                            key={`${size.width}x${size.height}`}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSizeIndex(index);
+                              setIsSizeDropdownOpen(false);
+                            }}
+                            className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center ${
+                              selectedSizeIndex === index
+                                ? 'bg-primary text-background'
+                                : 'hover:bg-primary/10'
+                            }`}
+                          >
+                            <span>{size.label}</span>
+                            <span className={selectedSizeIndex === index ? 'text-background font-bold' : 'text-primary font-bold'}>
+                              {formatPrice(sizePrice)}
                             </span>
-                          )}
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </motion.div>
                   )}
                 </div>

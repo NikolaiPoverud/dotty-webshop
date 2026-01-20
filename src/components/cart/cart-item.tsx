@@ -84,11 +84,14 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
             <h3 className="font-semibold truncate">{product.title}</h3>
             <p className="text-sm text-muted-foreground capitalize">
               {isPrint ? t.print : t.original}
+              {item.selectedSize && (
+                <span className="ml-2 text-primary">• {item.selectedSize.label}</span>
+              )}
             </p>
           </div>
 
           <button
-            onClick={() => removeItem(product.id)}
+            onClick={() => removeItem(product.id, item.selectedSize)}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={t.remove}
           >
@@ -106,7 +109,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
           {isPrint ? (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => updateQuantity(product.id, quantity - 1)}
+                onClick={() => updateQuantity(product.id, quantity - 1, item.selectedSize)}
                 className="p-1 rounded bg-muted hover:bg-muted/80 transition-colors"
                 aria-label="Decrease quantity"
               >
@@ -114,7 +117,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
               </button>
               <span className="w-8 text-center font-medium">{quantity}</span>
               <button
-                onClick={() => updateQuantity(product.id, quantity + 1)}
+                onClick={() => updateQuantity(product.id, quantity + 1, item.selectedSize)}
                 disabled={!canIncrement}
                 className="p-1 rounded bg-muted hover:bg-muted/80 transition-colors disabled:opacity-50"
                 aria-label="Increase quantity"
@@ -127,7 +130,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
           )}
 
           <span className="font-semibold">
-            {formatPrice(product.price * quantity)}
+            {formatPrice((item.selectedSize?.price ?? product.price) * quantity)}
           </span>
         </div>
       </div>
