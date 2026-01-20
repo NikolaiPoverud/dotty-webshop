@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw, User } from 'lucide-react';
@@ -106,16 +106,35 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [isAdded, setIsAdded] = useState(false);
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryStatus, setInquiryStatus] = useState<InquiryStatus>('idle');
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+  const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Close size dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
+        setIsSizeDropdownOpen(false);
+      }
+    }
+    if (isSizeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isSizeDropdownOpen]);
 
   const isInCart = cart.items.some((item) => item.product.id === product.id);
   const isSold = !product.is_available || product.stock_quantity === 0;
   const year = product.year ?? new Date(product.created_at).getFullYear();
   const sizes = parseJsonField<ProductSize[]>(product.sizes, []);
   const galleryImages = parseJsonField<GalleryImage[]>(product.gallery_images, []);
+  const isPrint = product.product_type === 'print';
+  const hasMultipleSizes = sizes.length > 1;
+  const selectedSize = sizes[selectedSizeIndex] || sizes[0];
 
   function handleAddToCart(): void {
     if (isSold) return;
@@ -306,6 +325,66 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
               {formatPrice(product.price)}
             </p>
 
+            {/* Size Selector for Prints with Multiple Sizes */}
+            {isPrint && hasMultipleSizes && (
+              <div className="mb-6">
+                <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+                  {t.dimensions}
+                </label>
+                <div className="relative" ref={sizeDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
+                    className="w-full px-4 py-3 bg-background border-[3px] border-primary text-left font-semibold flex items-center justify-between shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)] hover:-translate-x-[1px] hover:-translate-y-[1px] transition-all"
+                  >
+                    <span className="uppercase tracking-wider text-sm">
+                      {selectedSize?.label || sizes[0]?.label}
+                    </span>
+                    <motion.span
+                      animate={{ rotate: isSizeDropdownOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <svg
+                        className="w-5 h-5 text-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </motion.span>
+                  </button>
+
+                  {isSizeDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute z-20 w-full mt-1 bg-background border-[3px] border-primary shadow-[4px_4px_0_0_theme(colors.primary)]"
+                    >
+                      {sizes.map((size, index) => (
+                        <button
+                          key={`${size.width}x${size.height}`}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSizeIndex(index);
+                            setIsSizeDropdownOpen(false);
+                          }}
+                          className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors ${
+                            selectedSizeIndex === index
+                              ? 'bg-primary text-background'
+                              : 'hover:bg-primary/10'
+                          }`}
+                        >
+                          {size.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Specifications */}
             <div className="space-y-3 mb-6">
               {/* Type */}
@@ -316,8 +395,8 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 </span>
               </div>
 
-              {/* Dimensions - only show if sizes exist */}
-              {sizes.length > 0 && (
+              {/* Dimensions - only show for originals or prints with single size */}
+              {sizes.length > 0 && (!isPrint || !hasMultipleSizes) && (
                 <div className="flex justify-between items-center pb-3 border-b border-border">
                   <span className="text-muted-foreground text-sm">{t.dimensions}</span>
                   <span className="font-medium text-sm">{sizes[0].label}</span>
