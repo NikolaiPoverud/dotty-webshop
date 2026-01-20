@@ -29,7 +29,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
 
         {/* Hero Section */}
         <Section style={{
-          padding: '40px 32px',
+          padding: '32px 20px',
           textAlign: 'center',
           backgroundColor: '#131316',
         }}>
@@ -76,7 +76,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
         {/* Tracking Section */}
         {(order.tracking_carrier || order.tracking_number) && (
           <Section style={{
-            margin: '0 32px 32px 32px',
+            margin: '0 20px 24px 20px',
             padding: '24px',
             backgroundColor: '#1a1a1f',
             border: '2px solid #FE206A',
@@ -132,7 +132,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
         )}
 
         {/* Package Contents */}
-        <Section style={{ padding: '0 32px 32px 32px' }}>
+        <Section style={{ padding: '0 20px 24px 20px' }}>
           <Text style={{
             margin: '0 0 16px 0',
             fontSize: '14px',
@@ -168,7 +168,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
         </Section>
 
         {/* Delivery Address */}
-        <Section style={{ padding: '0 32px 32px 32px' }}>
+        <Section style={{ padding: '0 20px 24px 20px' }}>
           <Text style={{
             margin: '0 0 16px 0',
             fontSize: '14px',

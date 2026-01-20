@@ -31,7 +31,7 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
 
         {/* Success Message */}
         <Section style={{
-          padding: '40px 32px',
+          padding: '32px 20px',
           textAlign: 'center',
           backgroundColor: '#131316',
         }}>
@@ -107,11 +107,11 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
         <Section style={{
           height: '4px',
           backgroundColor: '#FE206A',
-          margin: '0 32px',
+          margin: '0 20px',
         }} />
 
         {/* Order Items */}
-        <Section style={{ padding: '32px' }}>
+        <Section style={{ padding: '24px 20px' }}>
           <Text style={{
             margin: '0 0 16px 0',
             fontSize: '14px',
@@ -127,30 +127,30 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
 
         {/* Order Summary */}
         <Section style={{
-          margin: '0 32px 32px 32px',
-          padding: '24px',
+          margin: '0 20px 24px 20px',
+          padding: '20px',
           backgroundColor: '#1a1a1f',
           border: '2px solid #2a2a2f',
         }}>
-          <table width="100%" cellSpacing="0" cellPadding="0">
+          <table width="100%" cellSpacing="0" cellPadding="0" style={{ tableLayout: 'fixed' }}>
             <tbody>
               <tr>
-                <td style={{ padding: '8px 0' }}>
+                <td style={{ padding: '6px 0', width: '60%' }}>
                   <Text style={{ margin: 0, fontSize: '14px', color: '#9ca3af' }}>Delsum</Text>
                 </td>
-                <td style={{ textAlign: 'right', padding: '8px 0' }}>
+                <td style={{ textAlign: 'right', padding: '6px 0', width: '40%' }}>
                   <Text style={{ margin: 0, fontSize: '14px', color: '#ffffff' }}>{formatPrice(order.subtotal)}</Text>
                 </td>
               </tr>
 
               {discountAmount > 0 && (
                 <tr>
-                  <td style={{ padding: '8px 0' }}>
+                  <td style={{ padding: '6px 0' }}>
                     <Text style={{ margin: 0, fontSize: '14px', color: '#10b981' }}>
                       Rabatt {order.discount_code && `(${order.discount_code})`}
                     </Text>
                   </td>
-                  <td style={{ textAlign: 'right', padding: '8px 0' }}>
+                  <td style={{ textAlign: 'right', padding: '6px 0' }}>
                     <Text style={{ margin: 0, fontSize: '14px', color: '#10b981' }}>
                       −{formatPrice(discountAmount)}
                     </Text>
@@ -159,10 +159,10 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
               )}
 
               <tr>
-                <td style={{ padding: '8px 0' }}>
+                <td style={{ padding: '6px 0' }}>
                   <Text style={{ margin: 0, fontSize: '14px', color: '#9ca3af' }}>Frakt</Text>
                 </td>
-                <td style={{ textAlign: 'right', padding: '8px 0' }}>
+                <td style={{ textAlign: 'right', padding: '6px 0' }}>
                   <Text style={{ margin: 0, fontSize: '14px', color: '#ffffff' }}>
                     {shippingCost > 0 ? formatPrice(shippingCost) : 'Gratis'}
                   </Text>
@@ -171,12 +171,12 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
 
               {artistLevy > 0 && (
                 <tr>
-                  <td style={{ padding: '8px 0' }}>
+                  <td style={{ padding: '6px 0' }}>
                     <Text style={{ margin: 0, fontSize: '14px', color: '#9ca3af' }}>
                       Kunstavgift (5%)
                     </Text>
                   </td>
-                  <td style={{ textAlign: 'right', padding: '8px 0' }}>
+                  <td style={{ textAlign: 'right', padding: '6px 0' }}>
                     <Text style={{ margin: 0, fontSize: '14px', color: '#ffffff' }}>
                       {formatPrice(artistLevy)}
                     </Text>
@@ -186,53 +186,46 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
             </tbody>
           </table>
 
-          <Section style={{
-            marginTop: '16px',
-            paddingTop: '16px',
-            borderTop: '2px solid #2a2a2f',
-          }}>
-            <table width="100%" cellSpacing="0" cellPadding="0">
-              <tbody>
-                <tr>
-                  <td>
-                    <Text style={{
-                      margin: 0,
-                      fontSize: '16px',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                      textTransform: 'uppercase',
-                    }}>
-                      Totalt
-                    </Text>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <Text style={{
-                      margin: 0,
-                      fontSize: '24px',
-                      fontWeight: 900,
-                      color: '#FE206A',
-                    }}>
-                      {formatPrice(order.total)}
-                    </Text>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <Text style={{
-              margin: '4px 0 0 0',
-              fontSize: '11px',
-              color: '#6b7280',
-              textAlign: 'right',
-            }}>
-              Inkl. mva
-            </Text>
-          </Section>
+          <table width="100%" cellSpacing="0" cellPadding="0" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '2px solid #2a2a2f', tableLayout: 'fixed' }}>
+            <tbody>
+              <tr>
+                <td style={{ width: '50%' }}>
+                  <Text style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    textTransform: 'uppercase',
+                  }}>
+                    Totalt
+                  </Text>
+                </td>
+                <td style={{ textAlign: 'right', width: '50%' }}>
+                  <Text style={{
+                    margin: 0,
+                    fontSize: '22px',
+                    fontWeight: 900,
+                    color: '#FE206A',
+                  }}>
+                    {formatPrice(order.total)}
+                  </Text>
+                  <Text style={{
+                    margin: '2px 0 0 0',
+                    fontSize: '11px',
+                    color: '#6b7280',
+                  }}>
+                    Inkl. mva
+                  </Text>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </Section>
 
         {/* Shipping Address */}
-        <Section style={{ padding: '0 32px 32px 32px' }}>
+        <Section style={{ padding: '0 20px 24px 20px' }}>
           <Text style={{
-            margin: '0 0 16px 0',
+            margin: '0 0 12px 0',
             fontSize: '14px',
             fontWeight: 700,
             color: '#ffffff',
@@ -243,7 +236,7 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
           </Text>
 
           <Section style={{
-            padding: '20px',
+            padding: '16px',
             backgroundColor: '#1a1a1f',
             borderLeft: '4px solid #FE206A',
           }}>
@@ -269,7 +262,7 @@ export function OrderConfirmationEmail({ order }: OrderConfirmationEmailProps): 
 
         {/* CTA */}
         <Section style={{
-          padding: '24px 32px 40px 32px',
+          padding: '20px 20px 32px 20px',
           textAlign: 'center',
           backgroundColor: '#0a0a0b',
         }}>

@@ -46,9 +46,10 @@ const navItems = [
 export function AdminSidebar(): React.ReactNode {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const lastFetchRef = useRef<number>(0);
 
-  const fetchUnreadCount = useCallback(async () => {
+  const fetchCounts = useCallback(async () => {
     const now = Date.now();
     const isThrottled = now - lastFetchRef.current < THROTTLE_MS;
     if (isThrottled) return;
@@ -56,22 +57,31 @@ export function AdminSidebar(): React.ReactNode {
     lastFetchRef.current = now;
 
     try {
-      const response = await adminFetch('/api/admin/contact/unread-count');
-      if (response.ok) {
-        const data = await response.json();
+      const [contactRes, ordersRes] = await Promise.all([
+        adminFetch('/api/admin/contact/unread-count'),
+        adminFetch('/api/admin/orders/pending-count'),
+      ]);
+
+      if (contactRes.ok) {
+        const data = await contactRes.json();
         setUnreadCount(data.count || 0);
       }
+
+      if (ordersRes.ok) {
+        const data = await ordersRes.json();
+        setPendingOrdersCount(data.count || 0);
+      }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+      console.error('Failed to fetch counts:', error);
     }
   }, []);
 
   useEffect(() => {
-    fetchUnreadCount();
+    fetchCounts();
 
     function handleVisibilityChange(): void {
       if (document.visibilityState === 'visible') {
-        fetchUnreadCount();
+        fetchCounts();
       }
     }
 
@@ -82,7 +92,7 @@ export function AdminSidebar(): React.ReactNode {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchUnreadCount]);
+  }, [fetchCounts]);
 
   function isActiveRoute(href: string): boolean {
     return pathname === href || pathname?.startsWith(`${href}/`) || false;
@@ -106,7 +116,11 @@ export function AdminSidebar(): React.ReactNode {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isActiveRoute(item.href);
-          const showBadge = item.href === '/admin/contact' && unreadCount > 0;
+
+          // Determine badge count based on route
+          let badgeCount = 0;
+          if (item.href === '/admin/contact') badgeCount = unreadCount;
+          if (item.href === '/admin/orders') badgeCount = pendingOrdersCount;
 
           return (
             <Link
@@ -121,14 +135,14 @@ export function AdminSidebar(): React.ReactNode {
             >
               <Icon className="w-5 h-5" />
               <span className="flex-1">{item.label}</span>
-              {showBadge && (
+              {badgeCount > 0 && (
                 <span
                   className={cn(
                     'flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full',
                     isActive ? 'bg-background text-primary' : 'bg-primary text-background'
                   )}
                 >
-                  {formatBadgeCount(unreadCount)}
+                  {formatBadgeCount(badgeCount)}
                 </span>
               )}
             </Link>

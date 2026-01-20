@@ -26,7 +26,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.Re
         {/* Alert Header */}
         <Section style={{
           backgroundColor: '#10b981',
-          padding: '24px 32px',
+          padding: '20px',
           textAlign: 'center',
           borderBottom: '4px solid #000000',
         }}>
