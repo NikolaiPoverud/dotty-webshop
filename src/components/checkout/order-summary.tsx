@@ -131,7 +131,7 @@ export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: Ord
         <motion.button
           onClick={() => onCheckout('stripe')}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-background font-semibold text-lg uppercase tracking-widest pop-outline transition-all duration-300 hover:bg-primary-light disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-background font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-primary/90 disabled:opacity-50"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
