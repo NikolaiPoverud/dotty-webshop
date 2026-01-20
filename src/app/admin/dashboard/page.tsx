@@ -194,6 +194,60 @@ export default function AdminDashboardPage(): React.ReactElement {
         </div>
       )}
 
+      {/* Order Status Overview */}
+      {stats?.ordersByStatus && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Link
+            href="/admin/orders?status=pending"
+            className="bg-warning/10 border border-warning/20 rounded-lg p-4 hover:bg-warning/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-warning" />
+              <div>
+                <p className="text-2xl font-bold text-warning">{stats.ordersByStatus.pending}</p>
+                <p className="text-sm text-warning/80">Venter betaling</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/orders?status=paid"
+            className="bg-success/10 border border-success/20 rounded-lg p-4 hover:bg-success/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-5 h-5 text-success" />
+              <div>
+                <p className="text-2xl font-bold text-success">{stats.ordersByStatus.paid}</p>
+                <p className="text-sm text-success/80">Klar til sending</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/orders?status=shipped"
+            className="bg-accent/10 border border-accent/20 rounded-lg p-4 hover:bg-accent/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Truck className="w-5 h-5 text-accent" />
+              <div>
+                <p className="text-2xl font-bold text-accent">{stats.ordersByStatus.shipped}</p>
+                <p className="text-sm text-accent/80">Sendt</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/orders?status=delivered"
+            className="bg-muted border border-border rounded-lg p-4 hover:bg-muted-foreground/10 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-2xl font-bold">{stats.ordersByStatus.delivered}</p>
+                <p className="text-sm text-muted-foreground">Levert</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat) => {

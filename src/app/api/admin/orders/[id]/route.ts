@@ -19,6 +19,7 @@ const orderUpdateSchema = z.object({
     }),
   ]).optional(),
   notes: z.string().max(1000).optional(),
+  tracking_carrier: z.string().max(100).optional(),
   tracking_number: z.string().max(100).optional(),
   shipped_at: z.string().datetime().optional(),
   delivered_at: z.string().datetime().optional(),
