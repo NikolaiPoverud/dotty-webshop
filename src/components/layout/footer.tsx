@@ -139,13 +139,19 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             </Link>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            &copy; {currentYear}{' '}
-            <Link href="/admin/login" className="hover:text-foreground transition-colors">
-              Dotty.
-            </Link>{' '}
-            {t.copyright}.
-          </p>
+          {/* Legal business info */}
+          <div className="text-center text-xs text-muted-foreground space-y-1">
+            <p>
+              &copy; {currentYear}{' '}
+              <Link href="/admin/login" className="hover:text-foreground transition-colors">
+                Dotty.
+              </Link>{' '}
+              {t.copyright}.
+            </p>
+            <p>
+              Org.nr: 829736322 | <a href="mailto:hei@dotty.no" className="hover:text-foreground transition-colors">hei@dotty.no</a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
