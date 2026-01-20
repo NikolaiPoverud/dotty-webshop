@@ -38,6 +38,17 @@ export function formatDateTime(dateString: string): string {
 }
 
 /**
+ * Supported shipping carriers with their tracking URLs
+ */
+export const SHIPPING_CARRIERS = [
+  { id: 'posten', label: 'Posten / Bring' },
+  { id: 'helthjem', label: 'Helthjem' },
+  { id: 'postnord', label: 'PostNord' },
+] as const;
+
+export type ShippingCarrierId = typeof SHIPPING_CARRIERS[number]['id'];
+
+/**
  * Get tracking URL for common Norwegian carriers
  */
 export function getTrackingUrl(carrier: string, trackingNumber: string): string {
@@ -45,6 +56,9 @@ export function getTrackingUrl(carrier: string, trackingNumber: string): string 
 
   if (carrierLower.includes('posten') || carrierLower.includes('bring')) {
     return `https://sporing.bring.no/sporing/${trackingNumber}`;
+  }
+  if (carrierLower.includes('helthjem')) {
+    return `https://www.helthjem.no/sporing?trackingnumber=${trackingNumber}`;
   }
   if (carrierLower.includes('postnord')) {
     return `https://www.postnord.no/sporpakke?id=${trackingNumber}`;

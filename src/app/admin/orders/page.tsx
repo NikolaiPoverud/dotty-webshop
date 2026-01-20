@@ -8,6 +8,7 @@ import Link from 'next/link';
 import type { Order } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
+import { SHIPPING_CARRIERS } from '@/emails/utils';
 
 type OrderStatus = NonNullable<Order['status']>;
 
@@ -325,15 +326,20 @@ function AdminOrdersContent() {
                   >
                     <p className="text-sm font-medium mb-3">Legg til sporingsinformasjon</p>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="text"
+                      <select
                         value={trackingInput.carrier}
                         onChange={(e) =>
                           setTrackingInput((prev) => ({ ...prev, carrier: e.target.value }))
                         }
-                        placeholder="Transportør (f.eks. Posten)"
                         className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      >
+                        <option value="">Velg transportør</option>
+                        {SHIPPING_CARRIERS.map((carrier) => (
+                          <option key={carrier.id} value={carrier.label}>
+                            {carrier.label}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="text"
                         value={trackingInput.number}
