@@ -21,6 +21,10 @@ export async function GET(): Promise<NextResponse> {
     totalSubscribersCount,
     subscribersThisMonthCount,
     recentOrders,
+    pendingOrders,
+    paidOrders,
+    shippedOrders,
+    deliveredOrders,
   ] = await Promise.all([
     supabase
       .from('orders')
@@ -36,6 +40,11 @@ export async function GET(): Promise<NextResponse> {
       .select('id, order_number, customer_name, total, status, created_at')
       .order('created_at', { ascending: false })
       .limit(5),
+    // Order status counts
+    countQuery('orders').eq('status', 'pending'),
+    countQuery('orders').eq('status', 'paid'),
+    countQuery('orders').eq('status', 'shipped'),
+    countQuery('orders').eq('status', 'delivered'),
   ]);
 
   const ordersData = ordersThisMonth.data || [];
@@ -52,6 +61,13 @@ export async function GET(): Promise<NextResponse> {
       totalSubscribers: totalSubscribersCount.count || 0,
       subscribersThisMonth: subscribersThisMonthCount.count || 0,
       recentOrders: recentOrders.data || [],
+      // Order status counts
+      ordersByStatus: {
+        pending: pendingOrders.count || 0,
+        paid: paidOrders.count || 0,
+        shipped: shippedOrders.count || 0,
+        delivered: deliveredOrders.count || 0,
+      },
     },
   });
 }

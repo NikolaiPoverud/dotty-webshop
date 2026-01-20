@@ -65,7 +65,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.Re
 
         {/* Order Summary */}
         <Section style={{
-          padding: '32px',
+          padding: '24px 20px',
           textAlign: 'center',
           backgroundColor: '#131316',
         }}>
@@ -101,7 +101,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.Re
         </Section>
 
         {/* Customer Info */}
-        <Section style={{ padding: '0 32px 24px 32px' }}>
+        <Section style={{ padding: '0 20px 20px 20px' }}>
           <Text style={{
             margin: '0 0 12px 0',
             fontSize: '14px',
@@ -135,7 +135,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.Re
         </Section>
 
         {/* Products */}
-        <Section style={{ padding: '0 32px 24px 32px' }}>
+        <Section style={{ padding: '0 20px 20px 20px' }}>
           <Text style={{
             margin: '0 0 12px 0',
             fontSize: '14px',
@@ -150,7 +150,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.Re
         </Section>
 
         {/* Shipping Address */}
-        <Section style={{ padding: '0 32px 32px 32px' }}>
+        <Section style={{ padding: '0 20px 24px 20px' }}>
           <Text style={{
             margin: '0 0 12px 0',
             fontSize: '14px',
@@ -185,7 +185,7 @@ export function NewOrderAlertEmail({ order }: NewOrderAlertEmailProps): React.Re
 
         {/* CTA */}
         <Section style={{
-          padding: '24px 32px 40px 32px',
+          padding: '20px 20px 32px 20px',
           textAlign: 'center',
           backgroundColor: '#0a0a0b',
         }}>

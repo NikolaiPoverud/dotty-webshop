@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
+  CheckCircle,
+  Clock,
+  CreditCard,
   ExternalLink,
   Loader2,
   Package,
@@ -13,6 +16,7 @@ import {
   ShoppingCart,
   Tag,
   TrendingUp,
+  Truck,
   Users,
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-fetch';
@@ -29,6 +33,12 @@ interface DashboardStats {
   recentOrders: Order[];
   pendingOrdersCount: number;
   unreadMessagesCount: number;
+  ordersByStatus: {
+    pending: number;
+    paid: number;
+    shipped: number;
+    delivered: number;
+  };
 }
 
 const statusColors: Record<string, string> = {

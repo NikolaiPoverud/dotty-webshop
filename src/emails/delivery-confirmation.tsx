@@ -24,7 +24,7 @@ export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailPr
 
         {/* Success Message */}
         <Section style={{
-          padding: '40px 32px',
+          padding: '32px 20px',
           textAlign: 'center',
           backgroundColor: '#131316',
         }}>
@@ -58,7 +58,7 @@ export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailPr
 
         {/* Thank you message */}
         <Section style={{
-          margin: '0 32px 32px 32px',
+          margin: '0 20px 24px 20px',
           padding: '24px',
           backgroundColor: '#1a1a1f',
           borderLeft: '4px solid #FE206A',
@@ -78,7 +78,7 @@ export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailPr
 
         {/* Share section */}
         <Section style={{
-          padding: '0 32px 32px 32px',
+          padding: '0 20px 24px 20px',
           textAlign: 'center',
         }}>
           <Text style={{
@@ -120,7 +120,7 @@ export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailPr
 
         {/* CTA */}
         <Section style={{
-          padding: '24px 32px 40px 32px',
+          padding: '20px 20px 32px 20px',
           textAlign: 'center',
           backgroundColor: '#0a0a0b',
         }}>
