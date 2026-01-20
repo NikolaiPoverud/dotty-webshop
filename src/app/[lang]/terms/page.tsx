@@ -31,6 +31,10 @@ const content = {
     intro: 'Ved å handle hos Dotty. aksepterer du følgende kjøpsvilkår.',
     sections: [
       {
+        heading: 'Selger',
+        text: 'Dotty. | Org.nr: 829736322 | E-post: hei@dotty.no',
+      },
+      {
         heading: 'Priser og betaling',
         text: 'Alle priser er oppgitt i norske kroner (NOK) og inkluderer 25% MVA. Betaling skjer via Stripe (kort) eller Vipps. Ordren bekreftes når betalingen er godkjent.',
       },
@@ -40,11 +44,11 @@ const content = {
       },
       {
         heading: 'Levering',
-        text: 'Vi sender til hele Norge. Originaler sendes forsikret med sporing. Leveringstid er normalt 3-7 virkedager. Du mottar sporingsinformasjon på e-post når ordren sendes.',
+        text: 'Vi sender til hele Norge og utvalgte land i Europa. Originaler sendes forsikret med sporing. Leveringstid er normalt 3-7 virkedager innenlands, 5-14 virkedager internasjonalt. Du mottar sporingsinformasjon på e-post når ordren sendes.',
       },
       {
         heading: 'Angrerett',
-        text: 'Du har 14 dagers angrerett i henhold til angrerettloven. Varen må returneres i uåpnet/uskadet originalemballasje. Kontakt oss for returinstruksjoner. Kunden dekker returfrakt.',
+        text: 'Du har 14 dagers angrerett i henhold til angrerettloven. Fristen løper fra du mottar varen. Varen må returneres i uåpnet/uskadet originalemballasje. Kontakt oss på hei@dotty.no for returinstruksjoner. Kunden dekker returfrakt. Last ned standard angrerettskjema fra Forbrukertilsynet: forbrukertilsynet.no/angrerettskjema',
       },
       {
         heading: 'Reklamasjon',
@@ -62,6 +66,10 @@ const content = {
     intro: 'By shopping at Dotty. you accept the following terms and conditions.',
     sections: [
       {
+        heading: 'Seller',
+        text: 'Dotty. | Org.nr: 829736322 | Email: hei@dotty.no',
+      },
+      {
         heading: 'Prices and payment',
         text: 'All prices are in Norwegian kroner (NOK) and include 25% VAT. Payment is made via Stripe (card) or Vipps. The order is confirmed when payment is approved.',
       },
@@ -71,11 +79,11 @@ const content = {
       },
       {
         heading: 'Delivery',
-        text: 'We ship throughout Norway. Originals are sent insured with tracking. Delivery time is normally 3-7 business days. You will receive tracking information by email when the order is shipped.',
+        text: 'We ship throughout Norway and selected European countries. Originals are sent insured with tracking. Delivery time is normally 3-7 business days domestically, 5-14 business days internationally. You will receive tracking information by email when the order is shipped.',
       },
       {
         heading: 'Right of withdrawal',
-        text: 'You have a 14-day right of withdrawal according to Norwegian consumer law. The item must be returned in unopened/undamaged original packaging. Contact us for return instructions. The customer covers return shipping.',
+        text: 'You have a 14-day right of withdrawal according to Norwegian consumer law. The period starts when you receive the item. The item must be returned in unopened/undamaged original packaging. Contact us at hei@dotty.no for return instructions. The customer covers return shipping.',
       },
       {
         heading: 'Complaints',

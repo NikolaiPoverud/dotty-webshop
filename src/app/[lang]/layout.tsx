@@ -3,7 +3,6 @@ import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CookieConsent } from '@/components/gdpr/cookie-consent';
-import { PasswordGate } from '@/components/auth/password-gate';
 import { createPublicClient } from '@/lib/supabase/public';
 
 // Revalidate every 5 minutes - collections change infrequently
@@ -44,13 +43,11 @@ export default async function LangLayout({
   ]);
 
   return (
-    <PasswordGate>
-      <div className="min-h-screen flex flex-col" lang={locale}>
-        <Header lang={locale} collections={collections} />
-        <main className="flex-1">{children}</main>
-        <Footer lang={locale} collections={collections} dictionary={dictionary} />
-        <CookieConsent lang={locale} dictionary={dictionary} />
-      </div>
-    </PasswordGate>
+    <div className="min-h-screen flex flex-col" lang={locale}>
+      <Header lang={locale} collections={collections} />
+      <main className="flex-1">{children}</main>
+      <Footer lang={locale} collections={collections} dictionary={dictionary} />
+      <CookieConsent lang={locale} dictionary={dictionary} />
+    </div>
   );
 }
