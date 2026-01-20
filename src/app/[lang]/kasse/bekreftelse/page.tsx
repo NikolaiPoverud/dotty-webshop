@@ -87,8 +87,8 @@ function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement {
   }, []);
 
   const shareText = locale === 'no'
-    ? 'Jeg kjøpte nettopp kunst fra Dotty! 🎨'
-    : 'I just bought art from Dotty! 🎨';
+    ? 'Jeg kjøpte nettopp kunst fra Dotty. 🎨'
+    : 'I just bought art from Dotty. 🎨';
 
   const shareUrl = typeof window !== 'undefined' ? 'https://dotty.no' : '';
 

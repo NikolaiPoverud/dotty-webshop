@@ -258,7 +258,7 @@ export default function AdminContactPage() {
                   </div>
                   <div className="p-4 flex items-center justify-between border-t border-border">
                     <a
-                      href={`mailto:${submission.email}?subject=Re: Din melding til Dotty`}
+                      href={`mailto:${submission.email}?subject=Re: Din melding til Dotty.`}
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
                     >
                       <Mail className="w-4 h-4" />

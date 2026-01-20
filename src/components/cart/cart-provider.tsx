@@ -1,12 +1,12 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import type { Product, CartProduct, CartItem, Cart } from '@/types';
+import type { Product, CartProduct, CartItem, Cart, ProductSize } from '@/types';
 import { calculateCartTotalsSimple, type CartItemInput } from '@/lib/services/cart-service';
 
 // Cart actions
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: { product: Product; quantity?: number; reservationId?: string; expiresAt?: string } }
+  | { type: 'ADD_ITEM'; payload: { product: Product; quantity?: number; reservationId?: string; expiresAt?: string; selectedSize?: ProductSize } }
   | { type: 'REMOVE_ITEM'; payload: { productId: string } }
   | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
   | { type: 'APPLY_DISCOUNT'; payload: { code: string; amount: number } }
@@ -44,10 +44,11 @@ const initialCart: Cart = {
 // ARCH-008: Use CartService for consistent calculations
 function calculateTotals(items: CartItem[], discountAmount: number): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
   // Convert CartItem[] to CartItemInput[] for the service
+  // Use size price if available, otherwise use product price
   const serviceItems: CartItemInput[] = items.map(item => ({
     productId: item.product.id,
     title: item.product.title,
-    price: item.product.price,
+    price: item.selectedSize?.price ?? item.product.price,
     quantity: item.quantity,
     shippingCost: item.product.shipping_cost,
   }));
@@ -64,17 +65,25 @@ function withTotals(state: Cart, items: CartItem[], discountAmount: number = sta
 function cartReducer(state: Cart, action: CartAction): Cart {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const { product, quantity = 1, reservationId, expiresAt } = action.payload;
+      const { product, quantity = 1, reservationId, expiresAt, selectedSize } = action.payload;
       const cartProduct = toCartProduct(product);
-      const existingIndex = state.items.findIndex((item) => item.product.id === product.id);
+
+      // For products with size pricing, treat each size as a separate item
+      const itemKey = selectedSize ? `${product.id}-${selectedSize.width}x${selectedSize.height}` : product.id;
+      const existingIndex = state.items.findIndex((item) => {
+        const existingKey = item.selectedSize
+          ? `${item.product.id}-${item.selectedSize.width}x${item.selectedSize.height}`
+          : item.product.id;
+        return existingKey === itemKey;
+      });
 
       const newItems = existingIndex > -1
         ? state.items.map((item, index) =>
             index === existingIndex
-              ? { ...item, product: cartProduct, quantity: item.quantity + quantity, reservationId, expiresAt }
+              ? { ...item, product: cartProduct, quantity: item.quantity + quantity, reservationId, expiresAt, selectedSize }
               : item
           )
-        : [...state.items, { product: cartProduct, quantity, reservationId, expiresAt }];
+        : [...state.items, { product: cartProduct, quantity, reservationId, expiresAt, selectedSize }];
 
       return withTotals(state, newItems);
     }
@@ -127,7 +136,7 @@ function cartReducer(state: Cart, action: CartAction): Cart {
 // Context
 interface CartContextType {
   cart: Cart;
-  addItem: (product: Product, quantity?: number, reservationId?: string, expiresAt?: string) => void;
+  addItem: (product: Product, quantity?: number, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   applyDiscount: (code: string, amount: number) => void;
@@ -210,8 +219,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  function addItem(product: Product, quantity = 1, reservationId?: string, expiresAt?: string): void {
-    dispatch({ type: 'ADD_ITEM', payload: { product, quantity, reservationId, expiresAt } });
+  function addItem(product: Product, quantity = 1, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize): void {
+    dispatch({ type: 'ADD_ITEM', payload: { product, quantity, reservationId, expiresAt, selectedSize } });
   }
 
   function removeItem(productId: string): void {

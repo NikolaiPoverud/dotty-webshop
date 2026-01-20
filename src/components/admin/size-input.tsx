@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Ruler, Loader2, Check } from 'lucide-react';
 import type { ProductSize } from '@/types';
+import { formatPrice } from '@/lib/utils';
 
 interface SizeInputProps {
   value: ProductSize[];
@@ -19,6 +20,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): React.ReactElement {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
+  const [price, setPrice] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   async function triggerAutoSave(newSizes: ProductSize[]): Promise<void> {
@@ -38,16 +40,24 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
   async function addSize(): Promise<void> {
     const w = parseInt(width, 10);
     const h = parseInt(height, 10);
+    const p = price ? parseInt(price, 10) * 100 : undefined; // Convert kr to øre
 
     if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) return;
 
     const exists = value.some((s) => s.width === w && s.height === h);
     if (exists) return;
 
-    const newSizes = [...value, { width: w, height: h, label: `${w}x${h} cm` }];
+    const newSize: ProductSize = {
+      width: w,
+      height: h,
+      label: `${w}x${h} cm`,
+      ...(p && { price: p })
+    };
+    const newSizes = [...value, newSize];
     onChange(newSizes);
     setWidth('');
     setHeight('');
+    setPrice('');
 
     await triggerAutoSave(newSizes);
   }
@@ -85,6 +95,11 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
               >
                 <Ruler className="w-3.5 h-3.5 text-muted-foreground" />
                 {size.label}
+                {size.price && (
+                  <span className="text-primary font-medium">
+                    {formatPrice(size.price)}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => removeSize(index)}
@@ -107,7 +122,7 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
             onChange={(e) => setWidth(e.target.value)}
             onKeyDown={handleKeyDown}
             min="1"
-            className={INPUT_CLASS}
+            className={`${INPUT_CLASS} max-w-20`}
           />
           <span className="text-muted-foreground">x</span>
           <input
@@ -117,9 +132,19 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
             onChange={(e) => setHeight(e.target.value)}
             onKeyDown={handleKeyDown}
             min="1"
-            className={INPUT_CLASS}
+            className={`${INPUT_CLASS} max-w-20`}
           />
           <span className="text-muted-foreground text-sm">cm</span>
+          <input
+            type="number"
+            placeholder="Pris (valgfritt)"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            onKeyDown={handleKeyDown}
+            min="0"
+            className={`${INPUT_CLASS} max-w-28`}
+          />
+          <span className="text-muted-foreground text-sm">kr</span>
         </div>
         <button
           type="button"
@@ -133,7 +158,7 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
 
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          Legg til tilgjengelige storrelser for kunstverket (bredde x hoyde i cm)
+          Legg til storrelser (bredde x hoyde i cm). Pris er valgfritt - bruker produktpris hvis tom.
         </p>
         <AnimatePresence mode="wait">
           {saveStatus === 'saving' && (

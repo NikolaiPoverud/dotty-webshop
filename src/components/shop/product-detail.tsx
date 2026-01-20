@@ -133,6 +133,9 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const hasMultipleSizes = sizes.length > 1;
   const selectedSize = sizes[selectedSizeIndex] || sizes[0];
 
+  // Use size-specific price if available, otherwise fall back to product price
+  const displayPrice = selectedSize?.price ?? product.price;
+
   function handleAddToCart(): void {
     if (isSold) return;
     addItem(product, 1);
@@ -319,7 +322,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Price */}
             <p className="text-2xl sm:text-3xl font-bold mb-6">
-              {formatPrice(product.price)}
+              {formatPrice(displayPrice)}
             </p>
 
             {/* Size Selector for Prints with Multiple Sizes */}
@@ -336,6 +339,11 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                   >
                     <span className="uppercase tracking-wider text-sm">
                       {selectedSize?.label || sizes[0]?.label}
+                      {selectedSize?.price && (
+                        <span className="ml-2 text-primary">
+                          {formatPrice(selectedSize.price)}
+                        </span>
+                      )}
                     </span>
                     <motion.span
                       animate={{ rotate: isSizeDropdownOpen ? 180 : 0 }}
@@ -367,13 +375,18 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                             setSelectedSizeIndex(index);
                             setIsSizeDropdownOpen(false);
                           }}
-                          className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors ${
+                          className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center ${
                             selectedSizeIndex === index
                               ? 'bg-primary text-background'
                               : 'hover:bg-primary/10'
                           }`}
                         >
-                          {size.label}
+                          <span>{size.label}</span>
+                          {size.price && (
+                            <span className={selectedSizeIndex === index ? 'text-background' : 'text-primary'}>
+                              {formatPrice(size.price)}
+                            </span>
+                          )}
                         </button>
                       ))}
                     </motion.div>

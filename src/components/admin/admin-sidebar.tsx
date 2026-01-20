@@ -106,8 +106,7 @@ export function AdminSidebar(): React.ReactNode {
     <aside className="w-64 min-w-64 h-screen sticky top-0 bg-muted border-r border-border flex flex-col">
       <div className="p-6 border-b border-border">
         <Link href="/admin/dashboard" className="text-xl font-bold">
-          <span className="text-primary">Dotty</span>
-          <span>.</span>
+          <span className="text-primary">Dotty.</span>
           <span className="text-sm font-normal text-muted-foreground ml-2">Admin</span>
         </Link>
       </div>

@@ -70,7 +70,7 @@ export function DeliveryConfirmationEmail({ order }: DeliveryConfirmationEmailPr
             color: '#ffffff',
             lineHeight: '1.6',
           }}>
-            Takk for at du handler hos Dotty!
+            Takk for at du handler hos Dotty.
             <br />
             <span style={{ color: '#9ca3af' }}>Vi håper du blir fornøyd med ditt nye kunstverk.</span>
           </Text>

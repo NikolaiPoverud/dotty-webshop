@@ -136,7 +136,7 @@ export default function AdminLoginPage(): React.ReactNode {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">
-            <span className="text-primary">Dotty</span>
+            <span className="text-primary">Dotty.</span>
             <span>.</span>
           </h1>
           <p className="text-muted-foreground mt-2">Admin innlogging</p>

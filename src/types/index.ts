@@ -4,6 +4,7 @@ export interface ProductSize {
   width: number;
   height: number;
   label: string;
+  price?: number; // Price in øre, overrides product.price if set
 }
 
 export interface GalleryImage {
@@ -165,6 +166,7 @@ export interface CartItem {
   quantity: number;
   reservationId?: string;
   expiresAt?: string;
+  selectedSize?: ProductSize; // Selected size with optional price override
 }
 
 export interface Cart {

@@ -343,7 +343,7 @@ export default function CustomersPage() {
               <div className="max-w-lg mx-auto">
                 <div className="bg-[#1a1a1f] rounded-lg p-6 text-white">
                   <div className="text-center mb-6">
-                    <span className="text-2xl font-bold text-[#FE206A]">Dotty</span>
+                    <span className="text-2xl font-bold text-[#FE206A]">Dotty.</span>
                     <span className="text-2xl font-bold">.</span>
                     <p className="text-sm text-gray-400 mt-1">Nyhetsbrev</p>
                   </div>
