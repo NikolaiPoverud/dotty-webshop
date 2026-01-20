@@ -7,12 +7,11 @@ import { ArrowLeft } from 'lucide-react';
 
 import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { createPublicClient } from '@/lib/supabase/public';
-import { ProductJsonLd, BreadcrumbJsonLd, RelatedLinks } from '@/components/seo';
+import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo';
 import { CollectionJsonLd } from '@/components/seo/collection-jsonld';
 import { ProductDetail } from '@/components/shop/product-detail';
 import { RelatedProducts } from '@/components/shop/related-products';
 import { ShopContent } from '@/components/shop/shop-content';
-import { getRelatedFacetsForProduct } from '@/lib/seo/internal-linking';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
@@ -347,9 +346,6 @@ export default async function ShopSlugPage({ params }: Props) {
     { name: product.title, url: `/${locale}/shop/${slug}` },
   ];
 
-  // Get related facet links for internal linking
-  const relatedFacets = getRelatedFacetsForProduct(product, locale);
-
   return (
     <>
       <ProductJsonLd product={product} lang={locale} />
@@ -363,11 +359,6 @@ export default async function ShopSlugPage({ params }: Props) {
       />
       {relatedProducts.length > 0 && (
         <RelatedProducts products={relatedProducts} lang={locale} />
-      )}
-      {relatedFacets.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <RelatedLinks links={relatedFacets} locale={locale} />
-        </div>
       )}
     </>
   );

@@ -34,10 +34,12 @@ export function RelatedProducts({ products, lang }: RelatedProductsProps): React
     <section className="py-16 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold">{t.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-wider text-primary">
+            {t.title}
+          </h2>
           <Link
             href={getLocalizedPath(lang, 'shop')}
-            className="text-sm text-primary hover:text-primary-light transition-colors"
+            className="text-xs sm:text-sm font-bold uppercase tracking-wider text-primary hover:text-primary-light transition-colors"
           >
             {t.viewAll} →
           </Link>
