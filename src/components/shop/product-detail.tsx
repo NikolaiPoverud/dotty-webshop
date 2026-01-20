@@ -110,9 +110,6 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   // Close size dropdown when clicking outside
   useEffect(() => {
@@ -252,7 +249,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-8">
+    <div className="min-h-screen pt-24 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back to Shop Navigation */}
         <motion.div

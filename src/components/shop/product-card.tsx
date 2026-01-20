@@ -83,7 +83,8 @@ export const ProductCard = memo(function ProductCard({
               fill
               priority={priority || index < 3}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              quality={85}
             />
           ) : (
             <div className="absolute inset-0 bg-primary" />

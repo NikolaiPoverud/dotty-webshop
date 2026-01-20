@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    scrollRestoration: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -9,9 +12,9 @@ const nextConfig: NextConfig = {
         pathname: '/storage/v1/object/public/**',
       },
     ],
-    // Cap image sizes at 800px to protect artwork from high-res downloads
-    deviceSizes: [320, 420, 640, 800],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // Cap image sizes to balance quality vs artwork protection
+    deviceSizes: [320, 480, 640, 800, 1024],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   async redirects() {
     // Domain redirects are handled by Vercel and middleware

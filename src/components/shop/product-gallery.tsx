@@ -101,6 +101,8 @@ export function ProductGallery({
                 className="object-cover pointer-events-none"
                 priority={currentIndex === 0}
                 draggable={false}
+                quality={90}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent" />
