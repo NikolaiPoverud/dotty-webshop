@@ -14,6 +14,7 @@ interface ShippingSelectorProps {
   selectedOption: ShippingOption | null;
   onSelect: (option: ShippingOption) => void;
   disabled?: boolean;
+  freeShipping?: boolean;
 }
 
 const DEBOUNCE_MS = 500;
@@ -63,6 +64,7 @@ export function ShippingSelector({
   selectedOption,
   onSelect,
   disabled = false,
+  freeShipping = false,
 }: ShippingSelectorProps): React.ReactElement {
   const [options, setOptions] = useState<ShippingOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -219,7 +221,11 @@ export function ShippingSelector({
                 </div>
                 <div className="text-right">
                   <div className={`font-semibold ${isSelected ? 'text-primary' : ''}`}>
-                    {formatPrice(option.priceWithVat)}
+                    {freeShipping ? (
+                      <span className="text-success">Gratis</span>
+                    ) : (
+                      formatPrice(option.priceWithVat)
+                    )}
                   </div>
                 </div>
               </div>

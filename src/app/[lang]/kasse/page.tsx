@@ -322,6 +322,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
                   selectedOption={selectedShipping}
                   onSelect={setSelectedShipping}
                   disabled={isLoading}
+                  freeShipping={cart.freeShipping}
                 />
               </div>
             )}
