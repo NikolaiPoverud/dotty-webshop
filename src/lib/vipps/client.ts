@@ -18,9 +18,10 @@
  * Set calendar reminders for rotation dates!
  */
 
-const VIPPS_API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://api.vipps.no'
-  : 'https://apitest.vipps.no';
+// Use test API if VIPPS_TEST_MODE is set, otherwise use production in prod
+const VIPPS_API_URL = process.env.VIPPS_TEST_MODE === 'true'
+  ? 'https://apitest.vipps.no'
+  : (process.env.NODE_ENV === 'production' ? 'https://api.vipps.no' : 'https://apitest.vipps.no');
 
 const VIPPS_CLIENT_ID = process.env.VIPPS_CLIENT_ID!;
 const VIPPS_CLIENT_SECRET = process.env.VIPPS_CLIENT_SECRET!;
