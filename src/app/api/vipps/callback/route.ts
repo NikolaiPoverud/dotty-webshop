@@ -47,6 +47,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           console.error('Failed to update order:', updateError);
         }
 
+        // Update inventory for each item
+        if (order?.items) {
+          for (const item of order.items as Array<{ product_id: string; quantity: number }>) {
+            const { data: stockResult, error: stockError } = await supabase.rpc('decrement_product_stock', {
+              p_product_id: item.product_id,
+              p_quantity: item.quantity,
+            });
+
+            if (stockError) {
+              console.error(`Failed to decrement stock for product ${item.product_id}:`, stockError.message);
+            } else if (stockResult?.[0]?.success) {
+              console.log(`Stock updated for product ${item.product_id}: new_stock=${stockResult[0].new_stock}`);
+            }
+          }
+        }
+
         // Send confirmation emails
         if (order) {
           try {
