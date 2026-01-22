@@ -26,7 +26,12 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
   const t = dictionary.hero;
 
   function scrollToArt(): void {
-    document.getElementById('art')?.scrollIntoView({ behavior: 'smooth' });
+    const artSection = document.getElementById('art');
+    if (artSection) {
+      const rect = artSection.getBoundingClientRect();
+      const scrollTop = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+      window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+    }
   }
 
   return (
@@ -46,7 +51,11 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
 
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-      {/* Text removed for testing */}
+      <div className="relative z-10">
+        <motion.div {...fadeInUp}>
+          <Logo size="hero" className="mx-auto" aria-hidden="true" />
+        </motion.div>
+      </div>
 
       <motion.button
         onClick={scrollToArt}
