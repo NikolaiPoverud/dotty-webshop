@@ -182,11 +182,11 @@ interface OrderConfirmationData {
 function orderItemRow(item: OrderItem): string {
   return `
     <tr>
-      <td style="padding: 16px 0; border-bottom: 1px solid ${COLORS.border};">
+      <td width="60%" style="padding: 16px 0; border-bottom: 1px solid ${COLORS.border};">
         <p style="margin: 0; font-size: 15px; color: ${COLORS.foreground}; font-weight: 600;">${item.title}</p>
         <p style="margin: 6px 0 0 0; font-size: 13px; color: ${COLORS.mutedForeground};">Antall: ${item.quantity}</p>
       </td>
-      <td style="padding: 16px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; vertical-align: top;">
+      <td width="40%" style="padding: 16px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; vertical-align: top;">
         <p style="margin: 0; font-size: 15px; color: ${COLORS.foreground}; font-weight: 600;">${formatPrice(item.price * item.quantity)}</p>
       </td>
     </tr>`;
@@ -195,10 +195,10 @@ function orderItemRow(item: OrderItem): string {
 function summaryRow(label: string, value: string, color: string = COLORS.mutedForeground): string {
   return `
     <tr>
-      <td style="padding: 4px 0;">
+      <td width="60%" style="padding: 4px 0;">
         <p style="margin: 0; font-size: 14px; color: ${color};">${label}</p>
       </td>
-      <td style="padding: 4px 0; text-align: right;">
+      <td width="40%" style="padding: 4px 0; text-align: right;">
         <p style="margin: 0; font-size: 14px; color: ${color === COLORS.success ? COLORS.success : COLORS.foreground};">${value}</p>
       </td>
     </tr>`;
@@ -261,27 +261,30 @@ export function orderConfirmationTemplate(data: OrderConfirmationData): string {
 
     ${sectionHeading('Din bestilling')}
 
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-      ${itemsHtml}
-      <tr>
-        <td style="padding: 16px 0 8px 0;">
-          <p style="margin: 0; font-size: 14px; color: ${COLORS.mutedForeground};">Delsum</p>
-        </td>
-        <td style="padding: 16px 0 8px 0; text-align: right;">
-          <p style="margin: 0; font-size: 14px; color: ${COLORS.foreground};">${formatPrice(data.subtotal)}</p>
-        </td>
-      </tr>
-      ${discountRow}
-      ${shippingRow}
-      <tr>
-        <td style="padding: 20px 0 0 0; border-top: 2px solid ${COLORS.border};">
-          <p style="margin: 0; font-size: 18px; font-weight: 700; color: ${COLORS.foreground};">Totalt</p>
-        </td>
-        <td style="padding: 20px 0 0 0; border-top: 2px solid ${COLORS.border}; text-align: right;">
-          <p style="margin: 0; font-size: 24px; font-weight: 700; color: ${COLORS.primary};">${formatPrice(data.total)}</p>
-        </td>
-      </tr>
-    </table>
+    <div style="background-color: ${COLORS.muted}; border-radius: 12px; padding: 20px; margin: 20px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout: fixed;">
+        ${itemsHtml}
+        <tr>
+          <td width="60%" style="padding: 16px 0 8px 0;">
+            <p style="margin: 0; font-size: 14px; color: ${COLORS.mutedForeground};">Delsum</p>
+          </td>
+          <td width="40%" style="padding: 16px 0 8px 0; text-align: right;">
+            <p style="margin: 0; font-size: 14px; color: ${COLORS.foreground};">${formatPrice(data.subtotal)}</p>
+          </td>
+        </tr>
+        ${discountRow}
+        ${shippingRow}
+        <tr>
+          <td width="60%" style="padding: 20px 0 0 0; border-top: 2px solid ${COLORS.border};">
+            <p style="margin: 0; font-size: 16px; font-weight: 700; color: ${COLORS.foreground};">TOTALT</p>
+            <p style="margin: 4px 0 0 0; font-size: 11px; color: ${COLORS.mutedForeground};">Inkl. mva</p>
+          </td>
+          <td width="40%" style="padding: 20px 0 0 0; border-top: 2px solid ${COLORS.border}; text-align: right;">
+            <p style="margin: 0; font-size: 20px; font-weight: 700; color: ${COLORS.primary};">${formatPrice(data.total)}</p>
+          </td>
+        </tr>
+      </table>
+    </div>
 
     ${divider()}
     ${sectionHeading('Leveringsadresse')}
