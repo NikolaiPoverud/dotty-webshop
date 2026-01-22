@@ -184,6 +184,8 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
   const { clearCart } = useCart();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const reference = searchParams.get('reference');
+  const provider = searchParams.get('provider');
 
   const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -191,22 +193,54 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
   useEffect(() => {
     clearCart();
 
-    if (!sessionId) {
-      // Use a microtask to avoid the synchronous setState warning
-      Promise.resolve().then(() => setIsLoading(false));
+    // Retry fetching order with exponential backoff (webhook might not have processed yet)
+    async function fetchOrderWithRetry(
+      fetchFn: () => Promise<Response>,
+      maxRetries = 5,
+      initialDelay = 1000
+    ): Promise<void> {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const res = await fetchFn();
+          const data = await res.json();
+
+          if (data.order) {
+            // Check if order_number exists (webhook has processed)
+            if (data.order.order_number) {
+              setOrderInfo(data.order);
+              setIsLoading(false);
+              return;
+            }
+            // Order exists but no order_number yet - keep trying
+            setOrderInfo(data.order);
+          }
+        } catch (err) {
+          console.error('Fetch attempt failed:', err);
+        }
+
+        // Wait before next attempt (exponential backoff)
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
+        }
+      }
+      setIsLoading(false);
+    }
+
+    // Handle Stripe payments (session_id)
+    if (sessionId) {
+      fetchOrderWithRetry(() => fetch('/api/checkout/session?session_id=' + sessionId));
       return;
     }
 
-    fetch('/api/checkout/session?session_id=' + sessionId)
-      .then(res => res.json())
-      .then(data => {
-        if (data.order) {
-          setOrderInfo(data.order);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, [clearCart, sessionId]);
+    // Handle Vipps payments (reference)
+    if (reference && provider === 'vipps') {
+      fetchOrderWithRetry(() => fetch('/api/orders/by-reference?reference=' + encodeURIComponent(reference)));
+      return;
+    }
+
+    // No session_id or reference
+    Promise.resolve().then(() => setIsLoading(false));
+  }, [clearCart, sessionId, reference, provider]);
 
   return (
     <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
