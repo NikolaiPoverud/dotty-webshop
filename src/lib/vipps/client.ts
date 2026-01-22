@@ -135,6 +135,8 @@ async function vippsRequest<T>(
 
   if (!response.ok) {
     const error = await response.text();
+    console.error(`[Vipps] API error - Status: ${response.status}, URL: ${VIPPS_API_URL}${endpoint}`);
+    console.error(`[Vipps] Response: ${error}`);
     throw new Error(`Vipps API error (${response.status}): ${error}`);
   }
 
@@ -171,16 +173,21 @@ export async function createPayment(params: {
     }
   }
 
-  return vippsRequest<VippsPaymentResponse>('/epayment/v1/payments', {
+  console.log(`[Vipps] Creating payment with reference: ${params.reference}`);
+  const result = await vippsRequest<VippsPaymentResponse>('/epayment/v1/payments', {
     method: 'POST',
     body: JSON.stringify(body),
   });
+  console.log(`[Vipps] Payment created, redirect URL: ${result.redirectUrl}`);
+  return result;
 }
 
 /**
  * Get payment status
  */
 export async function getPayment(reference: string): Promise<VippsPaymentResponse> {
+  console.log(`[Vipps] Getting payment status for reference: ${reference}`);
+  console.log(`[Vipps] API URL: ${VIPPS_API_URL}/epayment/v1/payments/${reference}`);
   return vippsRequest<VippsPaymentResponse>(`/epayment/v1/payments/${reference}`);
 }
 
