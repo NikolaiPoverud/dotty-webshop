@@ -83,3 +83,44 @@ export function constructWebhookEvent(body: string, signature: string): Stripe.E
 
   return getStripe().webhooks.constructEvent(body, signature, secret);
 }
+
+export interface RefundResult {
+  success: boolean;
+  refundId?: string;
+  error?: string;
+}
+
+/**
+ * Refund a Stripe payment using the checkout session ID.
+ * Retrieves the payment intent from the session and issues a full refund.
+ */
+export async function refundPayment(sessionId: string): Promise<RefundResult> {
+  try {
+    const stripe = getStripe();
+
+    // Retrieve the checkout session to get the payment intent
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (!session.payment_intent) {
+      return { success: false, error: 'No payment intent found for this session' };
+    }
+
+    const paymentIntentId = typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent.id;
+
+    // Create a full refund
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+    });
+
+    return {
+      success: true,
+      refundId: refund.id,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Stripe refund failed:', message);
+    return { success: false, error: message };
+  }
+}

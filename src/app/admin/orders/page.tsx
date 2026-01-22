@@ -160,7 +160,7 @@ function AdminOrdersContent() {
   }
 
   async function handleCancel(orderId: string): Promise<void> {
-    if (!confirm('Er du sikker på at du vil kansellere denne ordren?')) return;
+    if (!confirm('Er du sikker på at du vil kansellere denne ordren? Betalingen vil automatisk bli refundert.')) return;
 
     try {
       const response = await adminFetch(`/api/admin/orders/${orderId}`, {
@@ -169,11 +169,22 @@ function AdminOrdersContent() {
         body: JSON.stringify({ status: 'cancelled' }),
       });
 
-      if (!response.ok) throw new Error('Failed to cancel order');
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error || 'Failed to cancel order');
 
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: 'cancelled' as const } : o))
       );
+
+      // Show refund feedback
+      if (result.refund) {
+        if (result.refund.success) {
+          alert('Ordren er kansellert og betalingen er refundert.');
+        } else {
+          alert(`Ordren er kansellert, men refundering feilet: ${result.refund.error}\n\nDu må refundere manuelt.`);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel');
     }

@@ -145,6 +145,27 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
       }
     }
 
+    // Auto-sync is_available based on stock_quantity changes
+    // If stock goes to 0, mark as unavailable; if stock goes from 0 to >0, mark as available
+    if (updateData.stock_quantity !== undefined && updateData.is_available === undefined) {
+      const stockQty = updateData.stock_quantity as number | null;
+      if (stockQty === 0) {
+        updateData.is_available = false;
+      } else if (stockQty !== null && stockQty > 0) {
+        // Fetch current stock to see if we're restocking from 0
+        const { data: current } = await supabase
+          .from('products')
+          .select('stock_quantity, is_available')
+          .eq('id', id)
+          .single();
+
+        // If was out of stock (quantity 0 or unavailable), auto-enable
+        if (current && (current.stock_quantity === 0 || !current.is_available)) {
+          updateData.is_available = true;
+        }
+      }
+    }
+
     // Debug: Log what we're sending to database
     console.log('[Product Update] updateData:', JSON.stringify(updateData, null, 2));
     console.log('[Product Update] stock_quantity in updateData:', updateData.stock_quantity);

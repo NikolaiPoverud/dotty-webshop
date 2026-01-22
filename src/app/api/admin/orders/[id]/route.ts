@@ -4,6 +4,8 @@ import { sendShippingNotification, sendDeliveryConfirmation } from '@/lib/email/
 import type { Order, OrderWithItems, OrderItem } from '@/types';
 import { logAudit, getAuditHeadersFromRequest } from '@/lib/audit';
 import { verifyAdminAuth } from '@/lib/auth/admin-guard';
+import { refundPayment as refundStripePayment } from '@/lib/stripe';
+import { refundPayment as refundVippsPayment } from '@/lib/vipps';
 import { z } from 'zod';
 
 // SEC-003: Zod schema for order updates - whitelist allowed fields only
@@ -18,7 +20,7 @@ const orderUpdateSchema = z.object({
       country: z.string().max(100).optional(),
     }),
   ]).optional(),
-  notes: z.string().max(1000).optional(),
+  notes: z.string().max(2000).optional(),
   tracking_carrier: z.string().max(100).optional(),
   tracking_number: z.string().max(100).optional(),
   shipped_at: z.string().datetime().optional(),
@@ -79,15 +81,54 @@ export async function PUT(
 
     const { data: currentOrder } = await supabase
       .from('orders')
-      .select('status')
+      .select('status, payment_provider, payment_session_id, total')
       .eq('id', id)
       .single();
 
     const previousStatus = currentOrder?.status;
 
+    // Handle automatic refund when cancelling an order
+    let refundResult: { success: boolean; refundId?: string; error?: string } | null = null;
+    if (validatedData.status === 'cancelled' && previousStatus !== 'cancelled' && currentOrder) {
+      const { payment_provider, payment_session_id, total } = currentOrder;
+
+      if (payment_session_id) {
+        if (payment_provider === 'stripe') {
+          refundResult = await refundStripePayment(payment_session_id);
+        } else if (payment_provider === 'vipps') {
+          try {
+            await refundVippsPayment(payment_session_id, total);
+            refundResult = { success: true };
+          } catch (err) {
+            refundResult = { success: false, error: err instanceof Error ? err.message : 'Vipps refund failed' };
+          }
+        }
+
+        // Add refund info to notes
+        if (refundResult) {
+          const timestamp = new Date().toLocaleString('nb-NO', { timeZone: 'Europe/Oslo' });
+          const refundNote = refundResult.success
+            ? `Refund processed successfully${refundResult.refundId ? ` (${refundResult.refundId})` : ''}`
+            : `Refund failed: ${refundResult.error}`;
+          const existingNotes = validatedData.notes || '';
+          validatedData.notes = existingNotes
+            ? `${existingNotes}\n\n[${timestamp}] ${refundNote}`
+            : `[${timestamp}] ${refundNote}`;
+        }
+      }
+    }
+
+    // Build final update data, including payment_status for refunds
+    const updateData: Record<string, unknown> = { ...validatedData };
+    if (validatedData.status === 'cancelled' && refundResult?.success) {
+      updateData.payment_status = 'refunded';
+    } else if (validatedData.status === 'cancelled') {
+      updateData.payment_status = 'cancelled';
+    }
+
     const { data, error } = await supabase
       .from('orders')
-      .update(validatedData)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -109,11 +150,24 @@ export async function PUT(
         new_status: updatedOrder.status,
         customer_email: updatedOrder.customer_email,
         changes: Object.keys(validatedData),
+        refund: refundResult ? {
+          attempted: true,
+          success: refundResult.success,
+          refundId: refundResult.refundId,
+          error: refundResult.error,
+        } : undefined,
       },
       ...getAuditHeadersFromRequest(request),
     });
 
-    return NextResponse.json({ data });
+    // Include refund result in response for UI feedback
+    return NextResponse.json({
+      data,
+      refund: refundResult ? {
+        success: refundResult.success,
+        error: refundResult.error,
+      } : undefined,
+    });
   } catch (error) {
     console.error('Failed to update order:', error);
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
