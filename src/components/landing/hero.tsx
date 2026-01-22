@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import Image from 'next/image';
 import type { Dictionary, Locale } from '@/types';
 import { Logo } from '@/components/ui/logo';
 
@@ -9,11 +10,6 @@ const fadeInUp = {
   initial: { opacity: 0, y: 40 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.8, ease: 'easeOut' as const },
-};
-
-const pulseAnimation = {
-  animate: { opacity: [0.08, 0.12, 0.08] },
-  transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' as const },
 };
 
 const bounceAnimation = {
@@ -35,12 +31,18 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
-
-      <motion.div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[280px] h-[180px] sm:w-[400px] sm:h-[280px] lg:w-[600px] lg:h-[400px] bg-primary/8 rounded-full blur-[80px] sm:blur-[100px] lg:blur-[120px]"
-        {...pulseAnimation}
-      />
+      {/* Hero background image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/hero-bg.png"
+          alt=""
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-background/40" />
+      </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
