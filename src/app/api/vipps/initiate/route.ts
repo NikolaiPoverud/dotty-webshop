@@ -80,8 +80,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Store pending order in database
     const supabase = createAdminClient();
-    const { error: dbError } = await supabase.from('orders').insert({
-      id: reference,
+    const { data: order, error: dbError } = await supabase.from('orders').insert({
+      order_number: reference,
       customer_email,
       customer_name,
       customer_phone,
@@ -97,9 +97,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       payment_status: 'pending',
       privacy_accepted,
       newsletter_opt_in,
-    });
+    }).select('id').single();
 
-    if (dbError) {
+    if (dbError || !order) {
       console.error('Failed to create pending order:', dbError);
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
     }
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!payment.redirectUrl) {
       // Clean up pending order
-      await supabase.from('orders').delete().eq('id', reference);
+      await supabase.from('orders').delete().eq('id', order.id);
       return NextResponse.json({ error: 'Failed to create Vipps payment' }, { status: 500 });
     }
 

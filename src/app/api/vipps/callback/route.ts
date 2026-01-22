@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             authorized_amount: payment.aggregate?.authorizedAmount?.value,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', reference);
+          .eq('order_number', reference);
 
         if (updateError) {
           console.error('Failed to update order:', updateError);
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             vipps_state: payment.state,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', reference);
+          .eq('order_number', reference);
 
         return redirectToCheckout(request, locale, 'canceled');
       }

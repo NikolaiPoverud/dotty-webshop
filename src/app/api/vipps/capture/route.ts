@@ -33,7 +33,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
-      .eq('id', reference)
+      .eq('order_number', reference)
       .single();
 
     if (orderError || !order) {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             status: 'processing',
             updated_at: new Date().toISOString(),
           })
-          .eq('id', reference);
+          .eq('order_number', reference);
 
         return NextResponse.json({
           success: true,
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             status: 'cancelled',
             updated_at: new Date().toISOString(),
           })
-          .eq('id', reference);
+          .eq('order_number', reference);
 
         return NextResponse.json({
           success: true,
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             status: 'refunded',
             updated_at: new Date().toISOString(),
           })
-          .eq('id', reference);
+          .eq('order_number', reference);
 
         return NextResponse.json({
           success: true,

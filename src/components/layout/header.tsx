@@ -155,7 +155,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out',
-        isVisible ? 'bg-background/90 backdrop-blur-md' : 'bg-transparent',
+        isVisible || !isHomePage ? 'bg-background/90 backdrop-blur-md' : 'bg-transparent',
         isHidden && isProductPage ? '-translate-y-full' : 'translate-y-0'
       )}
     >
