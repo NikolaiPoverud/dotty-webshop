@@ -89,12 +89,13 @@ export const ProductCard = memo(function ProductCard({
     <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
       <motion.article
         className={cn(
-          'group relative bg-muted overflow-hidden border-[3px] border-transparent hover:border-primary transition-colors duration-200',
+          'group relative bg-muted overflow-hidden border-[3px] border-transparent hover:border-primary active:border-primary transition-colors duration-200 touch-manipulation',
           isHighlighted && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
         )}
         initial={isHighlighted ? highlightAnimation.initial : undefined}
         animate={isHighlighted ? highlightAnimation.animate : undefined}
         whileHover={{ y: -6, boxShadow: '6px 6px 0 0 var(--color-primary)' }}
+        whileTap={{ scale: 0.98, y: 2 }}
         transition={springTransition}
       >
         <div className="relative aspect-[4/5] overflow-hidden">
@@ -146,18 +147,18 @@ export const ProductCard = memo(function ProductCard({
           )}
         </div>
 
-        <div className="p-4">
-          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+        <div className="p-3 sm:p-4">
+          <h3 className="font-semibold text-base sm:text-lg group-hover:text-primary group-active:text-primary transition-colors line-clamp-2">
             {product.title}
           </h3>
-          <p className={cn('mt-1', isSold ? 'text-muted-foreground' : 'text-foreground')}>
+          <p className={cn('mt-1 text-base sm:text-lg font-medium', isSold ? 'text-muted-foreground' : 'text-foreground')}>
             {isFromPrice && <span className="text-muted-foreground/60 text-sm font-normal">{fromLabel}</span>}
             {formatPrice(displayPrice)}
           </p>
           {product.sizes && product.sizes.length > 0 && (
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Ruler className="w-3.5 h-3.5" />
-              <span>{product.sizes.map((s) => s.label).join(', ')}</span>
+            <div className="mt-1.5 sm:mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Ruler className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">{product.sizes.map((s) => s.label).join(', ')}</span>
             </div>
           )}
         </div>

@@ -13,7 +13,15 @@ const fadeInUp = {
 };
 
 const bounceAnimation = {
-  animate: { y: [0, 8, 0] },
+  animate: { y: [0, 10, 0] },
+  transition: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const },
+};
+
+const pulseRing = {
+  animate: {
+    scale: [1, 1.3, 1],
+    opacity: [0.5, 0, 0.5],
+  },
   transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' as const },
 };
 
@@ -57,26 +65,34 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
         </motion.div>
       </div>
 
-      <motion.button
-        onClick={scrollToArt}
-        className="group absolute bottom-8 left-1/2 -translate-x-1/2 z-10
-                   w-11 h-11 sm:w-14 sm:h-14
-                   bg-background border-2 sm:border-[3px] border-primary
-                   flex items-center justify-center
-                   transition-all duration-200
-                   hover:bg-primary
-                   shadow-[0_3px_0_0_theme(colors.primary)] sm:shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_4px_0_0_theme(colors.primary)] sm:hover:shadow-[0_6px_0_0_theme(colors.primary)]
-                   hover:-translate-y-1 cursor-pointer"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label="Scroll down"
-      >
-        <motion.div {...bounceAnimation}>
-          <ChevronDown className="w-7 h-7 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
-        </motion.div>
-      </motion.button>
+      {/* Scroll button with enhanced mobile tap target */}
+      <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-10">
+        {/* Pulsing ring for attention */}
+        <motion.div
+          className="absolute inset-0 rounded-full border-2 border-primary/50"
+          {...pulseRing}
+        />
+        <motion.button
+          onClick={scrollToArt}
+          className="group relative
+                     w-14 h-14 sm:w-14 sm:h-14
+                     bg-background border-[3px] border-primary
+                     flex items-center justify-center
+                     transition-all duration-200
+                     hover:bg-primary active:bg-primary
+                     shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)]
+                     hover:-translate-y-1 active:translate-y-1 active:shadow-none cursor-pointer"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Scroll down"
+        >
+          <motion.div {...bounceAnimation}>
+            <ChevronDown className="w-8 h-8 text-primary group-hover:text-background group-active:text-background transition-colors" strokeWidth={3} />
+          </motion.div>
+        </motion.button>
+      </div>
     </section>
   );
 }

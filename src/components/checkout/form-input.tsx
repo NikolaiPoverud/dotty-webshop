@@ -1,6 +1,6 @@
 'use client';
 
-const INPUT_CLASS = 'w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
+const INPUT_CLASS = 'w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-colors';
 
 export interface FormInputProps {
   label: string;
@@ -15,8 +15,8 @@ export interface FormInputProps {
 export function FormInput({ label, name, type = 'text', required = false, value, onChange, className }: FormInputProps): React.ReactElement {
   return (
     <div className={className}>
-      <label className="block text-sm font-medium mb-1">
-        {label}{required && ' *'}
+      <label className="block text-sm font-bold uppercase tracking-wide mb-2 text-muted-foreground">
+        {label}{required && <span className="text-primary"> *</span>}
       </label>
       <input
         type={type}
@@ -25,6 +25,7 @@ export function FormInput({ label, name, type = 'text', required = false, value,
         value={value}
         onChange={onChange}
         className={INPUT_CLASS}
+        autoComplete={type === 'email' ? 'email' : type === 'tel' ? 'tel' : undefined}
       />
     </div>
   );
