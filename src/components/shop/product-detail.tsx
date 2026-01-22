@@ -106,7 +106,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [isAdded, setIsAdded] = useState(false);
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryStatus, setInquiryStatus] = useState<InquiryStatus>('idle');
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(null);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -131,15 +131,23 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const galleryImages = parseJsonField<GalleryImage[]>(product.gallery_images, []);
   const isPrint = product.product_type === 'print';
   const hasMultipleSizes = sizes.length > 1;
-  const selectedSize = sizes[selectedSizeIndex] || sizes[0];
+  const needsSizeSelection = isPrint && hasMultipleSizes;
+  const selectedSize = selectedSizeIndex !== null ? sizes[selectedSizeIndex] : null;
 
-  // Use size-specific price if available, otherwise fall back to product price
+  // Use size-specific price if selected, otherwise show product base price
   const displayPrice = selectedSize?.price ?? product.price;
+
+  // Get lowest price for "from" display when no size selected
+  const lowestPrice = sizes.length > 0
+    ? Math.min(...sizes.map(s => s.price ?? product.price))
+    : product.price;
 
   function handleAddToCart(): void {
     if (isSold) return;
+    // Require size selection for prints with multiple sizes
+    if (needsSizeSelection && selectedSizeIndex === null) return;
     // Pass selected size for prints with size-specific pricing
-    const sizeToAdd = isPrint && selectedSize ? selectedSize : undefined;
+    const sizeToAdd = isPrint && selectedSize ? selectedSize : (sizes.length === 1 ? sizes[0] : undefined);
     addItem(product, 1, undefined, undefined, sizeToAdd);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 3000);
@@ -242,14 +250,28 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
       );
     }
 
+    const sizeNotSelected = needsSizeSelection && selectedSizeIndex === null;
+
     return (
-      <motion.button
-        onClick={handleAddToCart}
-        className="group w-full py-4 bg-background border-[3px] border-primary text-primary font-semibold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
-        whileTap={{ scale: 0.98, y: 2 }}
-      >
-        {t.addToCart}
-      </motion.button>
+      <div className="space-y-2">
+        {sizeNotSelected && (
+          <p className="text-warning text-sm font-medium text-center">
+            {lang === 'no' ? 'Velg størrelse for å legge i handlekurv' : 'Select a size to add to cart'}
+          </p>
+        )}
+        <motion.button
+          onClick={handleAddToCart}
+          disabled={sizeNotSelected}
+          className={`group w-full py-4 font-semibold uppercase tracking-wider transition-all duration-200 ${
+            sizeNotSelected
+              ? 'bg-muted border-[3px] border-muted-foreground/30 text-muted-foreground cursor-not-allowed shadow-[0_4px_0_0_theme(colors.border)]'
+              : 'bg-background border-[3px] border-primary text-primary hover:bg-primary hover:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5'
+          }`}
+          whileTap={sizeNotSelected ? {} : { scale: 0.98, y: 2 }}
+        >
+          {sizeNotSelected ? (lang === 'no' ? 'Velg størrelse' : 'Select size') : t.addToCart}
+        </motion.button>
+      </div>
     );
   }
 
@@ -324,7 +346,14 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Price */}
             <p className="text-2xl sm:text-3xl font-bold mb-6">
-              {formatPrice(displayPrice)}
+              {needsSizeSelection && selectedSizeIndex === null ? (
+                <>
+                  <span className="text-muted-foreground text-lg font-normal">{lang === 'no' ? 'Fra ' : 'From '}</span>
+                  {formatPrice(lowestPrice)}
+                </>
+              ) : (
+                formatPrice(displayPrice)
+              )}
             </p>
 
             {/* Size Selector for Prints with Multiple Sizes */}
@@ -337,14 +366,20 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                   <button
                     type="button"
                     onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
-                    className="w-full px-4 py-3 bg-background border-[3px] border-primary text-left font-semibold flex items-center justify-between shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)] hover:-translate-x-[1px] hover:-translate-y-[1px] transition-all"
+                    className={`w-full px-4 py-3 bg-background border-[3px] text-left font-semibold flex items-center justify-between transition-all ${
+                      selectedSizeIndex === null
+                        ? 'border-warning shadow-[3px_3px_0_0_theme(colors.warning)] hover:shadow-[4px_4px_0_0_theme(colors.warning)]'
+                        : 'border-primary shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)]'
+                    } hover:-translate-x-[1px] hover:-translate-y-[1px]`}
                   >
                     <span className="uppercase tracking-wider text-sm">
-                      {selectedSize?.label || sizes[0]?.label}
+                      {selectedSize?.label || (lang === 'no' ? 'Velg størrelse' : 'Select size')}
                     </span>
-                    <span className="text-primary font-bold">
-                      {formatPrice(displayPrice)}
-                    </span>
+                    {selectedSize && (
+                      <span className="text-primary font-bold">
+                        {formatPrice(displayPrice)}
+                      </span>
+                    )}
                     <motion.span
                       animate={{ rotate: isSizeDropdownOpen ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
@@ -369,6 +404,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                     >
                       {sizes.map((size, index) => {
                         const sizePrice = size.price ?? product.price;
+                        const isSelected = selectedSizeIndex === index;
                         return (
                           <button
                             key={`${size.width}x${size.height}`}
@@ -378,13 +414,13 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                               setIsSizeDropdownOpen(false);
                             }}
                             className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center ${
-                              selectedSizeIndex === index
+                              isSelected
                                 ? 'bg-primary text-background'
                                 : 'hover:bg-primary/10'
                             }`}
                           >
                             <span>{size.label}</span>
-                            <span className={selectedSizeIndex === index ? 'text-background font-bold' : 'text-primary font-bold'}>
+                            <span className={isSelected ? 'text-background font-bold' : 'text-primary font-bold'}>
                               {formatPrice(sizePrice)}
                             </span>
                           </button>
