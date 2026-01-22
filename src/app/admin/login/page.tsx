@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, Lock, AlertCircle, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 type LoginMode = 'password' | 'reset-password';
@@ -18,12 +18,22 @@ function getButtonText(mode: LoginMode, isLoading: boolean): string {
 
 export default function AdminLoginPage(): React.ReactNode {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<LoginMode>('password');
   const [resetEmailSent, setResetEmailSent] = useState(false);
+
+  // Check for timeout reason
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'timeout') {
+      setError('Du ble logget ut på grunn av inaktivitet.');
+    }
+  }, [searchParams]);
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +45,7 @@ export default function AdminLoginPage(): React.ReactNode {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
 
       const data = await response.json();
@@ -55,6 +65,15 @@ export default function AdminLoginPage(): React.ReactNode {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         });
+
+        // Check if MFA is required
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+        if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
+          // User has MFA enabled but hasn't verified yet
+          router.push('/admin/mfa-verify');
+          return;
+        }
       }
 
       router.push('/admin/dashboard');
@@ -158,9 +177,17 @@ export default function AdminLoginPage(): React.ReactNode {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-3 p-4 bg-error/10 border border-error/20 rounded-lg text-error"
+                className={`flex items-center gap-3 p-4 rounded-lg ${
+                  searchParams.get('reason') === 'timeout'
+                    ? 'bg-warning/10 border border-warning/20 text-warning'
+                    : 'bg-error/10 border border-error/20 text-error'
+                }`}
               >
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                {searchParams.get('reason') === 'timeout' ? (
+                  <Clock className="w-5 h-5 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                )}
                 <p className="text-sm">{error}</p>
               </motion.div>
             )}
@@ -189,24 +216,50 @@ export default function AdminLoginPage(): React.ReactNode {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-2"
+                className="space-y-4"
               >
-                <label htmlFor="password" className="block text-sm font-medium">
-                  Passord
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    id="password"
-                    type="password"
-                    required={mode === 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="********"
-                    autoComplete="current-password"
-                  />
+                <div className="space-y-2">
+                  <label htmlFor="password" className="block text-sm font-medium">
+                    Passord
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input
+                      id="password"
+                      type="password"
+                      required={mode === 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="********"
+                      autoComplete="current-password"
+                    />
+                  </div>
                 </div>
+
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 border border-border rounded bg-background peer-checked:bg-primary peer-checked:border-primary transition-colors" />
+                    <svg
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    Husk meg
+                  </span>
+                </label>
               </motion.div>
             )}
 

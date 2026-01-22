@@ -164,6 +164,11 @@ export async function middleware(request: NextRequest) {
   return addSecurityHeaders(NextResponse.redirect(url));
 }
 
+// Pages that don't require full authentication
+const AUTH_BYPASS_PAGES = ['/admin/login', '/admin/reset-password'];
+// Pages that require only aal1 (password auth, not MFA)
+const MFA_BYPASS_PAGES = ['/admin/mfa-verify'];
+
 // Handle admin authentication with Supabase session
 async function handleAdminAuth(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -173,7 +178,7 @@ async function handleAdminAuth(request: NextRequest) {
   requestHeaders.set('x-pathname', pathname);
 
   // Skip auth check for login and reset-password pages
-  if (pathname === '/admin/login' || pathname === '/admin/reset-password') {
+  if (AUTH_BYPASS_PAGES.includes(pathname)) {
     return addSecurityHeaders(NextResponse.next({
       request: { headers: requestHeaders },
     }));
@@ -213,6 +218,20 @@ async function handleAdminAuth(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/login';
     return addSecurityHeaders(NextResponse.redirect(url));
+  }
+
+  // Check MFA status for protected pages (not MFA verify page itself)
+  if (!MFA_BYPASS_PAGES.includes(pathname)) {
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    // If user has MFA enabled (nextLevel is aal2) but current session is only aal1,
+    // redirect to MFA verification
+    if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/mfa-verify';
+      url.searchParams.set('redirect', pathname);
+      return addSecurityHeaders(NextResponse.redirect(url));
+    }
   }
 
   return addSecurityHeaders(response);

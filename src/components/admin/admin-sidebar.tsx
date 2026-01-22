@@ -10,6 +10,7 @@ import {
   FolderOpen,
   ImageIcon,
   LayoutDashboard,
+  Lock,
   Mail,
   MessageSquareQuote,
   Package,
@@ -41,6 +42,7 @@ const navItems = [
   { href: '/admin/webp-converter', label: 'WebP Converter', icon: ImageIcon },
   { href: '/admin/gdpr', label: 'Personvern', icon: Shield },
   { href: '/admin/audit-log', label: 'Aktivitetslogg', icon: FileText },
+  { href: '/admin/settings/security', label: 'Sikkerhet', icon: Lock },
 ];
 
 export function AdminSidebar(): React.ReactNode {

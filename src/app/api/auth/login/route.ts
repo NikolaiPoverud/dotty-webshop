@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
-import { errors, success } from '@/lib/api-response';
+import { errors } from '@/lib/api-response';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // SEC-008: Rate limit login attempts - 5 attempts per 15 minutes per IP
 const LOGIN_RATE_LIMIT = {
@@ -9,8 +10,46 @@ const LOGIN_RATE_LIMIT = {
   windowMs: 15 * 60 * 1000, // 15 minutes
 };
 
+// Log login attempt to database
+async function logLoginAttempt(
+  email: string,
+  success: boolean,
+  ip: string | null,
+  userAgent: string | null,
+  errorMessage?: string,
+): Promise<void> {
+  try {
+    const adminClient = createAdminClient();
+    await adminClient.rpc('log_admin_login_attempt', {
+      attempt_email: email,
+      attempt_success: success,
+      attempt_ip: ip,
+      attempt_user_agent: userAgent,
+      attempt_error: errorMessage || null,
+    });
+  } catch (err) {
+    // Don't fail login if logging fails
+    console.error('Failed to log login attempt:', err);
+  }
+}
+
+// Update last login for successful authentication
+async function updateLastLogin(userId: string, ip: string | null): Promise<void> {
+  try {
+    const adminClient = createAdminClient();
+    await adminClient.rpc('update_admin_last_login', {
+      user_id: userId,
+      login_ip: ip,
+    });
+  } catch (err) {
+    // Don't fail login if update fails
+    console.error('Failed to update last login:', err);
+  }
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const clientIp = getClientIp(request);
+  const userAgent = request.headers.get('user-agent');
 
   // Apply rate limiting
   const rateLimitResult = await checkRateLimit(`admin-login:${clientIp}`, LOGIN_RATE_LIMIT);
@@ -34,7 +73,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  let body: { email?: string; password?: string };
+  let body: { email?: string; password?: string; rememberMe?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -42,6 +81,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const { email, password } = body;
+  // Note: rememberMe is passed by client but Supabase handles session persistence
+  // The client can use this preference when setting up local session handling
 
   if (!email || !password) {
     return errors.badRequest('Email and password are required');
@@ -59,6 +100,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   if (signInError) {
+    // Log failed attempt
+    await logLoginAttempt(email, false, clientIp, userAgent, signInError.message);
+
     // Don't reveal whether email exists - return generic error
     console.warn(`Login failed for ${email}:`, signInError.message);
     return NextResponse.json(
@@ -70,8 +114,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // Return session tokens for client to store
-  return NextResponse.json(
+  // Log successful attempt and update last login
+  if (data.user) {
+    await Promise.all([
+      logLoginAttempt(email, true, clientIp, userAgent),
+      updateLastLogin(data.user.id, clientIp),
+    ]);
+  }
+
+  // Build response with session tokens
+  const response = NextResponse.json(
     {
       success: true,
       session: {
@@ -82,4 +134,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     },
     { headers: getRateLimitHeaders(rateLimitResult) },
   );
+
+  return response;
 }
