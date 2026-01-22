@@ -80,6 +80,35 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   } catch (error) {
     console.error('Vipps callback error:', error);
+
+    // If we can't verify payment status but user returned from Vipps,
+    // check if order exists and redirect to success with pending status
+    const supabase = createAdminClient();
+    const { data: order } = await supabase
+      .from('orders')
+      .select('id, payment_status')
+      .eq('order_number', reference)
+      .single();
+
+    if (order) {
+      // Order exists - payment likely succeeded, mark as pending verification
+      await supabase
+        .from('orders')
+        .update({
+          payment_status: 'pending_verification',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('order_number', reference);
+
+      const origin = getCanonicalOrigin(request);
+      const isEnglish = locale === 'en';
+      const successUrl = isEnglish
+        ? `${origin}/en/checkout/success?reference=${reference}&provider=vipps`
+        : `${origin}/no/kasse/bekreftelse?reference=${reference}&provider=vipps`;
+
+      return NextResponse.redirect(successUrl);
+    }
+
     return redirectToCheckout(request, locale, 'error');
   }
 }
