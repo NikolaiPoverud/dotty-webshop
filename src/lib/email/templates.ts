@@ -40,9 +40,9 @@ function emailWrapper(content: string, previewText?: string): string {
     img { border: 0; }
     @media screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .content { padding: 24px 16px !important; }
-      .header { padding: 24px 16px !important; }
-      .footer { padding: 16px !important; }
+      .content { padding: 20px 12px !important; }
+      .header { padding: 20px 12px !important; }
+      .footer { padding: 12px !important; }
     }
   </style>
 </head>
@@ -62,7 +62,7 @@ function emailWrapper(content: string, previewText?: string): string {
             </td>
           </tr>
           <tr>
-            <td class="content" style="padding: 40px;">
+            <td class="content" style="padding: 32px 24px;">
               ${content}
             </td>
           </tr>
@@ -261,8 +261,8 @@ export function orderConfirmationTemplate(data: OrderConfirmationData): string {
 
     ${sectionHeading('Din bestilling')}
 
-    <div style="background-color: ${COLORS.muted}; border-radius: 12px; padding: 20px; margin: 20px 0;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout: fixed;">
+    <div style="background-color: ${COLORS.muted}; border-radius: 12px; padding: 16px; margin: 16px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout: fixed; max-width: 100%;">
         ${itemsHtml}
         <tr>
           <td width="60%" style="padding: 16px 0 8px 0;">
