@@ -11,6 +11,7 @@ const productSizeSchema = z.object({
   width: z.number().int().min(1).max(10000),
   height: z.number().int().min(1).max(10000),
   label: z.string().min(1).max(100),
+  price: z.number().int().min(0).optional(), // Price in øre, overrides product.price
 });
 
 const galleryImageSchema = z.object({

@@ -24,6 +24,12 @@ export const productSizeSchema = z.object({
     .max(100, 'Label too long')
     .optional()
     .default(''),
+  price: z.number()
+    .int('Size price must be an integer (in øre)')
+    .min(0, 'Size price cannot be negative')
+    .max(100000000, 'Size price exceeds maximum')
+    .nullable()
+    .optional(),
 });
 
 /**
