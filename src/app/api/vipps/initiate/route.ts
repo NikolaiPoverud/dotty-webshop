@@ -75,8 +75,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const total = subtotal + shipping_cost + artist_levy - discount_amount;
 
-    // Generate unique order reference
-    const reference = `DOTTY-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    // Generate short unique order reference (DOT-XXXXXX)
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const reference = `DOT-${randomPart}`;
 
     // Store pending order in database
     const supabase = createAdminClient();

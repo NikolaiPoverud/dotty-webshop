@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPayment } from '@/lib/vipps';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { Locale } from '@/types';
+import { sendOrderEmails } from '@/lib/email/send';
+import type { Locale, Order, OrderItem } from '@/types';
 
 /**
  * Vipps callback handler
@@ -29,18 +30,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         // Payment authorized - update order status
         // Note: With reserve capture, we don't capture here.
         // Capture happens when order is shipped (via admin)
-        const { error: updateError } = await supabase
+        const { data: order, error: updateError } = await supabase
           .from('orders')
           .update({
             payment_status: 'authorized',
+            status: 'paid',
             vipps_state: payment.state,
             authorized_amount: payment.aggregate?.authorizedAmount?.value,
             updated_at: new Date().toISOString(),
           })
-          .eq('order_number', reference);
+          .eq('order_number', reference)
+          .select('*')
+          .single();
 
         if (updateError) {
           console.error('Failed to update order:', updateError);
+        }
+
+        // Send confirmation emails
+        if (order) {
+          try {
+            const orderWithItems = { ...order, items: order.items || [] } as Order & { items: OrderItem[] };
+            await sendOrderEmails(orderWithItems);
+            console.log('Confirmation emails sent for Vipps order:', reference);
+          } catch (emailError) {
+            console.error('Failed to send Vipps order emails:', emailError);
+          }
         }
 
         // Redirect to success page
