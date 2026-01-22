@@ -31,6 +31,28 @@ const fallbackText: Record<Locale, ShopDictionary> = {
   en: { original: 'Painting', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
 };
 
+/**
+ * Get the display price for a product. Returns lowest price if multiple sizes have prices.
+ */
+function getDisplayPrice(product: ProductListItem): { price: number; isFromPrice: boolean } {
+  const sizes = product.sizes ?? [];
+  const sizesWithPrices = sizes.filter((s) => s.price !== undefined && s.price !== null);
+
+  // If multiple sizes have different prices, show the lowest
+  if (sizesWithPrices.length > 1) {
+    const lowestPrice = Math.min(...sizesWithPrices.map((s) => s.price!));
+    return { price: lowestPrice, isFromPrice: true };
+  }
+
+  // If one size has a price, use it
+  if (sizesWithPrices.length === 1) {
+    return { price: sizesWithPrices[0].price!, isFromPrice: false };
+  }
+
+  // Fall back to product base price
+  return { price: product.price, isFromPrice: sizes.length > 1 };
+}
+
 const highlightAnimation = {
   initial: { scale: 1.02 },
   animate: {
@@ -60,6 +82,8 @@ export const ProductCard = memo(function ProductCard({
     product.stock_quantity <= 3 &&
     product.is_available;
   const productTypeLabel = product.product_type === 'original' ? t.original : t.print;
+  const { price: displayPrice, isFromPrice } = getDisplayPrice(product);
+  const fromLabel = lang === 'no' ? 'fra ' : 'from ';
 
   return (
     <Link href={getLocalizedPath(lang, 'shop', product.slug)}>
@@ -127,7 +151,8 @@ export const ProductCard = memo(function ProductCard({
             {product.title}
           </h3>
           <p className={cn('mt-1', isSold ? 'text-muted-foreground' : 'text-foreground')}>
-            {formatPrice(product.price)}
+            {isFromPrice && <span className="text-muted-foreground text-sm font-normal">{fromLabel}</span>}
+            {formatPrice(displayPrice)}
           </p>
           {product.sizes && product.sizes.length > 0 && (
             <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">

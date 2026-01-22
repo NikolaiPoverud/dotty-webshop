@@ -348,7 +348,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
             <p className="text-2xl sm:text-3xl font-bold mb-6">
               {needsSizeSelection && selectedSizeIndex === null ? (
                 <>
-                  <span className="text-muted-foreground text-lg font-normal">{lang === 'no' ? 'Fra ' : 'From '}</span>
+                  <span className="text-muted-foreground text-lg font-normal">{lang === 'no' ? 'fra ' : 'from '}</span>
                   {formatPrice(lowestPrice)}
                 </>
               ) : (

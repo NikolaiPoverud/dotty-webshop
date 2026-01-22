@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Ruler, Loader2, Check } from 'lucide-react';
+import { Plus, X, Ruler, Loader2, Check, Pencil } from 'lucide-react';
 import type { ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
@@ -22,6 +22,8 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
   const [height, setHeight] = useState('');
   const [price, setPrice] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editPrice, setEditPrice] = useState('');
 
   async function triggerAutoSave(newSizes: ProductSize[]): Promise<void> {
     if (!onAutoSave) return;
@@ -68,6 +70,35 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
     await triggerAutoSave(newSizes);
   }
 
+  function startEditing(index: number): void {
+    setEditingIndex(index);
+    const currentPrice = value[index].price;
+    setEditPrice(currentPrice ? String(currentPrice / 100) : '');
+  }
+
+  async function saveEditedPrice(): Promise<void> {
+    if (editingIndex === null) return;
+
+    const newPrice = editPrice ? parseInt(editPrice, 10) * 100 : undefined;
+    const newSizes = value.map((size, i) => {
+      if (i === editingIndex) {
+        const { price: _, ...sizeWithoutPrice } = size;
+        return newPrice ? { ...sizeWithoutPrice, price: newPrice } : sizeWithoutPrice;
+      }
+      return size;
+    });
+
+    onChange(newSizes);
+    setEditingIndex(null);
+    setEditPrice('');
+    await triggerAutoSave(newSizes);
+  }
+
+  function cancelEditing(): void {
+    setEditingIndex(null);
+    setEditPrice('');
+  }
+
   function handleKeyDown(e: React.KeyboardEvent): void {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -86,28 +117,79 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
             className="flex flex-wrap gap-2"
           >
             {value.map((size, index) => (
-              <motion.span
+              <motion.div
                 key={`${size.width}x${size.height}`}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-lg text-sm"
               >
-                <Ruler className="w-3.5 h-3.5 text-muted-foreground" />
-                {size.label}
-                {size.price && (
-                  <span className="text-primary font-medium">
-                    {formatPrice(size.price)}
-                  </span>
+                {editingIndex === index ? (
+                  <>
+                    <Ruler className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>{size.label}</span>
+                    <input
+                      type="number"
+                      placeholder="Pris"
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          saveEditedPrice();
+                        } else if (e.key === 'Escape') {
+                          cancelEditing();
+                        }
+                      }}
+                      autoFocus
+                      min="0"
+                      className="w-20 px-2 py-1 bg-background border border-primary rounded text-sm"
+                    />
+                    <span className="text-muted-foreground text-xs">kr</span>
+                    <button
+                      type="button"
+                      onClick={saveEditedPrice}
+                      className="p-0.5 hover:bg-success/20 rounded transition-colors text-success"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEditing}
+                      className="p-0.5 hover:bg-error/20 rounded transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Ruler className="w-3.5 h-3.5 text-muted-foreground" />
+                    {size.label}
+                    {size.price ? (
+                      <span className="text-primary font-medium">
+                        {formatPrice(size.price)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">(produktpris)</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => startEditing(index)}
+                      className="ml-1 p-0.5 hover:bg-primary/20 rounded transition-colors text-muted-foreground hover:text-primary"
+                      title="Rediger pris"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSize(index)}
+                      className="p-0.5 hover:bg-error/20 rounded transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </>
                 )}
-                <button
-                  type="button"
-                  onClick={() => removeSize(index)}
-                  className="ml-1 p-0.5 hover:bg-error/20 rounded transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </motion.span>
+              </motion.div>
             ))}
           </motion.div>
         )}
