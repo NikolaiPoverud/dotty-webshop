@@ -119,6 +119,14 @@ export async function refundPayment(sessionId: string): Promise<RefundResult> {
       refundId: refund.id,
     };
   } catch (error) {
+    // Handle "already refunded" as success - the refund exists
+    if (error instanceof Stripe.errors.StripeInvalidRequestError) {
+      if (error.message.includes('already been refunded')) {
+        console.log('Stripe: Charge was already refunded');
+        return { success: true, error: 'Already refunded' };
+      }
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Stripe refund failed:', message);
     return { success: false, error: message };
