@@ -79,13 +79,13 @@ export function CookieConsent({ lang, dictionary }: CookieConsentProps): React.R
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => saveConsent(false)}
-                    className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-background transition-colors"
+                    className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-muted-foreground hover:text-foreground active:text-foreground border border-border rounded-lg hover:bg-background active:bg-background transition-colors touch-manipulation"
                   >
                     {t.decline}
                   </button>
                   <button
                     onClick={() => saveConsent(true)}
-                    className="flex-1 sm:flex-none px-6 py-2 text-sm font-medium bg-primary text-background rounded-lg hover:bg-primary-light transition-colors"
+                    className="flex-1 sm:flex-none px-6 py-3 sm:py-2 text-sm font-medium bg-primary text-background rounded-lg hover:bg-primary-light active:bg-primary-light transition-colors touch-manipulation"
                   >
                     {t.accept}
                   </button>

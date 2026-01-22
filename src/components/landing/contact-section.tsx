@@ -20,7 +20,7 @@ const fadeInUp = {
 };
 
 const inputClassName =
-  'w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all';
+  'w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-all';
 
 function getButtonContent(state: FormState, t: Dictionary['contact']): React.ReactNode {
   switch (state) {
@@ -146,32 +146,32 @@ export function ContactSection({ lang, dictionary }: ContactSectionProps): React
           </p>
         </motion.form>
 
-        <div className="flex justify-center gap-3">
+        <div className="flex flex-col sm:flex-row justify-center gap-3">
           <motion.a
             href="https://instagram.com/dottyartwork"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2 px-5 py-3 bg-muted rounded-full hover:bg-primary/20 transition-colors"
+            className="group inline-flex items-center justify-center gap-2 px-6 py-4 sm:py-3 bg-muted rounded-full hover:bg-primary/20 active:bg-primary/20 transition-colors touch-manipulation"
             {...fadeInUp}
             transition={{ delay: 0.2 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
             <SiInstagram className="w-5 h-5 text-primary" />
-            <span className="font-medium group-hover:text-primary transition-colors">@dottyartwork</span>
+            <span className="font-medium group-hover:text-primary group-active:text-primary transition-colors">@dottyartwork</span>
           </motion.a>
           <motion.a
             href="https://tiktok.com/@dottyartwork"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2 px-5 py-3 bg-muted rounded-full hover:bg-primary/20 transition-colors"
+            className="group inline-flex items-center justify-center gap-2 px-6 py-4 sm:py-3 bg-muted rounded-full hover:bg-primary/20 active:bg-primary/20 transition-colors touch-manipulation"
             {...fadeInUp}
             transition={{ delay: 0.25 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
             <SiTiktok className="w-5 h-5 text-primary" />
-            <span className="font-medium group-hover:text-primary transition-colors">@dottyartwork</span>
+            <span className="font-medium group-hover:text-primary group-active:text-primary transition-colors">@dottyartwork</span>
           </motion.a>
         </div>
       </div>

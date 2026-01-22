@@ -72,12 +72,12 @@ function InquiryForm({
           onChange={(e) => setEmail(e.target.value)}
           placeholder={emailPlaceholder}
           required
-          className="w-full px-5 py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full px-5 py-4 sm:py-3 bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-base"
         />
         <motion.button
           type="submit"
           disabled={status === 'sending' || !email}
-          className="w-full py-4 bg-background border-[3px] border-primary text-primary font-semibold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-primary flex items-center justify-center gap-2 shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+          className="w-full py-4 bg-background border-[3px] border-primary text-primary font-semibold uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background active:bg-primary active:text-background disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-primary disabled:active:bg-background disabled:active:text-primary flex items-center justify-center gap-2 shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5 touch-manipulation"
           whileTap={{ scale: 0.98, y: 2 }}
         >
           {status === 'sending' ? (
@@ -223,7 +223,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
           </motion.div>
           <Link href={getLocalizedPath(lang, 'cart')}>
             <motion.button
-              className="w-full py-3 bg-background border-[3px] border-muted-foreground/30 text-foreground font-semibold uppercase tracking-wider transition-all duration-200 hover:border-primary hover:text-primary shadow-[0_3px_0_0_theme(colors.border)] hover:shadow-[0_4px_0_0_theme(colors.primary)]"
+              className="w-full py-4 sm:py-3 bg-background border-[3px] border-muted-foreground/30 text-foreground font-semibold uppercase tracking-wider transition-all duration-200 hover:border-primary hover:text-primary active:border-primary active:text-primary shadow-[0_3px_0_0_theme(colors.border)] hover:shadow-[0_4px_0_0_theme(colors.primary)] touch-manipulation"
               whileTap={{ scale: 0.98, y: 2 }}
             >
               {t.viewCart}
@@ -262,10 +262,10 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
         <motion.button
           onClick={handleAddToCart}
           disabled={sizeNotSelected}
-          className={`group w-full py-4 font-semibold uppercase tracking-wider transition-all duration-200 ${
+          className={`group w-full py-4 font-semibold uppercase tracking-wider transition-all duration-200 touch-manipulation ${
             sizeNotSelected
               ? 'bg-muted border-[3px] border-muted-foreground/30 text-muted-foreground cursor-not-allowed shadow-[0_4px_0_0_theme(colors.border)]'
-              : 'bg-background border-[3px] border-primary text-primary hover:bg-primary hover:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5'
+              : 'bg-background border-[3px] border-primary text-primary hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5'
           }`}
           whileTap={sizeNotSelected ? {} : { scale: 0.98, y: 2 }}
         >
@@ -366,10 +366,10 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                   <button
                     type="button"
                     onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
-                    className={`w-full px-4 py-3 bg-background border-[3px] text-left font-semibold flex items-center justify-between transition-all ${
+                    className={`w-full px-4 py-4 sm:py-3 bg-background border-[3px] text-left font-semibold flex items-center justify-between transition-all touch-manipulation ${
                       selectedSizeIndex === null
-                        ? 'border-warning shadow-[3px_3px_0_0_theme(colors.warning)] hover:shadow-[4px_4px_0_0_theme(colors.warning)]'
-                        : 'border-primary shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)]'
+                        ? 'border-warning shadow-[3px_3px_0_0_theme(colors.warning)] hover:shadow-[4px_4px_0_0_theme(colors.warning)] active:shadow-[4px_4px_0_0_theme(colors.warning)]'
+                        : 'border-primary shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)] active:shadow-[4px_4px_0_0_theme(colors.primary)]'
                     } hover:-translate-x-[1px] hover:-translate-y-[1px]`}
                   >
                     <span className="uppercase tracking-wider text-sm">
@@ -413,10 +413,10 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                               setSelectedSizeIndex(index);
                               setIsSizeDropdownOpen(false);
                             }}
-                            className={`w-full px-4 py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center ${
+                            className={`w-full px-4 py-4 sm:py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center touch-manipulation ${
                               isSelected
                                 ? 'bg-primary text-background'
-                                : 'hover:bg-primary/10'
+                                : 'hover:bg-primary/10 active:bg-primary/10'
                             }`}
                           >
                             <span>{size.label}</span>

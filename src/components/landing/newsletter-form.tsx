@@ -102,13 +102,13 @@ export function NewsletterForm({ lang, dictionary }: NewsletterFormProps): React
             placeholder={t.placeholder}
             required
             disabled={status === 'loading'}
-            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-background border-2 sm:border-[3px] border-muted-foreground/30 focus:outline-none focus:border-primary focus:shadow-[2px_2px_0_0_theme(colors.primary)] sm:focus:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all disabled:opacity-50 text-sm sm:text-base"
+            className="flex-1 px-3 sm:px-4 py-3 sm:py-3 bg-background border-2 sm:border-[3px] border-muted-foreground/30 focus:outline-none focus:border-primary focus:shadow-[2px_2px_0_0_theme(colors.primary)] sm:focus:shadow-[3px_3px_0_0_theme(colors.primary)] transition-all disabled:opacity-50 text-base"
           />
 
           <motion.button
             type="submit"
             disabled={status === 'loading'}
-            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-background border-2 sm:border-[3px] border-primary text-primary font-bold uppercase tracking-wider text-sm sm:text-base transition-all duration-200 hover:bg-primary hover:text-background disabled:opacity-50 flex items-center justify-center gap-2 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[3px_3px_0_0_theme(colors.primary)] sm:hover:shadow-[6px_6px_0_0_theme(colors.primary)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+            className="px-4 sm:px-6 py-3 sm:py-3 bg-background border-2 sm:border-[3px] border-primary text-primary font-bold uppercase tracking-wider text-sm sm:text-base transition-all duration-200 hover:bg-primary hover:text-background active:bg-primary active:text-background disabled:opacity-50 flex items-center justify-center gap-2 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)] hover:shadow-[3px_3px_0_0_theme(colors.primary)] sm:hover:shadow-[6px_6px_0_0_theme(colors.primary)] hover:-translate-x-0.5 hover:-translate-y-0.5 touch-manipulation"
             whileTap={{ scale: 0.98, x: 2, y: 2 }}
           >
             {status === 'loading' ? (

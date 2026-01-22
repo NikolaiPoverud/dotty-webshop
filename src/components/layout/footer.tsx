@@ -54,19 +54,19 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
 
         {collections.length > 0 && (
           <div className="mb-8 pb-8 border-b border-border">
-            <div className="flex flex-wrap items-center justify-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
               <Link
                 href={`/${lang}/shop`}
-                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                className="text-sm font-medium text-foreground hover:text-primary active:text-primary transition-colors py-2 px-3 touch-manipulation"
               >
                 {t.allProducts}
               </Link>
               {collections.map((collection) => (
-                <span key={collection.id} className="flex items-center gap-4">
-                  <span className="text-muted-foreground">•</span>
+                <span key={collection.id} className="flex items-center gap-2 sm:gap-4">
+                  <span className="text-muted-foreground hidden sm:inline">•</span>
                   <Link
                     href={getCollectionHref(collection)}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary active:text-primary transition-colors py-2 px-3 touch-manipulation"
                   >
                     {collection.name}
                   </Link>
@@ -87,10 +87,11 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             <Logo size="sm" className="h-8" />
           </Link>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          {/* Social links */}
+          <div className="flex items-center justify-center gap-2">
             <a
               href="mailto:hei@dotty.no"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="p-3 text-muted-foreground hover:text-primary active:text-primary transition-colors touch-manipulation"
               aria-label="Email"
             >
               <Mail className="w-5 h-5" />
@@ -99,7 +100,7 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
               href="https://instagram.com/dottyartwork"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="p-3 text-muted-foreground hover:text-primary active:text-primary transition-colors touch-manipulation"
               aria-label="Instagram"
             >
               <SiInstagram className="w-5 h-5" />
@@ -108,32 +109,36 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
               href="https://tiktok.com/@dottyartwork"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="p-3 text-muted-foreground hover:text-primary active:text-primary transition-colors touch-manipulation"
               aria-label="TikTok"
             >
               <SiTiktok className="w-5 h-5" />
             </a>
+          </div>
+
+          {/* Legal links */}
+          <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:gap-x-4">
             <Link
               href={`/${lang}/privacy`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"
             >
               {t.privacy}
             </Link>
             <Link
               href={`/${lang}/terms`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"
             >
               {t.terms}
             </Link>
             <button
               onClick={handleCookieReset}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"
             >
               {t.cookies}
             </button>
             <Link
               href={`/${lang}/my-data`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"
             >
               {t.myData}
             </Link>

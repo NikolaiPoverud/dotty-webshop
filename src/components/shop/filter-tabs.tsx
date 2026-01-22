@@ -35,10 +35,10 @@ export function FilterTabs({ options, activeId, onChange, centered = false, grou
               key={option.id}
               onClick={() => onChange(option.id)}
               className={cn(
-                'relative px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap',
+                'relative px-4 sm:px-6 py-3 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap touch-manipulation transition-colors',
                 isActive
                   ? 'bg-primary text-background'
-                  : 'bg-transparent text-primary hover:bg-primary/10'
+                  : 'bg-transparent text-primary hover:bg-primary/10 active:bg-primary/20'
               )}
             >
               {/* Sliding background indicator */}

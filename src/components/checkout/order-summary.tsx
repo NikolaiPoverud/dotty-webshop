@@ -122,7 +122,7 @@ export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: Ord
         <motion.button
           onClick={() => onCheckout('stripe')}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-background font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-primary/90 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-background font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-primary/90 active:bg-primary/90 disabled:opacity-50 touch-manipulation"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -138,7 +138,7 @@ export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: Ord
         <motion.button
           onClick={() => onCheckout('vipps')}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#ff5b24] text-white font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-[#ff5b24]/90 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#ff5b24] text-white font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-[#ff5b24]/90 active:bg-[#ff5b24]/90 disabled:opacity-50 touch-manipulation"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -150,7 +150,7 @@ export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: Ord
       {/* Contact Support Link */}
       <p className="text-center text-xs text-muted-foreground mt-4">
         {t.needHelp}{' '}
-        <a href="mailto:hei@dotty.no" className="text-primary hover:underline">
+        <a href="mailto:hei@dotty.no" className="text-primary hover:underline active:underline py-1 touch-manipulation">
           hei@dotty.no
         </a>
       </p>

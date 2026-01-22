@@ -190,10 +190,10 @@ export function ShippingSelector({
               type="button"
               onClick={() => !disabled && onSelect(option)}
               disabled={disabled}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+              className={`w-full text-left p-4 rounded-lg border-2 transition-all touch-manipulation ${
                 isSelected
                   ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50 bg-muted/30'
+                  : 'border-border hover:border-primary/50 active:border-primary/50 bg-muted/30'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               whileHover={!disabled ? { scale: 1.01 } : undefined}
               whileTap={!disabled ? { scale: 0.99 } : undefined}

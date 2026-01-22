@@ -84,7 +84,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
     <div className="flex flex-col items-center justify-center h-full text-center">
       <ShoppingBag className="w-16 h-16 text-muted-foreground mb-4" />
       <p className="text-muted-foreground mb-6">{t.empty}</p>
-      <button onClick={onClose} className="text-primary hover:underline">
+      <button onClick={onClose} className="text-primary hover:underline active:underline py-3 px-4 touch-manipulation">
         {t.continueShopping}
       </button>
     </div>
@@ -124,18 +124,20 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
             )}
           </p>
 
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-1 mt-2">
             <button
               onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedSize)}
-              className="p-1 hover:bg-background rounded transition-colors"
+              className="p-2.5 hover:bg-background active:bg-background rounded-lg transition-colors touch-manipulation disabled:opacity-40"
               disabled={item.quantity <= 1}
+              aria-label="Decrease quantity"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="w-8 text-center font-medium">{item.quantity}</span>
+            <span className="w-10 text-center font-medium">{item.quantity}</span>
             <button
               onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize)}
-              className="p-1 hover:bg-background rounded transition-colors"
+              className="p-2.5 hover:bg-background active:bg-background rounded-lg transition-colors touch-manipulation"
+              aria-label="Increase quantity"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -144,10 +146,11 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
 
         <button
           onClick={() => removeItem(item.product.id, item.selectedSize)}
-          className="self-start p-2 text-muted-foreground hover:text-destructive transition-colors"
+          className="self-start p-3 -mr-1 text-muted-foreground hover:text-destructive active:text-destructive transition-colors touch-manipulation"
           title={t.remove}
+          aria-label={t.remove}
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-5 h-5" />
         </button>
       </motion.div>
     );
@@ -166,7 +169,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
         className="block w-full"
       >
         <motion.button
-          className="w-full py-3 bg-background border-[3px] border-primary text-primary font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+          className="w-full py-4 sm:py-3 bg-background border-[3px] border-primary text-primary font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5 touch-manipulation"
           whileTap={{ scale: 0.98, y: 2 }}
         >
           {t.checkout}
@@ -202,7 +205,8 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 border-2 border-muted-foreground/30 hover:border-primary hover:text-primary transition-all duration-200"
+                className="p-3 border-2 border-muted-foreground/30 hover:border-primary hover:text-primary active:border-primary active:text-primary transition-all duration-200 touch-manipulation"
+                aria-label="Close cart"
               >
                 <X className="w-5 h-5" />
               </button>

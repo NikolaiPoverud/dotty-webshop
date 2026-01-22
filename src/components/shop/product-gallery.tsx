@@ -33,7 +33,7 @@ const slideVariants = {
 };
 
 const navButtonClass =
-  'absolute top-1/2 -translate-y-1/2 p-2 bg-background/80 hover:bg-background rounded-full opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 z-10';
+  'absolute top-1/2 -translate-y-1/2 p-3 bg-background/80 hover:bg-background active:bg-background rounded-full opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 z-10 touch-manipulation';
 
 export function ProductGallery({
   mainImage,
@@ -139,14 +139,14 @@ export function ProductGallery({
               {currentIndex + 1} / {allImages.length}
             </div>
 
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:hidden z-10">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 sm:hidden z-10">
               {allImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToIndex(index)}
                   className={cn(
-                    'w-2 h-2 rounded-full transition-all',
-                    index === currentIndex ? 'bg-primary w-4' : 'bg-foreground/40'
+                    'w-3 h-3 rounded-full transition-all touch-manipulation',
+                    index === currentIndex ? 'bg-primary w-5 scale-110' : 'bg-foreground/40'
                   )}
                   aria-label={`Go to image ${index + 1}`}
                 />
@@ -163,10 +163,10 @@ export function ProductGallery({
               key={index}
               onClick={() => goToIndex(index)}
               className={cn(
-                'relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all',
+                'relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all touch-manipulation',
                 index === currentIndex
                   ? 'border-primary'
-                  : 'border-transparent opacity-60 hover:opacity-100'
+                  : 'border-transparent opacity-60 hover:opacity-100 active:opacity-100'
               )}
             >
               <Image

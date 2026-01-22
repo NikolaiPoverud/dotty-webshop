@@ -92,7 +92,7 @@ export function ArtistStatement({ lang }: Props): React.ReactElement {
               </div>
               <Link
                 href={getLocalizedPath(lang, 'shop')}
-                className="text-primary font-medium hover:underline transition-colors"
+                className="text-primary font-medium hover:underline active:underline transition-colors py-2 touch-manipulation"
               >
                 {t.cta} →
               </Link>

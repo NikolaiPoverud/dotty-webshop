@@ -27,22 +27,23 @@ function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactE
       initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: isLeft ? -20 : 20 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.9 }}
       onClick={onClick}
       aria-label={isLeft ? 'Previous products' : 'Next products'}
       className={`group absolute top-1/2 -translate-y-1/2 z-20
-                  w-10 h-10 sm:w-14 sm:h-14
-                  bg-background border-2 sm:border-[3px] border-primary
+                  w-12 h-12 sm:w-14 sm:h-14
+                  bg-background border-[3px] border-primary
                   flex items-center justify-center
                   transition-all duration-200
-                  hover:bg-primary
+                  hover:bg-primary active:bg-primary
+                  touch-manipulation
                   ${isLeft
-                    ? 'left-1 sm:left-0 sm:-translate-x-3 shadow-[2px_2px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]'
-                    : 'right-1 sm:right-0 sm:translate-x-3 shadow-[-2px_2px_0_0_theme(colors.primary)] sm:shadow-[-4px_4px_0_0_theme(colors.primary)]'
+                    ? 'left-0 -translate-x-1 sm:-translate-x-3 shadow-[3px_3px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]'
+                    : 'right-0 translate-x-1 sm:translate-x-3 shadow-[-3px_3px_0_0_theme(colors.primary)] sm:shadow-[-4px_4px_0_0_theme(colors.primary)]'
                   }`}
     >
       <Icon
-        className="w-5 h-5 sm:w-8 sm:h-8 text-primary group-hover:text-background transition-colors"
+        className="w-6 h-6 sm:w-8 sm:h-8 text-primary group-hover:text-background group-active:text-background transition-colors"
         strokeWidth={3}
       />
     </motion.button>
@@ -205,15 +206,15 @@ export function FeaturedGrid({
           </motion.div>
 
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6 sm:hidden">
+            <div className="flex justify-center gap-3 mt-8 sm:hidden">
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentPage(i)}
                   aria-label={`Go to page ${i + 1}`}
                   className={cn(
-                    'w-2 h-2 rounded-full transition-colors',
-                    i === currentPage ? 'bg-primary' : 'bg-muted-foreground/30'
+                    'w-3 h-3 rounded-full transition-all touch-manipulation',
+                    i === currentPage ? 'bg-primary scale-125' : 'bg-muted-foreground/30'
                   )}
                 />
               ))}

@@ -52,7 +52,7 @@ export default function CartPage({ params }: CartPageProps): React.ReactElement 
             <p className="text-xl text-muted-foreground mb-8">{t.empty}</p>
             <Link href={getLocalizedPath(locale, 'shop')}>
               <motion.button
-                className="px-6 py-3 bg-background border-2 border-primary text-primary font-bold uppercase tracking-wider shadow-[3px_3px_0_0_theme(colors.primary)] hover:bg-primary hover:text-background hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_theme(colors.primary)] transition-all duration-200"
+                className="px-6 py-4 sm:py-3 bg-background border-2 border-primary text-primary font-bold uppercase tracking-wider shadow-[3px_3px_0_0_theme(colors.primary)] hover:bg-primary hover:text-background active:bg-primary active:text-background hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_theme(colors.primary)] transition-all duration-200 touch-manipulation"
                 whileTap={{ scale: 0.98 }}
               >
                 {t.continueShopping}

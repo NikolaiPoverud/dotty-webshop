@@ -46,10 +46,10 @@ function NavButton({ direction, onClick }: NavButtonProps): React.ReactElement {
   return (
     <button
       onClick={onClick}
-      className={`group absolute ${positionClass} z-10 w-9 h-9 sm:w-12 sm:h-12 bg-background border-2 border-primary flex items-center justify-center transition-all duration-200 hover:bg-primary`}
+      className={`group absolute ${positionClass} z-10 w-10 h-10 sm:w-12 sm:h-12 bg-background border-2 border-primary flex items-center justify-center transition-all duration-200 hover:bg-primary active:bg-primary touch-manipulation`}
       aria-label={`${isPrev ? 'Previous' : 'Next'} testimonial`}
     >
-      <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary group-hover:text-background transition-colors" strokeWidth={3} />
+      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-background group-active:text-background transition-colors" strokeWidth={3} />
     </button>
   );
 }
@@ -127,15 +127,15 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
         </div>
 
         {showNavigation && (
-          <div className="flex justify-center gap-2 mt-8">
+          <div className="flex justify-center gap-3 mt-8">
             {testimonials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToIndex(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                className={`w-3 h-3 rounded-full transition-all touch-manipulation ${
                   index === currentIndex
-                    ? 'bg-primary'
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    ? 'bg-primary scale-110'
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 active:bg-muted-foreground/50'
                 }`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
