@@ -175,7 +175,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
           },
           discount_code: cart.discountCode || undefined,
           discount_amount: cart.discountAmount ?? 0,
-          shipping_cost: selectedShipping?.priceWithVat ?? cart.shippingCost ?? 0,
+          shipping_cost: cart.freeShipping ? 0 : (selectedShipping?.priceWithVat ?? cart.shippingCost ?? 0),
           shipping_option_id: selectedShipping?.id,
           shipping_option_name: selectedShipping?.name,
           artist_levy: cart.artistLevy ?? 0,
