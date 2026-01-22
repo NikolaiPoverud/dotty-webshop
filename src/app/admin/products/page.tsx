@@ -115,13 +115,19 @@ function DraggableProductRow({ product, gradientIndex, onDelete, onToggleVisibil
       </div>
 
       <div>
-        <span
-          className={`px-2 py-1 text-xs rounded ${
-            product.is_available ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
-          }`}
-        >
-          {product.is_available ? 'Tilgjengelig' : 'Solgt'}
-        </span>
+        {(() => {
+          const hasStock = product.stock_quantity === null || product.stock_quantity > 0;
+          const isAvailable = product.is_available && hasStock;
+          return (
+            <span
+              className={`px-2 py-1 text-xs rounded ${
+                isAvailable ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+              }`}
+            >
+              {isAvailable ? 'Tilgjengelig' : 'Solgt'}
+            </span>
+          );
+        })()}
       </div>
 
       <div className="flex items-center justify-end gap-2">
