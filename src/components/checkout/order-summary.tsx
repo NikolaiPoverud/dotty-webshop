@@ -26,10 +26,11 @@ function CardIcon({ className }: { className?: string }): React.ReactElement {
 
 export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: OrderSummaryProps): React.ReactElement {
   const { cart } = useCart();
-  const hasDiscount = cart.discountCode && cart.discountAmount > 0;
+  const hasDiscount = cart.discountCode && (cart.discountAmount > 0 || cart.freeShipping);
 
   // Use selected shipping price if available, otherwise fall back to cart shipping
-  const shippingCost = selectedShipping?.priceWithVat ?? cart.shippingCost;
+  // Free shipping discount overrides to 0
+  const shippingCost = cart.freeShipping ? 0 : (selectedShipping?.priceWithVat ?? cart.shippingCost);
 
   // Recalculate total with selected shipping
   const total = cart.subtotal + shippingCost + cart.artistLevy - cart.discountAmount;
@@ -71,7 +72,7 @@ export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: Ord
           </div>
         )}
 
-        {hasDiscount && (
+        {hasDiscount && cart.discountAmount > 0 && (
           <div className="flex justify-between text-success">
             <span>{t.discount} ({cart.discountCode})</span>
             <span>-{formatPrice(cart.discountAmount)}</span>
@@ -90,7 +91,15 @@ export function OrderSummary({ t, isLoading, onCheckout, selectedShipping }: Ord
           </div>
         ) : (
           <div className="flex justify-between text-success">
-            <span>{t.shippingCost}</span>
+            <div>
+              <span>{t.shippingCost}</span>
+              {selectedShipping && (
+                <p className="text-xs text-muted-foreground/70">{selectedShipping.name}</p>
+              )}
+              {cart.freeShipping && cart.discountCode && (
+                <p className="text-xs text-success/70">{cart.discountCode}</p>
+              )}
+            </div>
             <span>{t.shippingFree}</span>
           </div>
         )}
