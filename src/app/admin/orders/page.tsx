@@ -11,6 +11,9 @@ import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
 import { SHIPPING_CARRIERS } from '@/emails/utils';
 
+// Extended order type that may include legacy items JSONB field
+type OrderWithLegacyItems = Order & { items?: OrderItem[] };
+
 type OrderStatus = NonNullable<Order['status']>;
 
 interface StatusInfo {
@@ -59,7 +62,7 @@ export default function AdminOrdersPage() {
 }
 
 function AdminOrdersContent() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithLegacyItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | OrderStatus>('all');
