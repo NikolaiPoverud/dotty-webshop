@@ -22,7 +22,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const supabase = createAdminClient();
 
     const isEnglish = locale === 'en';
-    const origin = getCanonicalOrigin(request);
+    const origin = getCanonicalOrigin();
 
     switch (payment.state) {
       case 'AUTHORIZED': {
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         })
         .eq('order_number', reference);
 
-      const origin = getCanonicalOrigin(request);
+      const origin = getCanonicalOrigin();
       const isEnglish = locale === 'en';
       const successUrl = isEnglish
         ? `${origin}/en/checkout/success?reference=${reference}&provider=vipps`
@@ -118,7 +118,7 @@ function redirectToCheckout(
   locale: Locale,
   reason: string,
 ): NextResponse {
-  const origin = getCanonicalOrigin(request);
+  const origin = getCanonicalOrigin();
   const isEnglish = locale === 'en';
   const checkoutUrl = isEnglish
     ? `${origin}/en/checkout?vipps_error=${reason}`
@@ -127,10 +127,8 @@ function redirectToCheckout(
   return NextResponse.redirect(checkoutUrl);
 }
 
-function getCanonicalOrigin(request: NextRequest): string {
-  const origin = request.headers.get('origin')
-    || request.headers.get('referer')?.split('/').slice(0, 3).join('/')
-    || process.env.NEXT_PUBLIC_SITE_URL
-    || 'https://dotty.no';
-  return origin.replace('://www.', '://');
+function getCanonicalOrigin(): string {
+  // Always use configured site URL for redirects after Vipps payment
+  // Request headers come from Vipps, not from our domain
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 }
