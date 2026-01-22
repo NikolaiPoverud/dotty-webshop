@@ -5,7 +5,8 @@ import { Package, Truck, CheckCircle, Clock, Search, Loader2, RefreshCw, Plus, X
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import type { Order } from '@/types';
+import Image from 'next/image';
+import type { Order, OrderItem } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
 import { SHIPPING_CARRIERS } from '@/emails/utils';
@@ -328,6 +329,35 @@ function AdminOrdersContent() {
                     )}
                   </div>
                 </div>
+
+                {/* Order Items */}
+                {order.items && (order.items as OrderItem[]).length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground mb-3">Produkter</p>
+                    <div className="flex flex-wrap gap-3">
+                      {(order.items as OrderItem[]).map((item, index) => (
+                        <div key={index} className="flex items-center gap-3 bg-background/50 rounded-lg p-2 pr-4">
+                          {item.image_url && (
+                            <div className="relative w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                              <Image
+                                src={item.image_url}
+                                alt={item.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium">{item.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.quantity > 1 ? `${item.quantity}x ` : ''}{formatPrice(item.price)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {order.tracking_number && (
                   <div className="mt-4 pt-4 border-t border-border">
