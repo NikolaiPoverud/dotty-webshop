@@ -272,6 +272,15 @@ function AdminOrdersContent() {
                         <span className={`px-2 py-0.5 text-xs rounded ${statusInfo.color}`}>
                           {statusInfo.label}
                         </span>
+                        {order.payment_provider && (
+                          <span className={`px-2 py-0.5 text-xs rounded ${
+                            order.payment_provider === 'vipps'
+                              ? 'bg-[#ff5b24]/10 text-[#ff5b24]'
+                              : 'bg-[#635bff]/10 text-[#635bff]'
+                          }`}>
+                            {order.payment_provider === 'vipps' ? 'Vipps' : 'Kort'}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {order.customer_name} · {formatRelativeDate(order.created_at!)}
