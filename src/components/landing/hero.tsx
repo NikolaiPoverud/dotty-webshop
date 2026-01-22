@@ -41,29 +41,12 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           className="object-cover object-center"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-background/40" />
+        <div className="absolute inset-0 bg-background/20" />
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div {...fadeInUp}>
-          <Logo size="hero" className="mx-auto" aria-hidden="true" />
-          <h1 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-            {t.headline}
-          </h1>
-        </motion.div>
-
-        <motion.p
-          className="mt-3 text-lg sm:text-xl lg:text-2xl text-neutral-400 max-w-3xl mx-auto leading-relaxed font-normal"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-        >
-          {t.subtitle}
-        </motion.p>
-
-      </div>
+      {/* Text removed for testing */}
 
       <motion.button
         onClick={scrollToArt}
