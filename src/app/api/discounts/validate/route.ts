@@ -81,6 +81,7 @@ export async function POST(request: Request) {
       code: discount.code,
       discount_percent: discount.discount_percent,
       discount_amount: discount.discount_amount,
+      free_shipping: discount.free_shipping ?? false,
       calculated_discount: discountAmount,
     });
   } catch (error) {

@@ -124,6 +124,7 @@ export interface DiscountCode {
   code: string;
   discount_percent: number | null;
   discount_amount: number | null;
+  free_shipping: boolean;
   is_active: boolean;
   uses_remaining: number | null;
   expires_at: string | null;
@@ -174,6 +175,7 @@ export interface Cart {
   subtotal: number;
   discountCode?: string;
   discountAmount: number;
+  freeShipping?: boolean;
   shippingCost: number;
   artistLevy: number;
   total: number;

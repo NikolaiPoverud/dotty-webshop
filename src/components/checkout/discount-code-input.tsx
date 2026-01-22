@@ -7,7 +7,7 @@ import { INPUT_CLASS } from './form-input';
 
 interface DiscountCodeInputProps {
   t: CheckoutText;
-  onApplyDiscount: (code: string, amount: number) => void;
+  onApplyDiscount: (code: string, amount: number, freeShipping?: boolean) => void;
   existingCode: string | undefined;
   subtotal: number;
 }
@@ -39,7 +39,7 @@ export function DiscountCodeInput({ t, onApplyDiscount, existingCode, subtotal }
         return;
       }
 
-      onApplyDiscount(result.code, result.calculated_discount);
+      onApplyDiscount(result.code, result.calculated_discount, result.free_shipping);
       setSuccess(t.discountApplied);
       setDiscountInput('');
     } catch {

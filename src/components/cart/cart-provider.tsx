@@ -9,7 +9,7 @@ type CartAction =
   | { type: 'ADD_ITEM'; payload: { product: Product; quantity?: number; reservationId?: string; expiresAt?: string; selectedSize?: ProductSize } }
   | { type: 'REMOVE_ITEM'; payload: { productId: string; selectedSize?: ProductSize } }
   | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number; selectedSize?: ProductSize } }
-  | { type: 'APPLY_DISCOUNT'; payload: { code: string; amount: number } }
+  | { type: 'APPLY_DISCOUNT'; payload: { code: string; amount: number; freeShipping?: boolean } }
   | { type: 'CLEAR_DISCOUNT' }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: Cart }
@@ -52,7 +52,7 @@ const initialCart: Cart = {
 };
 
 // ARCH-008: Use CartService for consistent calculations
-function calculateTotals(items: CartItem[], discountAmount: number): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
+function calculateTotals(items: CartItem[], discountAmount: number, freeShipping?: boolean): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
   // Convert CartItem[] to CartItemInput[] for the service
   // Use size price if available, otherwise use product price
   const serviceItems: CartItemInput[] = items.map(item => ({
@@ -63,12 +63,15 @@ function calculateTotals(items: CartItem[], discountAmount: number): Pick<Cart, 
     shippingCost: item.product.shipping_cost,
   }));
 
-  return calculateCartTotalsSimple(serviceItems, discountAmount);
+  // Pass 0 as custom shipping cost if free shipping is applied
+  const customShippingCost = freeShipping ? 0 : undefined;
+  return calculateCartTotalsSimple(serviceItems, discountAmount, customShippingCost);
 }
 
 // Helper to create updated cart state with recalculated totals
-function withTotals(state: Cart, items: CartItem[], discountAmount: number = state.discountAmount): Cart {
-  return { ...state, items, ...calculateTotals(items, discountAmount) };
+function withTotals(state: Cart, items: CartItem[], discountAmount: number = state.discountAmount, freeShipping?: boolean): Cart {
+  const hasFreeShipping = freeShipping ?? state.freeShipping;
+  return { ...state, items, ...calculateTotals(items, discountAmount, hasFreeShipping) };
 }
 
 // Cart reducer
@@ -113,12 +116,12 @@ function cartReducer(state: Cart, action: CartAction): Cart {
     }
 
     case 'APPLY_DISCOUNT': {
-      const { code, amount } = action.payload;
-      return { ...withTotals(state, state.items, amount), discountCode: code, discountAmount: amount };
+      const { code, amount, freeShipping } = action.payload;
+      return { ...withTotals(state, state.items, amount, freeShipping), discountCode: code, discountAmount: amount, freeShipping };
     }
 
     case 'CLEAR_DISCOUNT': {
-      return { ...withTotals(state, state.items, 0), discountCode: undefined, discountAmount: 0 };
+      return { ...withTotals(state, state.items, 0, false), discountCode: undefined, discountAmount: 0, freeShipping: false };
     }
 
     case 'CLEAR_CART':
@@ -147,7 +150,7 @@ interface CartContextType {
   addItem: (product: Product, quantity?: number, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize) => void;
   removeItem: (productId: string, selectedSize?: ProductSize) => void;
   updateQuantity: (productId: string, quantity: number, selectedSize?: ProductSize) => void;
-  applyDiscount: (code: string, amount: number) => void;
+  applyDiscount: (code: string, amount: number, freeShipping?: boolean) => void;
   clearDiscount: () => void;
   clearCart: () => void;
   itemCount: number;
@@ -239,8 +242,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity, selectedSize } });
   }
 
-  function applyDiscount(code: string, amount: number): void {
-    dispatch({ type: 'APPLY_DISCOUNT', payload: { code, amount } });
+  function applyDiscount(code: string, amount: number, freeShipping?: boolean): void {
+    dispatch({ type: 'APPLY_DISCOUNT', payload: { code, amount, freeShipping } });
   }
 
   function clearDiscount(): void {
