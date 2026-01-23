@@ -9,43 +9,18 @@ import Link from 'next/link';
 const staggerContainer = {
   animate: {
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
+      staggerChildren: 0.12,
+      delayChildren: 0.2,
     },
   },
 };
 
-const popIn = {
-  initial: { scale: 0, rotate: -12, opacity: 0 },
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
   animate: {
-    scale: 1,
-    rotate: 0,
     opacity: 1,
-    transition: {
-      type: 'spring' as const,
-      stiffness: 260,
-      damping: 20
-    }
-  },
-};
-
-const slideInLeft = {
-  initial: { x: -100, opacity: 0, skewX: 6 },
-  animate: {
-    x: 0,
-    opacity: 1,
-    skewX: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
-  },
-};
-
-const slideInRight = {
-  initial: { x: 100, opacity: 0, skewX: -6 },
-  animate: {
-    x: 0,
-    opacity: 1,
-    skewX: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
+    y: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }
   },
 };
 
@@ -81,12 +56,12 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* Ben-Day dots pattern overlay */}
+      {/* Subtle Ben-Day dots pattern overlay */}
       <div
-        className="absolute inset-0 z-[1] pointer-events-none opacity-[0.08]"
+        className="absolute inset-0 z-[1] pointer-events-none opacity-[0.04]"
         style={{
-          backgroundImage: `radial-gradient(circle at center, var(--primary) 2px, transparent 2px)`,
-          backgroundSize: '24px 24px',
+          backgroundImage: `radial-gradient(circle at center, var(--primary) 1.5px, transparent 1.5px)`,
+          backgroundSize: '20px 20px',
         }}
       />
 
@@ -100,195 +75,83 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           className="object-cover object-center"
           sizes="100vw"
         />
-        {/* Darkened overlay for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background/70" />
+        {/* Lighter overlay for text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/20 to-background/60" />
       </div>
 
       {/* Bottom fade gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent z-[2]" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-[2]" />
 
       {/* Main hero content */}
       <motion.div
-        className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20"
+        className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        {/* Pop-art speech bubble with headline */}
+        {/* Clean headline badge */}
         <motion.div
-          className="relative mb-6 sm:mb-8"
-          variants={popIn}
+          className="mb-6 sm:mb-8"
+          variants={fadeInUp}
         >
-          {/* Comic speech bubble */}
-          <div className="relative inline-block">
-            <div
-              className="relative bg-primary px-6 py-3 sm:px-10 sm:py-5"
-              style={{
-                clipPath: 'polygon(0 10%, 3% 0, 97% 0, 100% 10%, 100% 90%, 97% 100%, 8% 100%, 0 100%, 0 90%)',
-              }}
-            >
-              {/* Inner halftone texture */}
-              <div
-                className="absolute inset-0 opacity-20 mix-blend-multiply"
-                style={{
-                  backgroundImage: `radial-gradient(circle at center, #000 1px, transparent 1px)`,
-                  backgroundSize: '4px 4px',
-                }}
-              />
-              <span
-                className="relative font-black text-background text-lg sm:text-2xl md:text-3xl tracking-tight uppercase"
-                style={{
-                  textShadow: '2px 2px 0 rgba(0,0,0,0.2)',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {t.headline}
-              </span>
-            </div>
-            {/* Speech bubble tail */}
-            <div
-              className="absolute -bottom-3 left-8 sm:left-12 w-6 h-6 sm:w-8 sm:h-8 bg-primary"
-              style={{
-                clipPath: 'polygon(0 0, 100% 0, 0 100%)',
-              }}
-            />
-          </div>
+          <span className="inline-block bg-primary px-4 py-2 sm:px-6 sm:py-3 text-background font-bold text-sm sm:text-base uppercase tracking-wide">
+            {t.headline}
+          </span>
         </motion.div>
 
-        {/* Bold DOTTY logo text with comic-book styling */}
+        {/* Bold DOTTY logo text - simplified */}
         <motion.div
-          className="relative mb-4 sm:mb-6"
-          variants={slideInLeft}
+          className="mb-6 sm:mb-8"
+          variants={fadeInUp}
         >
-          <h1
-            className="font-black text-[4rem] sm:text-[7rem] md:text-[10rem] lg:text-[13rem] leading-[0.85] tracking-tighter"
-            style={{
-              WebkitTextStroke: '3px var(--foreground)',
-              WebkitTextFillColor: 'transparent',
-              paintOrder: 'stroke fill',
-            }}
-          >
-            <span
-              className="relative inline-block"
-              style={{
-                WebkitTextStroke: '4px var(--primary)',
-                WebkitTextFillColor: 'var(--background)',
-                filter: 'drop-shadow(6px 6px 0 var(--primary))',
-              }}
-            >
-              DOTTY
-            </span>
-            <span
-              className="text-primary inline-block ml-1 sm:ml-2"
-              style={{
-                WebkitTextStroke: '0',
-                WebkitTextFillColor: 'var(--primary)',
-                filter: 'drop-shadow(4px 4px 0 var(--foreground))',
-              }}
-            >
-              .
-            </span>
+          <h1 className="font-black text-[4rem] sm:text-[6rem] md:text-[8rem] lg:text-[10rem] leading-[0.9] tracking-tighter text-foreground">
+            DOTTY
+            <span className="text-primary">.</span>
           </h1>
         </motion.div>
 
-        {/* Subtitle with comic panel styling */}
+        {/* Clean subtitle */}
         <motion.div
-          className="relative max-w-xl mb-8 sm:mb-10"
-          variants={slideInRight}
+          className="max-w-lg mb-8 sm:mb-10"
+          variants={fadeInUp}
         >
-          <div
-            className="relative bg-background/90 backdrop-blur-sm border-4 border-foreground p-4 sm:p-6"
-            style={{
-              boxShadow: '6px 6px 0 var(--foreground)',
-            }}
-          >
-            {/* Corner accent */}
-            <div className="absolute -top-2 -left-2 w-4 h-4 bg-accent-3" />
-            <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-primary" />
-
-            <p className="text-foreground text-base sm:text-lg md:text-xl font-bold leading-relaxed">
-              {t.subtitle}
-            </p>
-          </div>
+          <p className="text-foreground/90 text-lg sm:text-xl font-medium leading-relaxed">
+            {t.subtitle}
+          </p>
         </motion.div>
 
-        {/* CTA Button - Bold pop-art style */}
-        <motion.div
-          variants={popIn}
-        >
+        {/* CTA Button - cleaner pop-art style */}
+        <motion.div variants={fadeInUp}>
           <Link
             href={`/${lang}/shop`}
-            className="group relative inline-flex items-center gap-3 bg-primary text-background font-black text-lg sm:text-xl uppercase tracking-wide px-8 py-4 sm:px-10 sm:py-5 border-4 border-foreground transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 active:translate-x-1 active:translate-y-1"
+            className="group inline-flex items-center gap-3 bg-primary text-background font-bold text-base sm:text-lg px-6 py-3 sm:px-8 sm:py-4 border-3 border-foreground transition-all duration-200 hover:-translate-y-1 active:translate-y-0"
             style={{
-              boxShadow: '6px 6px 0 var(--foreground)',
+              boxShadow: '4px 4px 0 var(--foreground)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '8px 8px 0 var(--foreground)';
+              e.currentTarget.style.boxShadow = '6px 6px 0 var(--foreground)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '6px 6px 0 var(--foreground)';
+              e.currentTarget.style.boxShadow = '4px 4px 0 var(--foreground)';
             }}
             onMouseDown={(e) => {
               e.currentTarget.style.boxShadow = '2px 2px 0 var(--foreground)';
             }}
             onMouseUp={(e) => {
-              e.currentTarget.style.boxShadow = '6px 6px 0 var(--foreground)';
+              e.currentTarget.style.boxShadow = '4px 4px 0 var(--foreground)';
             }}
           >
-            {/* Button halftone overlay */}
-            <div
-              className="absolute inset-0 opacity-10 pointer-events-none"
-              style={{
-                backgroundImage: `radial-gradient(circle at center, #000 1px, transparent 1px)`,
-                backgroundSize: '3px 3px',
-              }}
-            />
-            <span className="relative">{t.cta}</span>
+            <span>{t.cta}</span>
             <svg
-              className="relative w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-1"
+              className="w-5 h-5 transition-transform group-hover:translate-x-1"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={3}
+              strokeWidth={2.5}
             >
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Link>
-        </motion.div>
-
-        {/* Decorative comic elements */}
-        <motion.div
-          className="absolute top-8 right-4 sm:top-12 sm:right-12 hidden sm:block"
-          initial={{ scale: 0, rotate: 20 }}
-          animate={{ scale: 1, rotate: 12 }}
-          transition={{ delay: 1, type: 'spring', stiffness: 200 }}
-        >
-          <div
-            className="bg-accent-3 text-background font-black text-xs sm:text-sm px-3 py-1 sm:px-4 sm:py-2 uppercase tracking-wider"
-            style={{
-              transform: 'rotate(12deg)',
-              boxShadow: '3px 3px 0 var(--foreground)',
-            }}
-          >
-            Pop Art
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="absolute bottom-32 right-8 sm:bottom-40 sm:right-16 hidden md:block"
-          initial={{ scale: 0, rotate: -15 }}
-          animate={{ scale: 1, rotate: -8 }}
-          transition={{ delay: 1.2, type: 'spring', stiffness: 200 }}
-        >
-          <div
-            className="bg-accent text-background font-black text-xs px-3 py-1 uppercase tracking-wider"
-            style={{
-              transform: 'rotate(-8deg)',
-              boxShadow: '3px 3px 0 var(--foreground)',
-            }}
-          >
-            Original Art
-          </div>
         </motion.div>
       </motion.div>
 
