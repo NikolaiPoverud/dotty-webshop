@@ -4,18 +4,25 @@ import Link from 'next/link';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
+const metadataContent = {
+  no: {
+    title: 'Personvernerklæring',
+    description: 'Les om hvordan Dotty. samler inn, bruker og beskytter dine personopplysninger i henhold til GDPR.',
+  },
+  en: {
+    title: 'Privacy Policy',
+    description: 'Learn how Dotty. collects, uses, and protects your personal data in accordance with GDPR.',
+  },
+};
+
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  const isNorwegian = lang === 'no';
-
-  const title = isNorwegian ? 'Personvernerklæring' : 'Privacy Policy';
-  const description = isNorwegian
-    ? 'Les om hvordan Dotty. samler inn, bruker og beskytter dine personopplysninger i henhold til GDPR.'
-    : 'Learn how Dotty. collects, uses, and protects your personal data in accordance with GDPR.';
+  const locale = lang as Locale;
+  const meta = metadataContent[locale];
 
   return {
-    title,
-    description,
+    title: meta.title,
+    description: meta.description,
     alternates: {
       canonical: `${BASE_URL}/${lang}/privacy`,
       languages: {
@@ -279,14 +286,71 @@ const content = {
   },
 };
 
-export default async function PrivacyPage({
-  params,
-}: {
+const tableLabels = {
+  no: {
+    service: 'Tjeneste',
+    purpose: 'Formål',
+    location: 'Lokasjon',
+    dataType: 'Datatype',
+    retentionPeriod: 'Oppbevaringstid',
+    name: 'Navn',
+    duration: 'Varighet',
+  },
+  en: {
+    service: 'Service',
+    purpose: 'Purpose',
+    location: 'Location',
+    dataType: 'Data type',
+    retentionPeriod: 'Retention period',
+    name: 'Name',
+    duration: 'Duration',
+  },
+};
+
+interface TableProps {
+  headers: string[];
+  rows: string[][];
+}
+
+function DataTable({ headers, rows }: TableProps): JSX.Element {
+  return (
+    <div className="bg-muted rounded-lg overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-muted-foreground/10">
+          <tr>
+            {headers.map((header, i) => (
+              <th key={i} className="text-left p-3 font-medium">{header}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} className="border-t border-border">
+              <td className="p-3 font-medium">{row[0]}</td>
+              {row.slice(1).map((cell, j) => (
+                <td key={j} className="p-3 text-muted-foreground">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function toSectionId(heading: string): string {
+  return heading.toLowerCase().replace(/\s+/g, '-');
+}
+
+interface PrivacyPageProps {
   params: Promise<{ lang: string }>;
-}) {
+}
+
+export default async function PrivacyPage({ params }: PrivacyPageProps): Promise<JSX.Element> {
   const { lang } = await params;
   const locale = lang as Locale;
   const t = content[locale];
+  const labels = tableLabels[locale];
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -299,7 +363,7 @@ export default async function PrivacyPage({
 
         <div className="space-y-10">
           {t.sections.map((section, i) => (
-            <section key={i} className="scroll-mt-24" id={section.heading.toLowerCase().replace(/\s+/g, '-')}>
+            <section key={i} className="scroll-mt-24" id={toSectionId(section.heading)}>
               <h2 className="text-xl font-semibold mb-4">{section.heading}</h2>
 
               {'text' in section && <p className="text-muted-foreground mb-4">{section.text}</p>}
@@ -329,73 +393,29 @@ export default async function PrivacyPage({
 
               {'processors' in section && section.processors && (
                 <div className="mt-4">
-                  <div className="bg-muted rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted-foreground/10">
-                        <tr>
-                          <th className="text-left p-3 font-medium">{locale === 'no' ? 'Tjeneste' : 'Service'}</th>
-                          <th className="text-left p-3 font-medium">{locale === 'no' ? 'Formål' : 'Purpose'}</th>
-                          <th className="text-left p-3 font-medium">{locale === 'no' ? 'Lokasjon' : 'Location'}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {section.processors.map((proc, j) => (
-                          <tr key={j} className="border-t border-border">
-                            <td className="p-3 font-medium">{proc.name}</td>
-                            <td className="p-3 text-muted-foreground">{proc.purpose}</td>
-                            <td className="p-3 text-muted-foreground">{proc.location}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <DataTable
+                    headers={[labels.service, labels.purpose, labels.location]}
+                    rows={section.processors.map((p) => [p.name, p.purpose, p.location])}
+                  />
                   {'note' in section && <p className="text-sm text-muted-foreground mt-3">{section.note}</p>}
                 </div>
               )}
 
               {'retention' in section && section.retention && (
-                <div className="mt-4 bg-muted rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted-foreground/10">
-                      <tr>
-                        <th className="text-left p-3 font-medium">{locale === 'no' ? 'Datatype' : 'Data type'}</th>
-                        <th className="text-left p-3 font-medium">{locale === 'no' ? 'Oppbevaringstid' : 'Retention period'}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {section.retention.map((ret, j) => (
-                        <tr key={j} className="border-t border-border">
-                          <td className="p-3 font-medium">{ret.type}</td>
-                          <td className="p-3 text-muted-foreground">{ret.period}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="mt-4">
+                  <DataTable
+                    headers={[labels.dataType, labels.retentionPeriod]}
+                    rows={section.retention.map((r) => [r.type, r.period])}
+                  />
                 </div>
               )}
 
               {'cookies' in section && section.cookies && (
                 <div className="mt-4">
-                  <div className="bg-muted rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted-foreground/10">
-                        <tr>
-                          <th className="text-left p-3 font-medium">{locale === 'no' ? 'Navn' : 'Name'}</th>
-                          <th className="text-left p-3 font-medium">{locale === 'no' ? 'Formål' : 'Purpose'}</th>
-                          <th className="text-left p-3 font-medium">{locale === 'no' ? 'Varighet' : 'Duration'}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {section.cookies.map((cookie, j) => (
-                          <tr key={j} className="border-t border-border">
-                            <td className="p-3 font-medium">{cookie.name}</td>
-                            <td className="p-3 text-muted-foreground">{cookie.purpose}</td>
-                            <td className="p-3 text-muted-foreground">{cookie.duration}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <DataTable
+                    headers={[labels.name, labels.purpose, labels.duration]}
+                    rows={section.cookies.map((c) => [c.name, c.purpose, c.duration])}
+                  />
                   {'noCookies' in section && (
                     <p className="text-sm text-success mt-3">{section.noCookies}</p>
                   )}
@@ -438,10 +458,7 @@ export default async function PrivacyPage({
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">{t.lastUpdated}</p>
-          <Link
-            href={`/${locale}/my-data`}
-            className="text-sm text-primary hover:underline"
-          >
+          <Link href={`/${locale}/my-data`} className="text-sm text-primary hover:underline">
             {t.myDataLink} →
           </Link>
         </div>

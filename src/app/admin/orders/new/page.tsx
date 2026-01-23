@@ -1,35 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import type { Product, OrderItem } from '@/types';
+import type { Product, OrderItem, OrderStatus, PaymentProvider, ShippingAddress } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { adminFetch } from '@/lib/admin-fetch';
 
-type OrderStatus = 'pending' | 'paid';
-type PaymentProvider = 'stripe' | 'vipps' | null;
+interface CustomerInfo {
+  name: string;
+  email: string;
+  phone: string;
+}
 
-export default function NewOrderPage() {
+const INPUT_CLASS =
+  'w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
+
+const SELECT_CLASS =
+  'w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
+
+export default function NewOrderPage(): React.JSX.Element {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
+  const [customer, setCustomer] = useState<CustomerInfo>({
+    name: '',
+    email: '',
+    phone: '',
+  });
 
-  const [addressLine1, setAddressLine1] = useState('');
-  const [addressLine2, setAddressLine2] = useState('');
-  const [city, setCity] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [country, setCountry] = useState('Norge');
+  const [address, setAddress] = useState<ShippingAddress>({
+    line1: '',
+    line2: '',
+    city: '',
+    postal_code: '',
+    country: 'Norge',
+  });
 
   const [items, setItems] = useState<OrderItem[]>([]);
   const [status, setStatus] = useState<OrderStatus>('pending');
-  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
   useEffect(() => {
@@ -42,6 +55,21 @@ export default function NewOrderPage() {
     }
     fetchProducts();
   }, []);
+
+  const subtotal = useMemo(
+    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [items]
+  );
+
+  const total = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
+
+  function updateCustomer<K extends keyof CustomerInfo>(field: K, value: CustomerInfo[K]): void {
+    setCustomer((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateAddress<K extends keyof ShippingAddress>(field: K, value: ShippingAddress[K]): void {
+    setAddress((prev) => ({ ...prev, [field]: value }));
+  }
 
   function addItem(): void {
     if (products.length === 0) return;
@@ -84,14 +112,6 @@ export default function NewOrderPage() {
     setItems(newItems);
   }
 
-  function calculateSubtotal(): number {
-    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }
-
-  function calculateTotal(): number {
-    return calculateSubtotal() - discountAmount;
-  }
-
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
 
@@ -108,15 +128,15 @@ export default function NewOrderPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
+          customer_name: customer.name,
+          customer_email: customer.email,
+          customer_phone: customer.phone,
           shipping_address: {
-            line1: addressLine1,
-            line2: addressLine2 || undefined,
-            city,
-            postal_code: postalCode,
-            country,
+            line1: address.line1,
+            line2: address.line2 || undefined,
+            city: address.city,
+            postal_code: address.postal_code,
+            country: address.country,
           },
           items,
           discount_amount: discountAmount,
@@ -139,6 +159,14 @@ export default function NewOrderPage() {
     }
   }
 
+  function handlePaymentProviderChange(value: string): void {
+    if (value === '') {
+      setPaymentProvider(null);
+    } else {
+      setPaymentProvider(value as PaymentProvider);
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
@@ -152,114 +180,109 @@ export default function NewOrderPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">
-          {error}
-        </div>
+        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Customer Information */}
         <div className="bg-muted rounded-lg p-6 space-y-4">
           <h2 className="text-xl font-semibold">Kundeinformasjon</h2>
-          
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Navn *</label>
               <input
                 type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                value={customer.name}
+                onChange={(e) => updateCustomer('name', e.target.value)}
+                className={INPUT_CLASS}
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">E-post *</label>
               <input
                 type="email"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                value={customer.email}
+                onChange={(e) => updateCustomer('email', e.target.value)}
+                className={INPUT_CLASS}
                 required
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">Telefon *</label>
             <input
               type="tel"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              value={customer.phone}
+              onChange={(e) => updateCustomer('phone', e.target.value)}
+              className={INPUT_CLASS}
               required
             />
           </div>
         </div>
 
-        {/* Shipping Address */}
         <div className="bg-muted rounded-lg p-6 space-y-4">
           <h2 className="text-xl font-semibold">Leveringsadresse</h2>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">Adresse 1 *</label>
             <input
               type="text"
-              value={addressLine1}
-              onChange={(e) => setAddressLine1(e.target.value)}
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              value={address.line1}
+              onChange={(e) => updateAddress('line1', e.target.value)}
+              className={INPUT_CLASS}
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">Adresse 2</label>
             <input
               type="text"
-              value={addressLine2}
-              onChange={(e) => setAddressLine2(e.target.value)}
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              value={address.line2}
+              onChange={(e) => updateAddress('line2', e.target.value)}
+              className={INPUT_CLASS}
             />
           </div>
-          
+
           <div className="grid sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">By *</label>
               <input
                 type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                value={address.city}
+                onChange={(e) => updateAddress('city', e.target.value)}
+                className={INPUT_CLASS}
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Postnummer *</label>
               <input
                 type="text"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                value={address.postal_code}
+                onChange={(e) => updateAddress('postal_code', e.target.value)}
+                className={INPUT_CLASS}
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Land *</label>
               <input
                 type="text"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                value={address.country}
+                onChange={(e) => updateAddress('country', e.target.value)}
+                className={INPUT_CLASS}
                 required
               />
             </div>
           </div>
         </div>
 
-        {/* Order Items */}
         <div className="bg-muted rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Produkter</h2>
@@ -273,11 +296,9 @@ export default function NewOrderPage() {
               Legg til produkt
             </button>
           </div>
-          
+
           {items.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              Ingen produkter lagt til ennå
-            </p>
+            <p className="text-muted-foreground text-center py-8">Ingen produkter lagt til ennå</p>
           ) : (
             <div className="space-y-3">
               {items.map((item, index) => (
@@ -293,7 +314,7 @@ export default function NewOrderPage() {
                       </option>
                     ))}
                   </select>
-                  
+
                   <input
                     type="number"
                     min="1"
@@ -301,11 +322,11 @@ export default function NewOrderPage() {
                     onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
                     className="w-20 px-4 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  
+
                   <span className="w-32 text-right font-medium">
                     {formatPrice(item.price * item.quantity)}
                   </span>
-                  
+
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
@@ -328,7 +349,7 @@ export default function NewOrderPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as OrderStatus)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className={SELECT_CLASS}
               >
                 <option value="pending">Venter</option>
                 <option value="paid">Betalt</option>
@@ -339,8 +360,8 @@ export default function NewOrderPage() {
               <label className="block text-sm font-medium mb-2">Betalingsmetode</label>
               <select
                 value={paymentProvider || ''}
-                onChange={(e) => setPaymentProvider((e.target.value || null) as PaymentProvider)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => handlePaymentProviderChange(e.target.value)}
+                className={SELECT_CLASS}
               >
                 <option value="">Ingen</option>
                 <option value="stripe">Stripe</option>
@@ -356,7 +377,7 @@ export default function NewOrderPage() {
               min="0"
               value={discountAmount}
               onChange={(e) => setDiscountAmount(parseInt(e.target.value) || 0)}
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className={INPUT_CLASS}
             />
           </div>
         </div>
@@ -366,7 +387,7 @@ export default function NewOrderPage() {
 
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Delsum</span>
-            <span>{formatPrice(calculateSubtotal())}</span>
+            <span>{formatPrice(subtotal)}</span>
           </div>
 
           {discountAmount > 0 && (
@@ -378,14 +399,15 @@ export default function NewOrderPage() {
 
           <div className="flex justify-between text-lg font-bold pt-3 border-t border-border">
             <span>Total</span>
-            <span>{formatPrice(calculateTotal())}</span>
+            <span>{formatPrice(total)}</span>
           </div>
         </div>
 
         <div className="flex gap-4">
           <button
-            type="submit"
+            type="button"
             disabled={isLoading || items.length === 0}
+            onClick={handleSubmit}
             className="flex-1 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (

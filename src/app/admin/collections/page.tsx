@@ -2,13 +2,28 @@
 
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, Eye, EyeOff, Loader2, Pencil, Plus, RefreshCw, Trash2, Truck } from 'lucide-react';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { adminFetch, adminFetchJson } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
 import type { Collection } from '@/types';
 
-// Shipping cost options in øre
+interface CollectionFormData {
+  name: string;
+  slug: string;
+  description: string;
+  shipping_cost: number;
+  is_public: boolean;
+}
+
+const INITIAL_FORM_DATA: CollectionFormData = {
+  name: '',
+  slug: '',
+  description: '',
+  shipping_cost: 0,
+  is_public: true,
+};
+
 const SHIPPING_OPTIONS = [
   { value: 0, label: 'Gratis frakt' },
   { value: 9900, label: '99 kr - Små verk' },
@@ -17,15 +32,15 @@ const SHIPPING_OPTIONS = [
   { value: 29900, label: '299 kr - Ekstra store verk' },
 ];
 
-export default function AdminCollectionsPage() {
+export default function AdminCollectionsPage(): React.JSX.Element {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
-  const [formData, setFormData] = useState({ name: '', slug: '', description: '', shipping_cost: 0, is_public: true });
-  const pendingOperationsRef = useRef<Set<string>>(new Set());
+  const [formData, setFormData] = useState<CollectionFormData>(INITIAL_FORM_DATA);
+  const [pendingVisibilityIds, setPendingVisibilityIds] = useState<Set<string>>(new Set());
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
@@ -53,7 +68,7 @@ export default function AdminCollectionsPage() {
 
   function openNewModal(): void {
     setEditingCollection(null);
-    setFormData({ name: '', slug: '', description: '', shipping_cost: 0, is_public: true });
+    setFormData(INITIAL_FORM_DATA);
     setIsModalOpen(true);
   }
 
@@ -67,6 +82,16 @@ export default function AdminCollectionsPage() {
       is_public: collection.is_public ?? true,
     });
     setIsModalOpen(true);
+  }
+
+  function generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[æ]/g, 'ae')
+      .replace(/[ø]/g, 'o')
+      .replace(/[å]/g, 'a')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   async function handleSave(): Promise<void> {
@@ -111,42 +136,31 @@ export default function AdminCollectionsPage() {
     setCollections((prev) => prev.filter((c) => c.id !== id));
   }
 
-  async function toggleVisibility(id: string, isPublic: boolean): Promise<void> {
-    // Prevent rapid clicks on the same item
-    if (pendingOperationsRef.current.has(id)) return;
-    pendingOperationsRef.current.add(id);
+  async function toggleVisibility(id: string, newIsPublic: boolean): Promise<void> {
+    if (pendingVisibilityIds.has(id)) return;
 
-    // Optimistic update
+    setPendingVisibilityIds((prev) => new Set(prev).add(id));
     setCollections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, is_public: isPublic } : c))
+      prev.map((c) => (c.id === id ? { ...c, is_public: newIsPublic } : c))
     );
 
-    try {
-      const response = await adminFetch(`/api/admin/collections/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_public: isPublic }),
-      });
+    const response = await adminFetch(`/api/admin/collections/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_public: newIsPublic }),
+    });
 
-      if (!response.ok) {
-        // Revert on error
-        setCollections((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, is_public: !isPublic } : c))
-        );
-      }
-    } finally {
-      pendingOperationsRef.current.delete(id);
+    if (!response.ok) {
+      setCollections((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, is_public: !newIsPublic } : c))
+      );
     }
-  }
 
-  function generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[æ]/g, 'ae')
-      .replace(/[ø]/g, 'o')
-      .replace(/[å]/g, 'a')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+    setPendingVisibilityIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   }
 
   async function moveCollection(index: number, direction: 'up' | 'down'): Promise<void> {
@@ -276,25 +290,14 @@ export default function AdminCollectionsPage() {
                     </code>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-1.5">
-                      <Truck className="w-4 h-4 text-muted-foreground" />
-                      <span className={collection.shipping_cost === 0 ? 'text-green-500' : ''}>
-                        {collection.shipping_cost === 0 ? 'Gratis' : formatPrice(collection.shipping_cost)}
-                      </span>
-                    </div>
+                    <ShippingCostDisplay cost={collection.shipping_cost} />
                   </td>
                   <td className="px-4 py-4 text-center">
-                    <button
-                      onClick={() => toggleVisibility(collection.id, !collection.is_public)}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        collection.is_public
-                          ? 'text-success hover:bg-success/10'
-                          : 'text-muted-foreground hover:bg-muted-foreground/10'
-                      }`}
-                      title={collection.is_public ? 'Synlig - klikk for å skjule' : 'Skjult - klikk for å vise'}
-                    >
-                      {collection.is_public ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
+                    <VisibilityToggle
+                      isPublic={collection.is_public}
+                      isPending={pendingVisibilityIds.has(collection.id)}
+                      onToggle={() => toggleVisibility(collection.id, !collection.is_public)}
+                    />
                   </td>
                   <td className="px-6 py-4 text-muted-foreground truncate max-w-xs">
                     {collection.description || '—'}
@@ -427,5 +430,47 @@ export default function AdminCollectionsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+interface ShippingCostDisplayProps {
+  cost: number;
+}
+
+function ShippingCostDisplay({ cost }: ShippingCostDisplayProps): React.JSX.Element {
+  const isFree = cost === 0;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <Truck className="w-4 h-4 text-muted-foreground" />
+      <span className={isFree ? 'text-green-500' : ''}>
+        {isFree ? 'Gratis' : formatPrice(cost)}
+      </span>
+    </div>
+  );
+}
+
+interface VisibilityToggleProps {
+  isPublic: boolean;
+  isPending: boolean;
+  onToggle: () => void;
+}
+
+function VisibilityToggle({ isPublic, isPending, onToggle }: VisibilityToggleProps): React.JSX.Element {
+  const baseClass = 'p-1.5 rounded-lg transition-colors';
+  const stateClass = isPublic
+    ? 'text-success hover:bg-success/10'
+    : 'text-muted-foreground hover:bg-muted-foreground/10';
+  const title = isPublic ? 'Synlig - klikk for å skjule' : 'Skjult - klikk for å vise';
+
+  return (
+    <button
+      onClick={onToggle}
+      disabled={isPending}
+      className={`${baseClass} ${stateClass} disabled:opacity-50`}
+      title={title}
+    >
+      {isPublic ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+    </button>
   );
 }

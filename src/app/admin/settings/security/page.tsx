@@ -15,185 +15,180 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import type { Factor } from '@supabase/supabase-js';
 
-type MFAStatus = 'loading' | 'disabled' | 'enrolling' | 'verifying' | 'enabled';
+type MFAStatus = 'loading' | 'disabled' | 'enrolling' | 'enabled';
 
 interface EnrollmentData {
   id: string;
-  qr_code: string;
+  qrCode: string;
   secret: string;
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
 }
 
 export default function SecuritySettingsPage(): React.ReactNode {
   const [status, setStatus] = useState<MFAStatus>('loading');
-  const [enrollmentData, setEnrollmentData] = useState<EnrollmentData | null>(null);
+  const [enrollment, setEnrollment] = useState<EnrollmentData | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [factors, setFactors] = useState<Factor[]>([]);
 
-  const checkMFAStatus = useCallback(async () => {
+  const checkMFAStatus = useCallback(async function checkMFAStatus() {
     const supabase = createClient();
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return;
 
-      const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
+    const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
 
-      if (factorsError) {
-        console.error('Error listing factors:', factorsError);
-        setStatus('disabled');
-        return;
-      }
-
-      const totpFactors = factorsData?.totp || [];
-      setFactors(totpFactors);
-
-      const verifiedFactor = totpFactors.find(f => f.status === 'verified');
-
-      if (verifiedFactor) {
-        setStatus('enabled');
-      } else {
-        setStatus('disabled');
-      }
-    } catch (err) {
-      console.error('Error checking MFA status:', err);
+    if (factorsError) {
+      console.error('Error listing factors:', factorsError);
       setStatus('disabled');
+      return;
     }
+
+    const totpFactors = factorsData?.totp || [];
+    setFactors(totpFactors);
+
+    const hasVerifiedFactor = totpFactors.some((f) => f.status === 'verified');
+    setStatus(hasVerifiedFactor ? 'enabled' : 'disabled');
   }, []);
 
-  useEffect(() => {
-    checkMFAStatus();
-  }, [checkMFAStatus]);
+  useEffect(
+    function initMFAStatus() {
+      checkMFAStatus();
+    },
+    [checkMFAStatus]
+  );
 
-  const startEnrollment = async () => {
+  async function startEnrollment(): Promise<void> {
     setError(null);
     setIsProcessing(true);
 
     const supabase = createClient();
 
-    try {
-      const { data, error: enrollError } = await supabase.auth.mfa.enroll({
-        factorType: 'totp',
-        friendlyName: 'Authenticator App',
-      });
+    const { data, error: enrollError } = await supabase.auth.mfa.enroll({
+      factorType: 'totp',
+      friendlyName: 'Authenticator App',
+    });
 
-      if (enrollError) {
-        throw enrollError;
-      }
+    setIsProcessing(false);
 
-      if (data) {
-        setEnrollmentData({
-          id: data.id,
-          qr_code: data.totp.qr_code,
-          secret: data.totp.secret,
-        });
-        setStatus('enrolling');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Kunne ikke starte oppsett av 2FA');
-    } finally {
-      setIsProcessing(false);
+    if (enrollError) {
+      setError(getErrorMessage(enrollError, 'Kunne ikke starte oppsett av 2FA'));
+      return;
     }
-  };
 
-  const verifyEnrollment = async () => {
-    if (verificationCode.length !== 6 || !enrollmentData) return;
+    if (data) {
+      setEnrollment({
+        id: data.id,
+        qrCode: data.totp.qr_code,
+        secret: data.totp.secret,
+      });
+      setStatus('enrolling');
+    }
+  }
+
+  async function verifyEnrollment(): Promise<void> {
+    if (verificationCode.length !== 6 || !enrollment) return;
 
     setError(null);
     setIsProcessing(true);
 
     const supabase = createClient();
 
-    try {
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId: enrollmentData.id,
-      });
+    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+      factorId: enrollment.id,
+    });
 
-      if (challengeError) {
-        throw challengeError;
-      }
-
-      const { error: verifyError } = await supabase.auth.mfa.verify({
-        factorId: enrollmentData.id,
-        challengeId: challengeData.id,
-        code: verificationCode,
-      });
-
-      if (verifyError) {
-        throw verifyError;
-      }
-
-      setStatus('enabled');
-      setEnrollmentData(null);
-      setVerificationCode('');
-      await checkMFAStatus();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ugyldig kode. Prøv igjen.');
-    } finally {
+    if (challengeError) {
+      setError(getErrorMessage(challengeError, 'Ugyldig kode. Prøv igjen.'));
       setIsProcessing(false);
+      return;
     }
-  };
 
-  const disableMFA = async (factorId: string) => {
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      factorId: enrollment.id,
+      challengeId: challengeData.id,
+      code: verificationCode,
+    });
+
+    setIsProcessing(false);
+
+    if (verifyError) {
+      setError(getErrorMessage(verifyError, 'Ugyldig kode. Prøv igjen.'));
+      return;
+    }
+
+    setStatus('enabled');
+    setEnrollment(null);
+    setVerificationCode('');
+    await checkMFAStatus();
+  }
+
+  async function disableMFA(factorId: string): Promise<void> {
     setError(null);
     setIsProcessing(true);
 
     const supabase = createClient();
 
-    try {
-      const { error: unenrollError } = await supabase.auth.mfa.unenroll({
-        factorId,
-      });
+    const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId });
 
-      if (unenrollError) {
-        throw unenrollError;
-      }
+    setIsProcessing(false);
 
-      setStatus('disabled');
-      await checkMFAStatus();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Kunne ikke deaktivere 2FA');
-    } finally {
-      setIsProcessing(false);
+    if (unenrollError) {
+      setError(getErrorMessage(unenrollError, 'Kunne ikke deaktivere 2FA'));
+      return;
     }
-  };
 
-  const cancelEnrollment = async () => {
-    if (enrollmentData) {
+    setStatus('disabled');
+    await checkMFAStatus();
+  }
+
+  async function cancelEnrollment(): Promise<void> {
+    if (enrollment) {
       const supabase = createClient();
-      await supabase.auth.mfa.unenroll({ factorId: enrollmentData.id }).catch(() => {});
+      await supabase.auth.mfa.unenroll({ factorId: enrollment.id }).catch(() => {});
     }
-    setEnrollmentData(null);
+    setEnrollment(null);
     setVerificationCode('');
     setStatus('disabled');
     setError(null);
-  };
+  }
 
-  const copySecret = async () => {
-    if (!enrollmentData?.secret) return;
+  async function copySecret(): Promise<void> {
+    if (!enrollment?.secret) return;
 
-    try {
-      await navigator.clipboard.writeText(enrollmentData.secret);
+    const success = await navigator.clipboard
+      .writeText(enrollment.secret)
+      .then(() => true)
+      .catch(() => false);
+
+    if (success) {
       setCopiedSecret(true);
       setTimeout(() => setCopiedSecret(false), 2000);
-    } catch {
+    } else {
       setError('Kunne ikke kopiere koden');
     }
-  };
+  }
 
-  const handleCodeChange = (value: string) => {
+  function handleCodeChange(value: string): void {
     const cleaned = value.replace(/\D/g, '').slice(0, 6);
     setVerificationCode(cleaned);
-  };
+  }
 
-  useEffect(() => {
-    if (verificationCode.length === 6 && status === 'enrolling') {
-      verifyEnrollment();
-    }
+  useEffect(
+    function autoSubmitVerificationCode() {
+      if (verificationCode.length === 6 && status === 'enrolling') {
+        verifyEnrollment();
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Auto-submit should only trigger on code/status change
-  }, [verificationCode, status]);
+    [verificationCode, status]
+  );
 
   if (status === 'loading') {
     return (
@@ -238,8 +233,7 @@ export default function SecuritySettingsPage(): React.ReactNode {
               <p className="text-sm text-muted-foreground">
                 {status === 'enabled'
                   ? 'Kontoen din er beskyttet med 2FA'
-                  : 'Legg til et ekstra lag med sikkerhet til kontoen din'
-                }
+                  : 'Legg til et ekstra lag med sikkerhet til kontoen din'}
               </p>
             </div>
             {status === 'enabled' && (
@@ -272,7 +266,7 @@ export default function SecuritySettingsPage(): React.ReactNode {
             </div>
           )}
 
-          {status === 'enrolling' && enrollmentData && (
+          {status === 'enrolling' && enrollment && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -300,7 +294,7 @@ export default function SecuritySettingsPage(): React.ReactNode {
                   <div className="bg-white p-4 rounded-lg inline-block">
                     {/* eslint-disable-next-line @next/next/no-img-element -- QR code is a base64 data URL from Supabase */}
                     <img
-                      src={enrollmentData.qr_code}
+                      src={enrollment.qrCode}
                       alt="QR-kode for 2FA"
                       className="w-48 h-48"
                     />
@@ -311,7 +305,7 @@ export default function SecuritySettingsPage(): React.ReactNode {
                     </p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 px-3 py-2 bg-background rounded font-mono text-sm break-all">
-                        {enrollmentData.secret}
+                        {enrollment.secret}
                       </code>
                       <button
                         onClick={copySecret}
@@ -367,34 +361,38 @@ export default function SecuritySettingsPage(): React.ReactNode {
 
           {status === 'enabled' && (
             <div className="space-y-4">
-              {factors.filter(f => f.status === 'verified').map((factor) => (
-                <div
-                  key={factor.id}
-                  className="flex items-center justify-between p-4 bg-background rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="w-5 h-5 text-green-500" />
-                    <div>
-                      <p className="font-medium">{factor.friendly_name || 'Authenticator App'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Lagt til {new Date(factor.created_at).toLocaleDateString('no-NO')}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => disableMFA(factor.id)}
-                    disabled={isProcessing}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-error hover:bg-error/10 rounded transition-colors"
+              {factors
+                .filter((factor) => factor.status === 'verified')
+                .map((factor) => (
+                  <div
+                    key={factor.id}
+                    className="flex items-center justify-between p-4 bg-background rounded-lg"
                   >
-                    {isProcessing ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <ShieldX className="w-4 h-4" />
-                    )}
-                    Deaktiver
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-3">
+                      <ShieldCheck className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="font-medium">
+                          {factor.friendly_name || 'Authenticator App'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Lagt til {new Date(factor.created_at).toLocaleDateString('no-NO')}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => disableMFA(factor.id)}
+                      disabled={isProcessing}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm text-error hover:bg-error/10 rounded transition-colors"
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <ShieldX className="w-4 h-4" />
+                      )}
+                      Deaktiver
+                    </button>
+                  </div>
+                ))}
 
               <p className="text-sm text-muted-foreground">
                 Hvis du deaktiverer 2FA, vil kontoen din kun være beskyttet med passord.

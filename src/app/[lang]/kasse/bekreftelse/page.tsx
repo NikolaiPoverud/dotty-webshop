@@ -6,11 +6,22 @@ import Image from 'next/image';
 import { CheckCircle, Package, Loader2, Share2 } from 'lucide-react';
 import { Suspense, use, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+
 import type { Locale, OrderItem } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { formatPrice } from '@/lib/utils';
 import { getSuccessText, type SuccessText } from '@/lib/i18n/cart-checkout-text';
+
+const SHARE_TEXT: Record<Locale, string> = {
+  no: 'Jeg kjøpte nettopp kunst fra Dotty. 🎨',
+  en: 'I just bought art from Dotty. 🎨',
+};
+
+const SHARE_BUTTON_TEXT: Record<Locale, string> = {
+  no: 'Del med venner',
+  en: 'Share with friends',
+};
 
 interface SuccessPageProps {
   params: Promise<{ lang: string }>;
@@ -79,34 +90,28 @@ interface ShareButtonsProps {
   locale: Locale;
 }
 
-function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement {
+function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement | null {
   const [canShare, setCanShare] = useState(false);
 
   useEffect(() => {
     setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
   }, []);
 
-  const shareText = locale === 'no'
-    ? 'Jeg kjøpte nettopp kunst fra Dotty. 🎨'
-    : 'I just bought art from Dotty. 🎨';
-
-  const shareUrl = typeof window !== 'undefined' ? 'https://dotty.no' : '';
-
   async function handleShare(): Promise<void> {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Dotty.',
-          text: shareText,
-          url: shareUrl,
-        });
-      } catch {
-        // User cancelled or error
-      }
+    if (!navigator.share) return;
+
+    try {
+      await navigator.share({
+        title: 'Dotty.',
+        text: SHARE_TEXT[locale],
+        url: 'https://dotty.no',
+      });
+    } catch {
+      // User cancelled or share failed
     }
   }
 
-  if (!canShare) return <></>;
+  if (!canShare) return null;
 
   return (
     <motion.button
@@ -117,7 +122,7 @@ function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement {
       transition={{ delay: 0.8 }}
     >
       <Share2 className="w-4 h-4" />
-      {locale === 'no' ? 'Del med venner' : 'Share with friends'}
+      {SHARE_BUTTON_TEXT[locale]}
     </motion.button>
   );
 }
@@ -159,8 +164,8 @@ function OrderDetailsCard({ orderInfo, isLoading, t }: OrderDetailsCardProps): R
         <div className="mt-4 pt-4 border-t border-border">
           <p className="text-sm text-muted-foreground mb-3">{t.yourOrder}</p>
           <div className="space-y-3">
-            {orderInfo.items.map((item, index) => (
-              <OrderItemDisplay key={index} item={item} />
+            {orderInfo.items.map((item) => (
+              <OrderItemDisplay key={item.product_id} item={item} />
             ))}
           </div>
         </div>
@@ -180,6 +185,42 @@ function OrderDetailsCard({ orderInfo, isLoading, t }: OrderDetailsCardProps): R
   );
 }
 
+interface FetchOrderCallbacks {
+  onOrderUpdate: (order: OrderInfo) => void;
+  onComplete: () => void;
+}
+
+async function fetchOrderWithRetry(
+  url: string,
+  callbacks: FetchOrderCallbacks,
+  maxRetries = 5,
+  initialDelay = 1000
+): Promise<void> {
+  const { onOrderUpdate, onComplete } = callbacks;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.order) {
+        onOrderUpdate(data.order);
+        if (data.order.order_number) {
+          onComplete();
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Fetch attempt failed:', err);
+    }
+
+    if (attempt < maxRetries - 1) {
+      await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
+    }
+  }
+  onComplete();
+}
+
 function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): React.ReactElement {
   const { clearCart } = useCart();
   const searchParams = useSearchParams();
@@ -193,53 +234,22 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
   useEffect(() => {
     clearCart();
 
-    // Retry fetching order with exponential backoff (webhook might not have processed yet)
-    async function fetchOrderWithRetry(
-      fetchFn: () => Promise<Response>,
-      maxRetries = 5,
-      initialDelay = 1000
-    ): Promise<void> {
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          const res = await fetchFn();
-          const data = await res.json();
+    const callbacks: FetchOrderCallbacks = {
+      onOrderUpdate: setOrderInfo,
+      onComplete: () => setIsLoading(false),
+    };
 
-          if (data.order) {
-            // Check if order_number exists (webhook has processed)
-            if (data.order.order_number) {
-              setOrderInfo(data.order);
-              setIsLoading(false);
-              return;
-            }
-            // Order exists but no order_number yet - keep trying
-            setOrderInfo(data.order);
-          }
-        } catch (err) {
-          console.error('Fetch attempt failed:', err);
-        }
-
-        // Wait before next attempt (exponential backoff)
-        if (attempt < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
-        }
-      }
-      setIsLoading(false);
-    }
-
-    // Handle Stripe payments (session_id)
     if (sessionId) {
-      fetchOrderWithRetry(() => fetch('/api/checkout/session?session_id=' + sessionId));
+      fetchOrderWithRetry(`/api/checkout/session?session_id=${sessionId}`, callbacks);
       return;
     }
 
-    // Handle Vipps payments (reference)
     if (reference && provider === 'vipps') {
-      fetchOrderWithRetry(() => fetch('/api/orders/by-reference?reference=' + encodeURIComponent(reference)));
+      fetchOrderWithRetry(`/api/orders/by-reference?reference=${encodeURIComponent(reference)}`, callbacks);
       return;
     }
 
-    // No session_id or reference
-    Promise.resolve().then(() => setIsLoading(false));
+    setIsLoading(false);
   }, [clearCart, sessionId, reference, provider]);
 
   return (

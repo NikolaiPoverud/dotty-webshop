@@ -1,21 +1,22 @@
 import type { Metadata } from 'next';
-import type { Locale, ProductListItem, CollectionCard, TestimonialCard } from '@/types';
-import { Hero } from '@/components/landing/hero';
-import { FeaturedGrid } from '@/components/landing/featured-grid';
+import type { CollectionCard, Locale, ProductListItem, TestimonialCard } from '@/types';
+
 import { ArtistStatement } from '@/components/landing/artist-statement';
-import { Testimonials } from '@/components/landing/testimonials';
 import { ContactSection } from '@/components/landing/contact-section';
-import { createPublicClient } from '@/lib/supabase/public';
+import { FeaturedGrid } from '@/components/landing/featured-grid';
+import { Hero } from '@/components/landing/hero';
+import { Testimonials } from '@/components/landing/testimonials';
 import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/seo';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
+import { createPublicClient } from '@/lib/supabase/public';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
-// Revalidate every 60 seconds for fresh data with caching benefits
 export const revalidate = 60;
 
+const supabase = createPublicClient();
+
 async function getFeaturedProducts(): Promise<ProductListItem[]> {
-  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
     .select('id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry')
@@ -33,7 +34,6 @@ async function getFeaturedProducts(): Promise<ProductListItem[]> {
 }
 
 async function getCollections(): Promise<CollectionCard[]> {
-  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('collections')
     .select('id, name, slug, description')
@@ -50,7 +50,6 @@ async function getCollections(): Promise<CollectionCard[]> {
 }
 
 async function getTestimonials(): Promise<TestimonialCard[]> {
-  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('testimonials')
     .select('id, name, feedback, source')

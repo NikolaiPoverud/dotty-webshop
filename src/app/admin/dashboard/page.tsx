@@ -18,10 +18,11 @@ import {
   TrendingUp,
   Truck,
   Users,
+  type LucideIcon,
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
-import type { Order } from '@/types';
+import type { Order, OrderStatus } from '@/types';
 
 interface DashboardStats {
   salesThisMonth: number;
@@ -33,42 +34,117 @@ interface DashboardStats {
   recentOrders: Order[];
   pendingOrdersCount: number;
   unreadMessagesCount: number;
-  ordersByStatus: {
-    pending: number;
-    paid: number;
-    shipped: number;
-    delivered: number;
-  };
+  ordersByStatus: Record<OrderStatus, number>;
 }
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-warning/10 text-warning',
-  paid: 'bg-success/10 text-success',
-  shipped: 'bg-accent/10 text-accent',
-  delivered: 'bg-muted-foreground/10 text-muted-foreground',
+interface StatusConfig {
+  label: string;
+  subLabel: string;
+  color: string;
+  borderColor: string;
+  hoverColor: string;
+  icon: LucideIcon;
+}
+
+const STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
+  pending: {
+    label: 'Venter betaling',
+    subLabel: 'Venter',
+    color: 'text-warning',
+    borderColor: 'border-warning/20',
+    hoverColor: 'bg-warning/10 hover:bg-warning/20',
+    icon: Clock,
+  },
+  paid: {
+    label: 'Klar til sending',
+    subLabel: 'Betalt',
+    color: 'text-success',
+    borderColor: 'border-success/20',
+    hoverColor: 'bg-success/10 hover:bg-success/20',
+    icon: CreditCard,
+  },
+  shipped: {
+    label: 'Sendt',
+    subLabel: 'Sendt',
+    color: 'text-accent',
+    borderColor: 'border-accent/20',
+    hoverColor: 'bg-accent/10 hover:bg-accent/20',
+    icon: Truck,
+  },
+  delivered: {
+    label: 'Levert',
+    subLabel: 'Levert',
+    color: 'text-muted-foreground',
+    borderColor: 'border-border',
+    hoverColor: 'bg-muted hover:bg-muted-foreground/10',
+    icon: CheckCircle,
+  },
+  cancelled: {
+    label: 'Kansellert',
+    subLabel: 'Kansellert',
+    color: 'text-error',
+    borderColor: 'border-error/20',
+    hoverColor: 'bg-error/10 hover:bg-error/20',
+    icon: Clock,
+  },
 };
 
-const statusLabels: Record<string, string> = {
-  pending: 'Venter',
-  paid: 'Betalt',
-  shipped: 'Sendt',
-  delivered: 'Levert',
-};
+const ORDER_STATUS_DISPLAY: OrderStatus[] = ['pending', 'paid', 'shipped', 'delivered'];
 
-const MINUTE = 60 * 1000;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
+const QUICK_ACTIONS = [
+  { label: 'Nytt produkt', icon: Plus, href: '/admin/products/new', color: 'bg-primary hover:bg-primary-light text-background' },
+  { label: 'Se shoppen', icon: ExternalLink, href: '/no', external: true, color: 'bg-muted hover:bg-muted-foreground/20' },
+  { label: 'Test e-post', icon: Send, href: '/admin/email-test', color: 'bg-muted hover:bg-muted-foreground/20' },
+  { label: 'Rabattkode', icon: Tag, href: '/admin/discounts', color: 'bg-muted hover:bg-muted-foreground/20' },
+];
+
+const MS_PER_MINUTE = 60 * 1000;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
 
 function formatRelativeDate(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
 
-  if (diff < HOUR) {
-    return `${Math.round(diff / MINUTE)} min siden`;
+  if (diff < MS_PER_HOUR) {
+    return `${Math.round(diff / MS_PER_MINUTE)} min siden`;
   }
-  if (diff < DAY) {
-    return `${Math.round(diff / HOUR)} timer siden`;
+  if (diff < MS_PER_DAY) {
+    return `${Math.round(diff / MS_PER_HOUR)} timer siden`;
   }
-  return `${Math.round(diff / DAY)} dager siden`;
+  return `${Math.round(diff / MS_PER_DAY)} dager siden`;
+}
+
+function buildStatCards(stats: DashboardStats) {
+  return [
+    {
+      label: 'Salg denne måneden',
+      value: stats.salesThisMonth,
+      format: 'currency',
+      icon: TrendingUp,
+      change: `${stats.orderCountThisMonth} ordrer`,
+    },
+    {
+      label: 'Ordrer denne måneden',
+      value: stats.orderCountThisMonth,
+      format: 'number',
+      icon: ShoppingCart,
+      change: '',
+    },
+    {
+      label: 'Produkter',
+      value: stats.totalProducts,
+      format: 'number',
+      icon: Package,
+      change: `${stats.availableProducts} tilgjengelig`,
+    },
+    {
+      label: 'Nyhetsbrev-abonnenter',
+      value: stats.totalSubscribers,
+      format: 'number',
+      icon: Users,
+      change: stats.subscribersThisMonth > 0 ? `+${stats.subscribersThisMonth} denne måneden` : '',
+    },
+  ] as const;
 }
 
 export default function AdminDashboardPage(): React.ReactElement {
@@ -103,44 +179,7 @@ export default function AdminDashboardPage(): React.ReactElement {
     );
   }
 
-  const statCards = stats ? [
-    {
-      label: 'Salg denne måneden',
-      value: stats.salesThisMonth,
-      format: 'currency' as const,
-      icon: TrendingUp,
-      change: `${stats.orderCountThisMonth} ordrer`,
-    },
-    {
-      label: 'Ordrer denne måneden',
-      value: stats.orderCountThisMonth,
-      format: 'number' as const,
-      icon: ShoppingCart,
-      change: '',
-    },
-    {
-      label: 'Produkter',
-      value: stats.totalProducts,
-      format: 'number' as const,
-      icon: Package,
-      change: `${stats.availableProducts} tilgjengelig`,
-    },
-    {
-      label: 'Nyhetsbrev-abonnenter',
-      value: stats.totalSubscribers,
-      format: 'number' as const,
-      icon: Users,
-      change: stats.subscribersThisMonth > 0 ? `+${stats.subscribersThisMonth} denne måneden` : '',
-    },
-  ] : [];
-
-  // Quick actions for common tasks
-  const quickActions = [
-    { label: 'Nytt produkt', icon: Plus, href: '/admin/products/new', color: 'bg-primary hover:bg-primary-light text-background' },
-    { label: 'Se shoppen', icon: ExternalLink, href: '/no', external: true, color: 'bg-muted hover:bg-muted-foreground/20' },
-    { label: 'Test e-post', icon: Send, href: '/admin/email-test', color: 'bg-muted hover:bg-muted-foreground/20' },
-    { label: 'Rabattkode', icon: Tag, href: '/admin/discounts', color: 'bg-muted hover:bg-muted-foreground/20' },
-  ];
+  const statCards = stats ? buildStatCards(stats) : [];
 
   return (
     <div className="space-y-8">
@@ -160,7 +199,7 @@ export default function AdminDashboardPage(): React.ReactElement {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
-        {quickActions.map((action) => {
+        {QUICK_ACTIONS.map((action) => {
           const Icon = action.icon;
           const className = `flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${action.color}`;
 
@@ -197,54 +236,27 @@ export default function AdminDashboardPage(): React.ReactElement {
       {/* Order Status Overview */}
       {stats?.ordersByStatus && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Link
-            href="/admin/orders?status=pending"
-            className="bg-warning/10 border border-warning/20 rounded-lg p-4 hover:bg-warning/20 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-warning" />
-              <div>
-                <p className="text-2xl font-bold text-warning">{stats.ordersByStatus.pending}</p>
-                <p className="text-sm text-warning/80">Venter betaling</p>
-              </div>
-            </div>
-          </Link>
-          <Link
-            href="/admin/orders?status=paid"
-            className="bg-success/10 border border-success/20 rounded-lg p-4 hover:bg-success/20 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-success" />
-              <div>
-                <p className="text-2xl font-bold text-success">{stats.ordersByStatus.paid}</p>
-                <p className="text-sm text-success/80">Klar til sending</p>
-              </div>
-            </div>
-          </Link>
-          <Link
-            href="/admin/orders?status=shipped"
-            className="bg-accent/10 border border-accent/20 rounded-lg p-4 hover:bg-accent/20 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Truck className="w-5 h-5 text-accent" />
-              <div>
-                <p className="text-2xl font-bold text-accent">{stats.ordersByStatus.shipped}</p>
-                <p className="text-sm text-accent/80">Sendt</p>
-              </div>
-            </div>
-          </Link>
-          <Link
-            href="/admin/orders?status=delivered"
-            className="bg-muted border border-border rounded-lg p-4 hover:bg-muted-foreground/10 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-2xl font-bold">{stats.ordersByStatus.delivered}</p>
-                <p className="text-sm text-muted-foreground">Levert</p>
-              </div>
-            </div>
-          </Link>
+          {ORDER_STATUS_DISPLAY.map((status) => {
+            const config = STATUS_CONFIG[status];
+            const Icon = config.icon;
+            const count = stats.ordersByStatus[status] ?? 0;
+
+            return (
+              <Link
+                key={status}
+                href={`/admin/orders?status=${status}`}
+                className={`${config.hoverColor} border ${config.borderColor} rounded-lg p-4 transition-colors`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-5 h-5 ${config.color}`} />
+                  <div>
+                    <p className={`text-2xl font-bold ${config.color}`}>{count}</p>
+                    <p className={`text-sm ${config.color}/80`}>{config.label}</p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 
@@ -307,15 +319,15 @@ export default function AdminDashboardPage(): React.ReactElement {
                     {order.customer_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatRelativeDate(order.created_at!)}
+                    {formatRelativeDate(order.created_at)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">{formatPrice(order.total!)}</p>
+                  <p className="font-medium">{formatPrice(order.total)}</p>
                   <span
-                    className={`inline-block px-2 py-0.5 text-xs rounded ${statusColors[order.status!] || ''}`}
+                    className={`inline-block px-2 py-0.5 text-xs rounded ${STATUS_CONFIG[order.status]?.hoverColor ?? ''}`}
                   >
-                    {statusLabels[order.status!] || order.status}
+                    {STATUS_CONFIG[order.status]?.subLabel ?? order.status}
                   </span>
                 </div>
               </Link>

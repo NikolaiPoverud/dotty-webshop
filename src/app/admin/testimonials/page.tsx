@@ -26,8 +26,20 @@ const SOURCE_ICONS: Record<string, ReactNode> = {
   Instagram: <SiInstagram className="w-4 h-4" />,
   TikTok: <SiTiktok className="w-4 h-4" />,
   Facebook: <Facebook className="w-4 h-4" />,
-  default: <MessageCircle className="w-4 h-4" />,
 };
+
+const INPUT_CLASS =
+  'w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
+
+function getSourceIcon(source: string): ReactNode {
+  return SOURCE_ICONS[source] ?? <MessageCircle className="w-4 h-4" />;
+}
+
+function getSaveButtonText(isSaving: boolean, isEditing: boolean): string {
+  if (isSaving) return 'Lagrer...';
+  if (isEditing) return 'Lagre';
+  return 'Opprett';
+}
 
 export default function AdminTestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -59,7 +71,6 @@ export default function AdminTestimonialsPage() {
     fetchTestimonials();
   }, [fetchTestimonials]);
 
-  // Auto-clear errors after 5 seconds
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(null), 5000);
@@ -142,6 +153,8 @@ export default function AdminTestimonialsPage() {
     );
   }
 
+  const hasTestimonials = testimonials.length > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -166,12 +179,10 @@ export default function AdminTestimonialsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">
-          {error}
-        </div>
+        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error">{error}</div>
       )}
 
-      {testimonials.length === 0 && !error ? (
+      {!hasTestimonials && !error ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">Ingen tilbakemeldinger ennå.</p>
           <motion.button
@@ -185,68 +196,65 @@ export default function AdminTestimonialsPage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {testimonials.map((testimonial) => (
-            <div
-              key={testimonial.id}
-              className={`bg-muted rounded-lg p-4 ${!testimonial.is_active ? 'opacity-50' : ''}`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="cursor-grab">
-                  <GripVertical className="w-5 h-5 text-muted-foreground" />
-                </div>
+          {testimonials.map((testimonial) => {
+            const isActive = testimonial.is_active;
+            return (
+              <div
+                key={testimonial.id}
+                className={`bg-muted rounded-lg p-4 ${isActive ? '' : 'opacity-50'}`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="cursor-grab">
+                    <GripVertical className="w-5 h-5 text-muted-foreground" />
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  {/* Feedback */}
-                  <p className="text-foreground mb-2 line-clamp-2">&ldquo;{testimonial.feedback}&rdquo;</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-foreground mb-2 line-clamp-2">
+                      &ldquo;{testimonial.feedback}&rdquo;
+                    </p>
 
-                  {/* Name and Source */}
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="font-medium">{testimonial.name}</span>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      {SOURCE_ICONS[testimonial.source] || SOURCE_ICONS.default}
-                      {testimonial.source}
-                    </span>
-                    {!testimonial.is_active && (
-                      <span className="px-2 py-0.5 bg-warning/20 text-warning text-xs rounded">
-                        Skjult
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="font-medium">{testimonial.name}</span>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        {getSourceIcon(testimonial.source)}
+                        {testimonial.source}
                       </span>
-                    )}
+                      {!isActive && (
+                        <span className="px-2 py-0.5 bg-warning/20 text-warning text-xs rounded">
+                          Skjult
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => toggleActive(testimonial)}
+                      className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground"
+                      title={isActive ? 'Skjul' : 'Vis'}
+                    >
+                      {isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={() => openEditModal(testimonial)}
+                      className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteTestimonial(testimonial.id)}
+                      className="p-2 rounded-lg hover:bg-error/10 text-muted-foreground hover:text-error"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => toggleActive(testimonial)}
-                    className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground"
-                    title={testimonial.is_active ? 'Skjul' : 'Vis'}
-                  >
-                    {testimonial.is_active ? (
-                      <Eye className="w-4 h-4" />
-                    ) : (
-                      <EyeOff className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => openEditModal(testimonial)}
-                    className="p-2 rounded-lg hover:bg-muted-foreground/10 text-muted-foreground"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteTestimonial(testimonial.id)}
-                    className="p-2 rounded-lg hover:bg-error/10 text-muted-foreground hover:text-error"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <motion.div
@@ -264,7 +272,7 @@ export default function AdminTestimonialsPage() {
                 <textarea
                   value={formData.feedback}
                   onChange={(e) => setFormData({ ...formData, feedback: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  className={`${INPUT_CLASS} resize-none`}
                   rows={4}
                   placeholder="Helt nydelig bilde, tusen takk!"
                 />
@@ -277,7 +285,7 @@ export default function AdminTestimonialsPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className={INPUT_CLASS}
                     placeholder="Tuva"
                   />
                 </div>
@@ -287,7 +295,7 @@ export default function AdminTestimonialsPage() {
                   <select
                     value={formData.source}
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className={INPUT_CLASS}
                   >
                     {SOURCE_OPTIONS.map((source) => (
                       <option key={source} value={source}>
@@ -324,7 +332,7 @@ export default function AdminTestimonialsPage() {
                 disabled={isSaving || !formData.feedback || !formData.name}
                 className="flex-1 px-4 py-2 bg-primary text-background font-medium rounded-lg disabled:opacity-50"
               >
-                {isSaving ? 'Lagrer...' : editingTestimonial ? 'Lagre' : 'Opprett'}
+                {getSaveButtonText(isSaving, !!editingTestimonial)}
               </button>
             </div>
           </motion.div>

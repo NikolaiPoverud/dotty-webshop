@@ -24,7 +24,7 @@ export default function EmailTestPage(): React.ReactElement {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    const fetchEmailTypes = async () => {
+    async function fetchEmailTypes(): Promise<void> {
       try {
         const response = await fetch('/api/admin/test-email');
         const data = await response.json();
@@ -34,14 +34,14 @@ export default function EmailTestPage(): React.ReactElement {
       } catch (error) {
         console.error('Failed to fetch email types:', error);
       }
-    };
+    }
 
     fetchEmailTypes();
   }, []);
 
   const selectedTypeData = emailTypes.find((t) => t.id === selectedType);
 
-  const handleSend = async (e: React.FormEvent) => {
+  async function handleSend(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     if (!email || isLoading) return;
 
@@ -74,11 +74,20 @@ export default function EmailTestPage(): React.ReactElement {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  function selectEmailType(typeId: string): void {
+    setSelectedType(typeId);
+    setIsDropdownOpen(false);
+  }
+
+  const ResultIcon = result?.success ? CheckCircle : AlertCircle;
+  const resultColorClass = result?.success
+    ? 'bg-success/10 border-success/20 text-success'
+    : 'bg-error/10 border-error/20 text-error';
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Test E-post</h1>
         <p className="text-muted-foreground mt-1">
@@ -86,14 +95,12 @@ export default function EmailTestPage(): React.ReactElement {
         </p>
       </div>
 
-      {/* Main Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-muted rounded-xl p-6 border border-border"
       >
         <form onSubmit={handleSend} className="space-y-6">
-          {/* Email Type Selector */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">E-posttype</label>
             <div className="relative">
@@ -103,7 +110,9 @@ export default function EmailTestPage(): React.ReactElement {
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-left flex items-center justify-between"
               >
                 <span>{selectedTypeData?.label || 'Velg type...'}</span>
-                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`w-5 h-5 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                />
               </button>
 
               {isDropdownOpen && (
@@ -112,33 +121,28 @@ export default function EmailTestPage(): React.ReactElement {
                   animate={{ opacity: 1, y: 0 }}
                   className="absolute z-10 w-full mt-2 bg-background border border-border rounded-lg shadow-lg overflow-hidden"
                 >
-                  {emailTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedType(type.id);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-3 text-left hover:bg-muted transition-colors ${
-                        selectedType === type.id ? 'bg-primary/10 text-primary' : ''
-                      }`}
-                    >
-                      <p className="font-medium">{type.label}</p>
-                      <p className="text-sm text-muted-foreground truncate">{type.subject}</p>
-                    </button>
-                  ))}
+                  {emailTypes.map((type) => {
+                    const isSelected = selectedType === type.id;
+                    return (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => selectEmailType(type.id)}
+                        className={`w-full px-4 py-3 text-left hover:bg-muted transition-colors ${isSelected ? 'bg-primary/10 text-primary' : ''}`}
+                      >
+                        <p className="font-medium">{type.label}</p>
+                        <p className="text-sm text-muted-foreground truncate">{type.subject}</p>
+                      </button>
+                    );
+                  })}
                 </motion.div>
               )}
             </div>
             {selectedTypeData && (
-              <p className="text-xs text-muted-foreground">
-                Emne: {selectedTypeData.subject}
-              </p>
+              <p className="text-xs text-muted-foreground">Emne: {selectedTypeData.subject}</p>
             )}
           </div>
 
-          {/* Email Input */}
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium">
               Mottaker
@@ -157,27 +161,17 @@ export default function EmailTestPage(): React.ReactElement {
             </div>
           </div>
 
-          {/* Result Message */}
           {result && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex items-center gap-3 p-4 rounded-lg ${
-                result.success
-                  ? 'bg-success/10 border border-success/20 text-success'
-                  : 'bg-error/10 border border-error/20 text-error'
-              }`}
+              className={`flex items-center gap-3 p-4 rounded-lg border ${resultColorClass}`}
             >
-              {result.success ? (
-                <CheckCircle className="w-5 h-5 flex-shrink-0" />
-              ) : (
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              )}
+              <ResultIcon className="w-5 h-5 flex-shrink-0" />
               <p className="text-sm">{result.message}</p>
             </motion.div>
           )}
 
-          {/* Send Button */}
           <motion.button
             type="submit"
             disabled={isLoading || !email}
@@ -200,14 +194,21 @@ export default function EmailTestPage(): React.ReactElement {
         </form>
       </motion.div>
 
-      {/* Info Box */}
       <div className="bg-muted/50 rounded-xl p-6 border border-border">
         <h3 className="font-medium mb-3">Om test-e-poster</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
-          <li>• <strong>Test E-post</strong> - Enkel e-post for å verifisere at systemet fungerer</li>
-          <li>• <strong>Ordrebekreftelse</strong> - Eksempel på ordrebekreftelse med produkter og priser</li>
-          <li>• <strong>Sendingsvarsel</strong> - Eksempel på e-post når en ordre er sendt</li>
-          <li>• <strong>Nyhetsbrev-bekreftelse</strong> - Double opt-in e-post for nyhetsbrev</li>
+          <li>
+            <strong>Test E-post</strong> - Enkel e-post for å verifisere at systemet fungerer
+          </li>
+          <li>
+            <strong>Ordrebekreftelse</strong> - Eksempel på ordrebekreftelse med produkter og priser
+          </li>
+          <li>
+            <strong>Sendingsvarsel</strong> - Eksempel på e-post når en ordre er sendt
+          </li>
+          <li>
+            <strong>Nyhetsbrev-bekreftelse</strong> - Double opt-in e-post for nyhetsbrev
+          </li>
         </ul>
       </div>
     </div>

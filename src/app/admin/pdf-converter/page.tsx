@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle, Download, FileText, Loader2, Upload, X } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -32,41 +32,94 @@ function getStatusLabel(file: ConvertedFile): string {
   return STATUS_LABELS[file.status];
 }
 
+function generateFileId(fileName: string): string {
+  return `${fileName}-${Date.now()}-${Math.random()}`;
+}
+
+interface FileStatusIndicatorProps {
+  file: ConvertedFile;
+  onDownload: () => void;
+}
+
+function FileStatusIndicator({ file, onDownload }: FileStatusIndicatorProps): React.ReactElement | null {
+  switch (file.status) {
+    case 'converting':
+      return <Loader2 className="w-5 h-5 animate-spin text-primary" />;
+    case 'done':
+      return (
+        <>
+          <CheckCircle className="w-5 h-5 text-green-500" />
+          <button
+            onClick={onDownload}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Last ned"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+        </>
+      );
+    case 'error':
+      return <AlertCircle className="w-5 h-5 text-error" />;
+    default:
+      return null;
+  }
+}
+
+interface FilePreviewProps {
+  file: ConvertedFile;
+}
+
+function FilePreview({ file }: FilePreviewProps): React.ReactElement {
+  if (file.status === 'done' && file.pngDataUrl) {
+    return (
+      <img
+        src={file.pngDataUrl}
+        alt={file.originalName}
+        className="w-full h-full object-cover"
+      />
+    );
+  }
+  return <FileText className="w-8 h-8 text-muted-foreground" />;
+}
+
 export default function PdfConverterPage(): React.ReactElement {
   const [files, setFiles] = useState<ConvertedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const convertPdfToPng = async (file: File): Promise<string> => {
+  function updateFileStatus(
+    fileId: string,
+    updates: Partial<ConvertedFile>
+  ): void {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === fileId ? { ...f, ...updates } : f))
+    );
+  }
+
+  async function convertPdfToPng(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-    // Get first page (artwork PDFs typically have one page)
     const page = await pdf.getPage(1);
 
-    // High resolution for quality artwork
     const scale = 2;
     const viewport = page.getViewport({ scale });
 
-    // Create canvas
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
-    // Render PDF page to canvas
     await page.render({
       canvasContext: context,
       viewport: viewport,
       canvas: canvas,
     }).promise;
 
-    // Convert to PNG
     return canvas.toDataURL('image/png');
-  };
+  }
 
-  const processFiles = async (fileList: FileList) => {
+  async function processFiles(fileList: FileList): Promise<void> {
     const pdfFiles = Array.from(fileList).filter(
       (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
     );
@@ -74,14 +127,13 @@ export default function PdfConverterPage(): React.ReactElement {
     if (pdfFiles.length === 0) return;
 
     const newFiles: ConvertedFile[] = pdfFiles.map((f) => ({
-      id: `${f.name}-${Date.now()}-${Math.random()}`,
+      id: generateFileId(f.name),
       originalName: f.name,
       status: 'pending',
     }));
 
     setFiles((prev) => [...prev, ...newFiles]);
 
-    // Process files in parallel batches of 3
     const batchSize = 3;
     for (let i = 0; i < pdfFiles.length; i += batchSize) {
       const batch = pdfFiles.slice(i, i + batchSize);
@@ -90,67 +142,54 @@ export default function PdfConverterPage(): React.ReactElement {
       await Promise.all(
         batch.map(async (file, idx) => {
           const fileId = batchIds[idx].id;
-
-          setFiles((prev) =>
-            prev.map((f) => (f.id === fileId ? { ...f, status: 'converting' } : f))
-          );
+          updateFileStatus(fileId, { status: 'converting' });
 
           try {
             const pngDataUrl = await convertPdfToPng(file);
-            setFiles((prev) =>
-              prev.map((f) =>
-                f.id === fileId ? { ...f, status: 'done', pngDataUrl } : f
-              )
-            );
+            updateFileStatus(fileId, { status: 'done', pngDataUrl });
           } catch (error) {
             console.error('Conversion error:', error);
-            setFiles((prev) =>
-              prev.map((f) =>
-                f.id === fileId
-                  ? { ...f, status: 'error', error: 'Kunne ikke konvertere' }
-                  : f
-              )
-            );
+            updateFileStatus(fileId, { status: 'error', error: 'Kunne ikke konvertere' });
           }
         })
       );
     }
-  };
+  }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>): void {
     if (e.target.files) {
       processFiles(e.target.files);
     }
-  };
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  function handleDrop(e: React.DragEvent): void {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files) {
       processFiles(e.dataTransfer.files);
     }
-  }, []);
+  }
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  function handleDragOver(e: React.DragEvent): void {
     e.preventDefault();
     setIsDragging(true);
-  }, []);
+  }
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  function handleDragLeave(e: React.DragEvent): void {
     e.preventDefault();
     setIsDragging(false);
-  }, []);
+  }
 
-  const downloadFile = (file: ConvertedFile) => {
+  function downloadFile(file: ConvertedFile): void {
     if (!file.pngDataUrl) return;
 
     const link = document.createElement('a');
     link.download = file.originalName.replace('.pdf', '.png');
     link.href = file.pngDataUrl;
     link.click();
-  };
+  }
 
-  const downloadAll = async () => {
+  async function downloadAll(): Promise<void> {
     const doneFiles = files.filter((f) => f.status === 'done' && f.pngDataUrl);
     if (doneFiles.length === 0) return;
 
@@ -158,17 +197,14 @@ export default function PdfConverterPage(): React.ReactElement {
     try {
       const zip = new JSZip();
 
-      // Add each PNG to the zip
       for (const file of doneFiles) {
         if (!file.pngDataUrl) continue;
-        // Convert data URL to blob
         const response = await fetch(file.pngDataUrl);
         const blob = await response.blob();
-        const filename = file.originalName.replace('.pdf', '.png').replace('.PDF', '.png');
+        const filename = file.originalName.replace(/\.pdf$/i, '.png');
         zip.file(filename, blob);
       }
 
-      // Generate and download zip
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const link = document.createElement('a');
       link.download = `dotty-bilder-${Date.now()}.zip`;
@@ -180,18 +216,20 @@ export default function PdfConverterPage(): React.ReactElement {
     } finally {
       setIsZipping(false);
     }
-  };
+  }
 
-  const removeFile = (id: string) => {
+  function removeFile(id: string): void {
     setFiles((prev) => prev.filter((f) => f.id !== id));
-  };
+  }
 
-  const clearAll = () => {
+  function clearAll(): void {
     setFiles([]);
-  };
+  }
 
   const doneCount = files.filter((f) => f.status === 'done').length;
-  const pendingCount = files.filter((f) => f.status === 'pending' || f.status === 'converting').length;
+  const pendingCount = files.filter(
+    (f) => f.status === 'pending' || f.status === 'converting'
+  ).length;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -204,11 +242,9 @@ export default function PdfConverterPage(): React.ReactElement {
 
       {/* Upload Area */}
       <div
-        className={`
-          relative rounded-lg border-2 border-dashed p-12 text-center cursor-pointer
-          transition-colors mb-8
-          ${isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}
-        `}
+        className={`relative rounded-lg border-2 border-dashed p-12 text-center cursor-pointer transition-colors mb-8 ${
+          isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+        }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -278,20 +314,10 @@ export default function PdfConverterPage(): React.ReactElement {
             exit={{ opacity: 0, x: -20 }}
             className="flex items-center gap-4 p-4 mb-3 bg-card border border-border rounded-lg"
           >
-            {/* Preview/Icon */}
             <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-              {file.status === 'done' && file.pngDataUrl ? (
-                <img
-                  src={file.pngDataUrl}
-                  alt={file.originalName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <FileText className="w-8 h-8 text-muted-foreground" />
-              )}
+              <FilePreview file={file} />
             </div>
 
-            {/* File Info */}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{file.originalName}</p>
               <p className="text-sm text-muted-foreground">
@@ -299,26 +325,11 @@ export default function PdfConverterPage(): React.ReactElement {
               </p>
             </div>
 
-            {/* Status/Actions */}
             <div className="flex items-center gap-2">
-              {file.status === 'converting' && (
-                <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              )}
-              {file.status === 'done' && (
-                <>
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <button
-                    onClick={() => downloadFile(file)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                    title="Last ned"
-                  >
-                    <Download className="w-5 h-5" />
-                  </button>
-                </>
-              )}
-              {file.status === 'error' && (
-                <AlertCircle className="w-5 h-5 text-error" />
-              )}
+              <FileStatusIndicator
+                file={file}
+                onDownload={() => downloadFile(file)}
+              />
               <button
                 onClick={() => removeFile(file.id)}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"

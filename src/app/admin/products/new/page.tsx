@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+
 import { ImageUpload } from '@/components/admin/image-upload';
 import { SizeInput } from '@/components/admin/size-input';
 import { GalleryUpload } from '@/components/admin/gallery-upload';
@@ -15,28 +16,81 @@ import { SHIPPING_SIZE_INFO } from '@/types';
 
 const SHIPPING_SIZE_OPTIONS = Object.keys(SHIPPING_SIZE_INFO) as ShippingSize[];
 
-export default function NewProductPage() {
+const INPUT_CLASS = 'w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50';
+const INPUT_WITH_SUFFIX_CLASS = `${INPUT_CLASS} pr-16`;
+
+interface FormState {
+  title: string;
+  description: string;
+  price: string;
+  imageUrl: string;
+  imagePath: string;
+  productType: 'original' | 'print';
+  stockQuantity: string;
+  collectionId: string;
+  isAvailable: boolean;
+  isFeatured: boolean;
+  sizes: ProductSize[];
+  galleryImages: GalleryImage[];
+  shippingCost: string;
+  shippingSize: ShippingSize | '';
+  requiresInquiry: boolean;
+  year: string;
+}
+
+const initialFormState: FormState = {
+  title: '',
+  description: '',
+  price: '',
+  imageUrl: '',
+  imagePath: '',
+  productType: 'original',
+  stockQuantity: '1',
+  collectionId: '',
+  isAvailable: true,
+  isFeatured: false,
+  sizes: [],
+  galleryImages: [],
+  shippingCost: '',
+  shippingSize: '',
+  requiresInquiry: false,
+  year: '',
+};
+
+function buildSaveData(form: FormState): Record<string, unknown> {
+  const priceInOre = Math.round(parseFloat(form.price) * 100);
+  const shippingCostInOre = form.shippingCost ? Math.round(parseFloat(form.shippingCost) * 100) : null;
+
+  return {
+    title: form.title,
+    description: form.description,
+    price: priceInOre,
+    image_url: form.imageUrl,
+    image_path: form.imagePath,
+    product_type: form.productType,
+    stock_quantity: parseInt(form.stockQuantity, 10) || 1,
+    collection_id: form.collectionId || null,
+    is_available: form.isAvailable,
+    is_featured: form.isFeatured,
+    sizes: form.sizes,
+    gallery_images: form.galleryImages,
+    shipping_cost: shippingCostInOre,
+    shipping_size: form.shippingSize || null,
+    requires_inquiry: form.requiresInquiry,
+    year: form.year ? parseInt(form.year, 10) : null,
+  };
+}
+
+export default function NewProductPage(): React.ReactNode {
   const router = useRouter();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [form, setForm] = useState<FormState>(initialFormState);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [imagePath, setImagePath] = useState('');
-  const [productType, setProductType] = useState<'original' | 'print'>('original');
-  const [stockQuantity, setStockQuantity] = useState('1');
-  const [collectionId, setCollectionId] = useState('');
-  const [isAvailable, setIsAvailable] = useState(true);
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [sizes, setSizes] = useState<ProductSize[]>([]);
-  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const [shippingCost, setShippingCost] = useState('');
-  const [shippingSize, setShippingSize] = useState<ShippingSize | ''>('');
-  const [requiresInquiry, setRequiresInquiry] = useState(false);
-  const [year, setYear] = useState('');
+  function updateForm<K extends keyof FormState>(field: K, value: FormState[K]): void {
+    setForm(prev => ({ ...prev, [field]: value }));
+  }
 
   useEffect(() => {
     async function fetchCollections(): Promise<void> {
@@ -54,30 +108,10 @@ export default function NewProductPage() {
     setIsSubmitting(true);
 
     try {
-      const priceInOre = Math.round(parseFloat(price) * 100);
-      const shippingCostInOre = shippingCost ? Math.round(parseFloat(shippingCost) * 100) : null;
-
       const response = await adminFetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          price: priceInOre,
-          image_url: imageUrl,
-          image_path: imagePath,
-          product_type: productType,
-          stock_quantity: parseInt(stockQuantity, 10) || 1,
-          collection_id: collectionId || null,
-          is_available: isAvailable,
-          is_featured: isFeatured,
-          sizes,
-          gallery_images: galleryImages,
-          shipping_cost: shippingCostInOre,
-          shipping_size: shippingSize || null,
-          requires_inquiry: requiresInquiry,
-          year: year ? parseInt(year, 10) : null,
-        }),
+        body: JSON.stringify(buildSaveData(form)),
       });
 
       const result = await response.json();
@@ -97,13 +131,29 @@ export default function NewProductPage() {
   }
 
   function handleImageChange(url: string, path: string): void {
-    setImageUrl(url);
-    setImagePath(path);
+    setForm(prev => ({ ...prev, imageUrl: url, imagePath: path }));
   }
 
   function handleImageRemove(): void {
-    setImageUrl('');
-    setImagePath('');
+    setForm(prev => ({ ...prev, imageUrl: '', imagePath: '' }));
+  }
+
+  function handleProductTypeChange(type: 'original' | 'print'): void {
+    if (type === 'original') {
+      setForm(prev => ({ ...prev, productType: type, stockQuantity: '1' }));
+    } else {
+      updateForm('productType', type);
+    }
+  }
+
+  function handleStockChange(value: string): void {
+    setForm(prev => {
+      const newState = { ...prev, stockQuantity: value };
+      if (parseInt(value, 10) === 0) {
+        newState.isAvailable = false;
+      }
+      return newState;
+    });
   }
 
   return (
@@ -126,8 +176,8 @@ export default function NewProductPage() {
           <div className="space-y-4">
             <label className="block text-sm font-medium">Produktbilde</label>
             <ImageUpload
-              value={imageUrl}
-              path={imagePath}
+              value={form.imageUrl}
+              path={form.imagePath}
               onChange={handleImageChange}
               onRemove={handleImageRemove}
             />
@@ -140,9 +190,9 @@ export default function NewProductPage() {
                 id="title"
                 type="text"
                 required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                value={form.title}
+                onChange={(e) => updateForm('title', e.target.value)}
+                className={INPUT_CLASS}
                 placeholder="Navn pa kunstverket"
               />
             </div>
@@ -151,10 +201,10 @@ export default function NewProductPage() {
               <label htmlFor="description" className="block text-sm font-medium">Beskrivelse</label>
               <textarea
                 id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={form.description}
+                onChange={(e) => updateForm('description', e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                className={`${INPUT_CLASS} resize-none`}
                 placeholder="Beskriv kunstverket..."
               />
             </div>
@@ -169,27 +219,25 @@ export default function NewProductPage() {
                     required
                     min="0"
                     step="1"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
+                    value={form.price}
+                    onChange={(e) => updateForm('price', e.target.value)}
+                    className={INPUT_WITH_SUFFIX_CLASS}
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    kr
-                  </span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">kr</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="year" className="block text-sm font-medium">År</label>
+                <label htmlFor="year" className="block text-sm font-medium">Ar</label>
                 <input
                   id="year"
                   type="number"
                   min="1900"
                   max={new Date().getFullYear()}
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value={form.year}
+                  onChange={(e) => updateForm('year', e.target.value)}
+                  className={INPUT_CLASS}
                   placeholder={new Date().getFullYear().toString()}
                 />
               </div>
@@ -203,11 +251,8 @@ export default function NewProductPage() {
                     type="radio"
                     name="productType"
                     value="original"
-                    checked={productType === 'original'}
-                    onChange={() => {
-                      setProductType('original');
-                      setStockQuantity('1');
-                    }}
+                    checked={form.productType === 'original'}
+                    onChange={() => handleProductTypeChange('original')}
                     className="w-4 h-4 text-primary"
                   />
                   <span>Maleri</span>
@@ -217,8 +262,8 @@ export default function NewProductPage() {
                     type="radio"
                     name="productType"
                     value="print"
-                    checked={productType === 'print'}
-                    onChange={() => setProductType('print')}
+                    checked={form.productType === 'print'}
+                    onChange={() => handleProductTypeChange('print')}
                     className="w-4 h-4 text-primary"
                   />
                   <span>Prints</span>
@@ -230,9 +275,9 @@ export default function NewProductPage() {
               <label htmlFor="collection" className="block text-sm font-medium">Samling</label>
               <select
                 id="collection"
-                value={collectionId}
-                onChange={(e) => setCollectionId(e.target.value)}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                value={form.collectionId}
+                onChange={(e) => updateForm('collectionId', e.target.value)}
+                className={INPUT_CLASS}
               >
                 <option value="">Ingen samling</option>
                 {collections.map((collection) => (
@@ -244,14 +289,14 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="shippingSize" className="block text-sm font-medium">Fraktstørrelse</label>
+              <label htmlFor="shippingSize" className="block text-sm font-medium">Fraktstorrelse</label>
               <select
                 id="shippingSize"
-                value={shippingSize}
-                onChange={(e) => setShippingSize(e.target.value as ShippingSize | '')}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                value={form.shippingSize}
+                onChange={(e) => updateForm('shippingSize', e.target.value as ShippingSize | '')}
+                className={INPUT_CLASS}
               >
-                <option value="">Velg størrelse...</option>
+                <option value="">Velg storrelse...</option>
                 {SHIPPING_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size}>
                     {SHIPPING_SIZE_INFO[size].label} - {SHIPPING_SIZE_INFO[size].description}
@@ -268,63 +313,54 @@ export default function NewProductPage() {
                   type="number"
                   min="0"
                   step="1"
-                  value={shippingCost}
-                  onChange={(e) => setShippingCost(e.target.value)}
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 pr-16"
+                  value={form.shippingCost}
+                  onChange={(e) => updateForm('shippingCost', e.target.value)}
+                  className={INPUT_WITH_SUFFIX_CLASS}
                   placeholder="0"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  kr
-                </span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">kr</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                La stå tom for å bruke samlingens fraktpris. Sett til 0 for gratis frakt.
+                La sta tom for a bruke samlingens fraktpris. Sett til 0 for gratis frakt.
               </p>
             </div>
 
-            {productType === 'print' && (
+            {form.productType === 'print' && (
               <div className="space-y-2">
                 <label htmlFor="stock" className="block text-sm font-medium">
-                  Antall på lager
+                  Antall pa lager
                 </label>
                 <input
                   id="stock"
                   type="number"
                   min="0"
                   step="1"
-                  value={stockQuantity}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setStockQuantity(val);
-                    // Auto-set unavailable when stock is 0
-                    if (parseInt(val, 10) === 0) {
-                      setIsAvailable(false);
-                    }
-                  }}
+                  value={form.stockQuantity}
+                  onChange={(e) => handleStockChange(e.target.value)}
                   onWheel={(e) => e.currentTarget.blur()}
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className={INPUT_CLASS}
                   placeholder="1"
                 />
-                <p className="text-xs text-muted-foreground">Sett til 0 for å markere som utsolgt</p>
+                <p className="text-xs text-muted-foreground">Sett til 0 for a markere som utsolgt</p>
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium">Størrelser</label>
-              <SizeInput value={sizes} onChange={setSizes} />
+              <label className="block text-sm font-medium">Storrelser</label>
+              <SizeInput value={form.sizes} onChange={(sizes) => updateForm('sizes', sizes)} />
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">Galleri (flere bilder)</label>
-              <GalleryUpload value={galleryImages} onChange={setGalleryImages} />
+              <GalleryUpload value={form.galleryImages} onChange={(images) => updateForm('galleryImages', images)} />
             </div>
 
             <div className="space-y-4">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={isAvailable}
-                  onChange={(e) => setIsAvailable(e.target.checked)}
+                  checked={form.isAvailable}
+                  onChange={(e) => updateForm('isAvailable', e.target.checked)}
                   className="w-5 h-5 rounded text-primary"
                 />
                 <span>Tilgjengelig for salg</span>
@@ -332,8 +368,8 @@ export default function NewProductPage() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={isFeatured}
-                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  checked={form.isFeatured}
+                  onChange={(e) => updateForm('isFeatured', e.target.checked)}
                   className="w-5 h-5 rounded text-primary"
                 />
                 <span>Fremhevet pa forsiden</span>
@@ -341,14 +377,14 @@ export default function NewProductPage() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={requiresInquiry}
-                  onChange={(e) => setRequiresInquiry(e.target.checked)}
+                  checked={form.requiresInquiry}
+                  onChange={(e) => updateForm('requiresInquiry', e.target.checked)}
                   className="w-5 h-5 rounded text-primary"
                 />
                 <div>
-                  <span>Krever forespørsel</span>
+                  <span>Krever foresporsel</span>
                   <p className="text-xs text-muted-foreground">
-                    Kunden kan ikke kjøpe direkte - må sende forespørsel
+                    Kunden kan ikke kjope direkte - ma sende foresporsel
                   </p>
                 </div>
               </label>
@@ -365,7 +401,7 @@ export default function NewProductPage() {
           </Link>
           <motion.button
             type="submit"
-            disabled={isSubmitting || !title || !price}
+            disabled={isSubmitting || !form.title || !form.price}
             className="flex items-center gap-2 px-6 py-3 bg-primary text-background font-medium rounded-lg hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

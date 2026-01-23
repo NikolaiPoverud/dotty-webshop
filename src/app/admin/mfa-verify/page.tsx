@@ -1,55 +1,56 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Shield, Loader2, AlertCircle, HelpCircle } from 'lucide-react';
-import Link from 'next/link';
+
+import { Logo } from '@/components/ui/logo';
 import { createClient } from '@/lib/supabase/client';
 
-export default function MFAVerifyPage(): React.ReactNode {
+export default function MFAVerifyPage(): ReactNode {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [factorId, setFactorId] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const redirectTo = searchParams.get('redirect') || '/admin/dashboard';
 
-  const getFactorId = useCallback(async () => {
-    const supabase = createClient();
-
-    const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
-
-    if (factorsError) {
-      console.error('Error listing factors:', factorsError);
-      router.push('/admin/login');
-      return;
-    }
-
-    const totpFactors = factorsData?.totp || [];
-    const verifiedFactor = totpFactors.find(f => f.status === 'verified');
-
-    if (!verifiedFactor) {
-      router.push(redirectTo);
-      return;
-    }
-
-    setFactorId(verifiedFactor.id);
-  }, [router, redirectTo]);
-
   useEffect(() => {
-    getFactorId();
-  }, [getFactorId]);
+    async function loadFactorId(): Promise<void> {
+      const supabase = createClient();
+      const { data, error: factorsError } = await supabase.auth.mfa.listFactors();
+
+      if (factorsError) {
+        console.error('Error listing factors:', factorsError);
+        router.push('/admin/login');
+        return;
+      }
+
+      const verifiedFactor = data?.totp?.find(f => f.status === 'verified');
+
+      if (!verifiedFactor) {
+        router.push(redirectTo);
+        return;
+      }
+
+      setFactorId(verifiedFactor.id);
+    }
+
+    loadFactorId();
+  }, [router, redirectTo]);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const verifyCode = useCallback(async () => {
+  async function verifyCode(): Promise<void> {
     if (code.length !== 6 || !factorId || isVerifying) return;
 
     setError(null);
@@ -62,9 +63,7 @@ export default function MFAVerifyPage(): React.ReactNode {
         factorId,
       });
 
-      if (challengeError) {
-        throw challengeError;
-      }
+      if (challengeError) throw challengeError;
 
       const { error: verifyError } = await supabase.auth.mfa.verify({
         factorId,
@@ -72,9 +71,7 @@ export default function MFAVerifyPage(): React.ReactNode {
         code,
       });
 
-      if (verifyError) {
-        throw verifyError;
-      }
+      if (verifyError) throw verifyError;
 
       router.push(redirectTo);
       router.refresh();
@@ -86,24 +83,25 @@ export default function MFAVerifyPage(): React.ReactNode {
     } finally {
       setIsVerifying(false);
     }
-  }, [code, factorId, isVerifying, router, redirectTo]);
+  }
 
   useEffect(() => {
     if (code.length === 6) {
       verifyCode();
     }
-  }, [code, verifyCode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
 
-  const handleCodeChange = (value: string) => {
+  function handleCodeChange(value: string): void {
     const cleaned = value.replace(/\D/g, '').slice(0, 6);
     setCode(cleaned);
-  };
+  }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: React.KeyboardEvent): void {
     if (e.key === 'Enter' && code.length === 6) {
       verifyCode();
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -113,10 +111,7 @@ export default function MFAVerifyPage(): React.ReactNode {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">
-            <span className="text-primary">Dotty.</span>
-            <span>.</span>
-          </h1>
+          <Logo size="md" className="mx-auto" />
           <p className="text-muted-foreground mt-2">Verifisering</p>
         </div>
 

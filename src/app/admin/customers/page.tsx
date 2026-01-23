@@ -1,5 +1,6 @@
 'use client';
 
+import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -37,6 +38,86 @@ interface CustomerStats {
 interface SendResult {
   success: boolean;
   message: string;
+}
+
+interface StatCardProps {
+  icon: LucideIcon;
+  value: number;
+  label: string;
+  colorClass: string;
+  delay?: number;
+}
+
+function StatCard({ icon: Icon, value, label, colorClass, delay = 0 }: StatCardProps): React.ReactNode {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="bg-muted rounded-xl p-6 border border-border"
+    >
+      <div className="flex items-center gap-3">
+        <div className={`p-3 ${colorClass} rounded-lg`}>
+          <Icon className="w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-2xl font-bold">{value}</p>
+          <p className="text-sm text-muted-foreground">{label}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+interface ToolbarButtonProps {
+  onClick: () => void;
+  icon: LucideIcon;
+  title: string;
+}
+
+function ToolbarButton({ onClick, icon: Icon, title }: ToolbarButtonProps): React.ReactNode {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="p-2 hover:bg-muted rounded transition-colors"
+      title={title}
+    >
+      <Icon className="w-4 h-4" />
+    </button>
+  );
+}
+
+function SourceBadge({ source }: { source: Customer['source'] }): React.ReactNode {
+  const isOrder = source === 'order';
+  const Icon = isOrder ? ShoppingBag : Newspaper;
+  const label = isOrder ? 'Ordre' : 'Nyhetsbrev';
+  const colorClass = isOrder ? 'bg-success/10 text-success' : 'bg-accent/10 text-accent';
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${colorClass}`}>
+      <Icon className="w-3 h-3" />
+      {label}
+    </span>
+  );
+}
+
+function ResultMessage({ result }: { result: SendResult }): React.ReactNode {
+  const Icon = result.success ? CheckCircle : AlertCircle;
+  const colorClass = result.success
+    ? 'bg-success/10 border-success/20 text-success'
+    : 'bg-error/10 border-error/20 text-error';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex items-center gap-3 p-4 rounded-lg mb-6 border ${colorClass}`}
+    >
+      <Icon className="w-5 h-5 flex-shrink-0" />
+      <p className="text-sm">{result.message}</p>
+    </motion.div>
+  );
 }
 
 export default function CustomersPage() {
@@ -116,6 +197,13 @@ export default function CustomersPage() {
     }
   }
 
+  function handleInsertLink(): void {
+    const url = prompt('Skriv inn URL:');
+    if (url) {
+      applyFormatting('createLink', url);
+    }
+  }
+
   async function handleSendTest(): Promise<void> {
     if (!testEmail || !subject || !content) return;
 
@@ -185,55 +273,26 @@ export default function CustomersPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-muted rounded-xl p-6 border border-border"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Users className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats?.total || 0}</p>
-              <p className="text-sm text-muted-foreground">Totalt</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-muted rounded-xl p-6 border border-border"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-accent/10 rounded-lg">
-              <Newspaper className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats?.newsletterOnly || 0}</p>
-              <p className="text-sm text-muted-foreground">Nyhetsbrev</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-muted rounded-xl p-6 border border-border"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-success/10 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-success" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats?.orderCustomers || 0}</p>
-              <p className="text-sm text-muted-foreground">Kunder (ordre)</p>
-            </div>
-          </div>
-        </motion.div>
+        <StatCard
+          icon={Users}
+          value={stats?.total || 0}
+          label="Totalt"
+          colorClass="bg-primary/10 text-primary"
+        />
+        <StatCard
+          icon={Newspaper}
+          value={stats?.newsletterOnly || 0}
+          label="Nyhetsbrev"
+          colorClass="bg-accent/10 text-accent"
+          delay={0.1}
+        />
+        <StatCard
+          icon={ShoppingBag}
+          value={stats?.orderCustomers || 0}
+          label="Kunder (ordre)"
+          colorClass="bg-success/10 text-success"
+          delay={0.2}
+        />
       </div>
 
       {/* Email Composer */}
@@ -283,49 +342,11 @@ export default function CustomersPage() {
             <>
               {/* Formatting Toolbar */}
               <div className="flex flex-wrap gap-1 p-2 bg-background border border-border rounded-t-lg border-b-0">
-                <button
-                  type="button"
-                  onClick={() => applyFormatting('bold')}
-                  className="p-2 hover:bg-muted rounded transition-colors"
-                  title="Fet"
-                >
-                  <Bold className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyFormatting('italic')}
-                  className="p-2 hover:bg-muted rounded transition-colors"
-                  title="Kursiv"
-                >
-                  <Italic className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const url = prompt('Skriv inn URL:');
-                    if (url) applyFormatting('createLink', url);
-                  }}
-                  className="p-2 hover:bg-muted rounded transition-colors"
-                  title="Lenke"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyFormatting('insertUnorderedList')}
-                  className="p-2 hover:bg-muted rounded transition-colors"
-                  title="Punktliste"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyFormatting('formatBlock', 'h2')}
-                  className="p-2 hover:bg-muted rounded transition-colors"
-                  title="Overskrift"
-                >
-                  <Heading2 className="w-4 h-4" />
-                </button>
+                <ToolbarButton onClick={() => applyFormatting('bold')} icon={Bold} title="Fet" />
+                <ToolbarButton onClick={() => applyFormatting('italic')} icon={Italic} title="Kursiv" />
+                <ToolbarButton onClick={handleInsertLink} icon={LinkIcon} title="Lenke" />
+                <ToolbarButton onClick={() => applyFormatting('insertUnorderedList')} icon={List} title="Punktliste" />
+                <ToolbarButton onClick={() => applyFormatting('formatBlock', 'h2')} icon={Heading2} title="Overskrift" />
               </div>
 
               {/* Editor */}
@@ -359,24 +380,7 @@ export default function CustomersPage() {
         </div>
 
         {/* Result Message */}
-        {sendResult && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex items-center gap-3 p-4 rounded-lg mb-6 ${
-              sendResult.success
-                ? 'bg-success/10 border border-success/20 text-success'
-                : 'bg-error/10 border border-error/20 text-error'
-            }`}
-          >
-            {sendResult.success ? (
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            )}
-            <p className="text-sm">{sendResult.message}</p>
-          </motion.div>
-        )}
+        {sendResult && <ResultMessage result={sendResult} />}
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -467,20 +471,7 @@ export default function CustomersPage() {
                       {customer.name || '-'}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${
-                          customer.source === 'order'
-                            ? 'bg-success/10 text-success'
-                            : 'bg-accent/10 text-accent'
-                        }`}
-                      >
-                        {customer.source === 'order' ? (
-                          <ShoppingBag className="w-3 h-3" />
-                        ) : (
-                          <Newspaper className="w-3 h-3" />
-                        )}
-                        {customer.source === 'order' ? 'Ordre' : 'Nyhetsbrev'}
-                      </span>
+                      <SourceBadge source={customer.source} />
                     </td>
                   </tr>
                 ))}

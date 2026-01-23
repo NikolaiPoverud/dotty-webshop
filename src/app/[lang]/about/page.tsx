@@ -1,11 +1,12 @@
 'use client';
 
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { use } from 'react';
-import { ArrowRight } from 'lucide-react';
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
+
 import type { Locale } from '@/types';
 
 const content = {
@@ -23,7 +24,6 @@ const content = {
     ctaTitle: 'Se kunsten',
     ctaText: 'Utforsk samlingen og finn ditt nye favorittkunstverk.',
     ctaButton: 'Gå til shop',
-    followMe: 'Følg meg',
   },
   en: {
     title: 'About Dotty.',
@@ -39,7 +39,6 @@ const content = {
     ctaTitle: 'See the art',
     ctaText: 'Explore the collection and find your new favorite piece.',
     ctaButton: 'Go to shop',
-    followMe: 'Follow me',
   },
 } as const;
 
@@ -68,6 +67,11 @@ function ContentSection({ title, text, delay }: ContentSectionProps): React.Reac
   );
 }
 
+const SOCIAL_LINKS = [
+  { href: 'https://instagram.com/dottyartwork', icon: SiInstagram, label: '@dottyartwork' },
+  { href: 'https://tiktok.com/@dottyartwork', icon: SiTiktok, label: '@dottyartwork' },
+] as const;
+
 function DecorativeDots(): React.ReactElement {
   return (
     <motion.div
@@ -76,7 +80,7 @@ function DecorativeDots(): React.ReactElement {
       transition={{ delay: 0.5 }}
       className="flex justify-center gap-2 mb-16"
     >
-      {[0, 1, 2, 3, 4].map((i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <motion.div
           key={i}
           className="w-3 h-3 rounded-full bg-primary"
@@ -84,6 +88,30 @@ function DecorativeDots(): React.ReactElement {
           animate={{ scale: 1 }}
           transition={{ delay: 0.6 + i * 0.1 }}
         />
+      ))}
+    </motion.div>
+  );
+}
+
+function SocialLinks(): React.ReactElement {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.7 }}
+      className="flex justify-center gap-4"
+    >
+      {SOCIAL_LINKS.map(({ href, icon: Icon, label }) => (
+        <a
+          key={href}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Icon className="w-5 h-5" />
+          {label}
+        </a>
       ))}
     </motion.div>
   );
@@ -162,31 +190,7 @@ export default function AboutPage({
           </Link>
         </motion.section>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="flex justify-center gap-4"
-        >
-          <a
-            href="https://instagram.com/dottyartwork"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-          >
-            <SiInstagram className="w-5 h-5" />
-            @dottyartwork
-          </a>
-          <a
-            href="https://tiktok.com/@dottyartwork"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-          >
-            <SiTiktok className="w-5 h-5" />
-            @dottyartwork
-          </a>
-        </motion.div>
+        <SocialLinks />
       </div>
     </div>
   );

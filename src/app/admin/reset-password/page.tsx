@@ -1,13 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Loader2, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+
+import { Logo } from '@/components/ui/logo';
 import { createClient } from '@/lib/supabase/client';
 
-export default function ResetPasswordPage(): React.ReactNode {
+const ANIMATION_INITIAL = { opacity: 0, y: 20 };
+const ANIMATION_ANIMATE = { opacity: 1, y: 0 };
+
+function validatePassword(password: string): string | null {
+  if (password.length < 12) {
+    return 'Passordet må være minst 12 tegn';
+  }
+
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+
+  if (!hasUppercase || !hasLowercase || !hasNumber) {
+    return 'Passordet må inneholde store bokstaver, små bokstaver og tall';
+  }
+
+  if (!hasSpecial) {
+    return 'Passordet må inneholde minst ett spesialtegn (!@#$%^&* osv.)';
+  }
+
+  return null;
+}
+
+export default function ResetPasswordPage(): ReactNode {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,19 +43,16 @@ export default function ResetPasswordPage(): React.ReactNode {
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check if user has a valid recovery session
-    const checkSession = async () => {
+    async function checkSession(): Promise<void> {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-
-      // User should have a session from the recovery link
       setIsValidSession(!!session);
-    };
+    }
 
     checkSession();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setError(null);
 
@@ -38,25 +61,9 @@ export default function ResetPasswordPage(): React.ReactNode {
       return;
     }
 
-    // SEC-011: Enforce strong password policy
-    if (password.length < 12) {
-      setError('Passordet må være minst 12 tegn');
-      return;
-    }
-
-    // Check for complexity requirements
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
-
-    if (!hasUppercase || !hasLowercase || !hasNumber) {
-      setError('Passordet må inneholde store bokstaver, små bokstaver og tall');
-      return;
-    }
-
-    if (!hasSpecial) {
-      setError('Passordet må inneholde minst ett spesialtegn (!@#$%^&* osv.)');
+    const validationError = validatePassword(password);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -64,29 +71,21 @@ export default function ResetPasswordPage(): React.ReactNode {
 
     try {
       const supabase = createClient();
-
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password,
-      });
+      const { error: updateError } = await supabase.auth.updateUser({ password });
 
       if (updateError) {
         throw updateError;
       }
 
       setSuccess(true);
-
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        router.push('/admin/dashboard');
-      }, 2000);
+      setTimeout(() => router.push('/admin/dashboard'), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kunne ikke oppdatere passordet');
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  // Loading state while checking session
   if (isValidSession === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -95,13 +94,12 @@ export default function ResetPasswordPage(): React.ReactNode {
     );
   }
 
-  // Invalid or expired session
   if (!isValidSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={ANIMATION_INITIAL}
+          animate={ANIMATION_ANIMATE}
           className="w-full max-w-md text-center"
         >
           <div className="bg-muted rounded-xl p-8 border border-border">
@@ -124,13 +122,12 @@ export default function ResetPasswordPage(): React.ReactNode {
     );
   }
 
-  // Success state
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={ANIMATION_INITIAL}
+          animate={ANIMATION_ANIMATE}
           className="w-full max-w-md text-center"
         >
           <div className="bg-muted rounded-xl p-8 border border-border">
@@ -155,20 +152,15 @@ export default function ResetPasswordPage(): React.ReactNode {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={ANIMATION_INITIAL}
+        animate={ANIMATION_ANIMATE}
         className="w-full max-w-md"
       >
-        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">
-            <span className="text-primary">Dotty.</span>
-            <span>.</span>
-          </h1>
+          <Logo size="md" className="mx-auto" />
           <p className="text-muted-foreground mt-2">Sett nytt passord</p>
         </div>
 
-        {/* Reset Form */}
         <div className="bg-muted rounded-xl p-8 border border-border">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -233,7 +225,6 @@ export default function ResetPasswordPage(): React.ReactNode {
           </form>
         </div>
 
-        {/* Back to login link */}
         <p className="text-center mt-6 text-sm text-muted-foreground">
           <Link href="/admin/login" className="hover:text-primary transition-colors">
             Tilbake til innlogging

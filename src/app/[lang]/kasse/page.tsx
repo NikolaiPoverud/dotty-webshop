@@ -1,20 +1,21 @@
 'use client';
 
+import { use, useEffect, useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { useState, use, useEffect, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import type { Locale, ShippingOption } from '@/types';
+
 import { useCart } from '@/components/cart/cart-provider';
 import {
-  FormInput,
-  ErrorBanner,
-  DiscountCodeInput,
   ConsentCheckboxes,
+  DiscountCodeInput,
+  ErrorBanner,
+  FormInput,
   OrderSummary,
   ShippingSelector,
 } from '@/components/checkout';
 import { getCheckoutText, type CheckoutText } from '@/lib/i18n/cart-checkout-text';
+import type { Locale, ShippingOption } from '@/types';
 
 interface CheckoutPageProps {
   params: Promise<{ lang: string }>;
@@ -56,51 +57,54 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
 
   // SEC-002: Fetch checkout token when page loads
   useEffect(() => {
-    async function fetchCheckoutToken(): Promise<void> {
+    let isCancelled = false;
+
+    async function fetchToken(isRetry = false): Promise<void> {
       try {
         const response = await fetch('/api/checkout/token');
+        if (isCancelled) return;
+
         if (response.ok) {
           const data = await response.json();
           setCheckoutToken(data.token);
-        } else {
+        } else if (!isRetry) {
           console.error('Failed to fetch checkout token:', response.status);
-          // Retry once after a short delay
-          setTimeout(async () => {
-            const retryResponse = await fetch('/api/checkout/token');
-            if (retryResponse.ok) {
-              const data = await retryResponse.json();
-              setCheckoutToken(data.token);
-            }
-          }, 1000);
+          setTimeout(() => fetchToken(true), 1000);
         }
       } catch (err) {
-        console.error('Failed to fetch checkout token:', err);
+        if (!isCancelled) {
+          console.error('Failed to fetch checkout token:', err);
+        }
       }
     }
 
-    fetchCheckoutToken();
+    fetchToken();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (searchParams.get('canceled') === 'true') {
       setError(t.paymentCanceled);
+      return;
     }
 
-    // Handle Vipps errors
     const vippsError = searchParams.get('vipps_error');
-    if (vippsError) {
-      switch (vippsError) {
-        case 'canceled':
-          setError(t.paymentCanceled);
-          break;
-        case 'incomplete':
-          setError(t.vippsIncomplete || 'Vipps-betaling ble ikke fullført. Prøv igjen.');
-          break;
-        default:
-          setError(t.genericError);
-      }
+    if (!vippsError) return;
+
+    switch (vippsError) {
+      case 'canceled':
+        setError(t.paymentCanceled);
+        break;
+      case 'incomplete':
+        setError(t.vippsIncomplete ?? 'Vipps-betaling ble ikke fullført. Prøv igjen.');
+        break;
+      default:
+        setError(t.genericError);
     }
-  }, [searchParams, t.paymentCanceled, t.genericError]);
+  }, [searchParams, t.paymentCanceled, t.vippsIncomplete, t.genericError]);
 
   if (itemCount === 0) {
     return (
@@ -116,14 +120,15 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
   }
 
   function validateForm(): boolean {
-    if (!formData.name || !formData.email || !formData.phone ||
-        !formData.address || !formData.city || !formData.postalCode) {
+    const { name, email, phone, address, city, postalCode, country } = formData;
+    const requiredFieldsMissing = !name || !email || !phone || !address || !city || !postalCode;
+
+    if (requiredFieldsMissing) {
       setError(t.fillAllFields);
       return false;
     }
 
-    // Require shipping selection for Norwegian addresses
-    if (formData.country === 'Norge' && !selectedShipping) {
+    if (country === 'Norge' && !selectedShipping) {
       setError(t.shippingRequired);
       return false;
     }
@@ -208,8 +213,6 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
     }
   }
 
-  const errorDescription = error === t.paymentCanceled ? t.paymentCanceledDesc : undefined;
-
   return (
     <div className="min-h-screen pt-20 sm:pt-24 pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -220,7 +223,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
         {error && (
           <ErrorBanner
             error={error}
-            description={errorDescription}
+            description={error === t.paymentCanceled ? t.paymentCanceledDesc : undefined}
             onDismiss={() => setError(null)}
           />
         )}
@@ -311,7 +314,6 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
               />
             </form>
 
-            {/* Shipping Method Selection - Only for Norwegian addresses */}
             {formData.country === 'Norge' && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold mb-4">{t.shippingMethod}</h2>

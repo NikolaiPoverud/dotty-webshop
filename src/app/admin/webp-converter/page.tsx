@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Download, Trash2, Image as ImageIcon, Loader2, CheckCircle } from 'lucide-react';
+import { CheckCircle, Download, Image as ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 
 interface ConvertedImage {
   id: string;
@@ -33,7 +33,17 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
-export default function WebPConverterPage() {
+function getSavingsLabel(savings: number): string {
+  if (savings > 0) return `-${savings}%`;
+  return `+${Math.abs(savings)}%`;
+}
+
+function getSavingsClassName(savings: number): string {
+  if (savings > 0) return 'bg-success/10 text-success';
+  return 'bg-error/10 text-error';
+}
+
+export default function WebPConverterPage(): React.ReactElement {
   const [images, setImages] = useState<ConvertedImage[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [quality, setQuality] = useState(0.85);
@@ -149,8 +159,8 @@ export default function WebPConverterPage() {
     setImages([]);
   }
 
-  const totalOriginalSize = images.reduce((acc, img) => acc + img.originalSize, 0);
-  const totalWebPSize = images.reduce((acc, img) => acc + img.webpSize, 0);
+  const totalOriginalSize = images.reduce((sum, img) => sum + img.originalSize, 0);
+  const totalWebPSize = images.reduce((sum, img) => sum + img.webpSize, 0);
   const totalSavings = totalOriginalSize > 0
     ? Math.round((1 - totalWebPSize / totalOriginalSize) * 100)
     : 0;
@@ -165,28 +175,29 @@ export default function WebPConverterPage() {
         </p>
       </div>
 
-      {/* Quality Selector */}
       <div className="bg-muted rounded-xl p-6 border border-border">
         <h2 className="font-semibold mb-4">Quality Setting</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {QUALITY_PRESETS.map(preset => (
-            <button
-              key={preset.value}
-              onClick={() => setQuality(preset.value)}
-              className={`p-3 rounded-lg border-2 text-left transition-all ${
-                quality === preset.value
-                  ? 'border-primary bg-primary/10'
-                  : 'border-border hover:border-primary/50'
-              }`}
-            >
-              <div className="font-medium text-sm">{preset.label}</div>
-              <div className="text-xs text-muted-foreground mt-1">{preset.description}</div>
-            </button>
-          ))}
+          {QUALITY_PRESETS.map(preset => {
+            const isSelected = quality === preset.value;
+            return (
+              <button
+                key={preset.value}
+                onClick={() => setQuality(preset.value)}
+                className={`p-3 rounded-lg border-2 text-left transition-all ${
+                  isSelected
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="font-medium text-sm">{preset.label}</div>
+                <div className="text-xs text-muted-foreground mt-1">{preset.description}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Upload Area */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -222,14 +233,12 @@ export default function WebPConverterPage() {
         </div>
       </div>
 
-      {/* Results */}
       {images.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          {/* Summary Stats */}
           <div className="bg-muted rounded-xl p-6 border border-border">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-6">
@@ -267,7 +276,6 @@ export default function WebPConverterPage() {
             </div>
           </div>
 
-          {/* Image List */}
           <div className="grid gap-3">
             {images.map(image => (
               <motion.div
@@ -276,7 +284,6 @@ export default function WebPConverterPage() {
                 animate={{ opacity: 1, x: 0 }}
                 className="flex items-center gap-4 p-4 bg-muted rounded-lg border border-border"
               >
-                {/* Preview */}
                 <div className="relative w-16 h-16 rounded-md overflow-hidden bg-background flex-shrink-0">
                   <img
                     src={image.previewUrl}
@@ -285,22 +292,18 @@ export default function WebPConverterPage() {
                   />
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{image.originalName}</p>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                     <span>{formatBytes(image.originalSize)}</span>
                     <span>→</span>
                     <span className="text-primary font-medium">{formatBytes(image.webpSize)}</span>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      image.savings > 0 ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
-                    }`}>
-                      {image.savings > 0 ? `-${image.savings}%` : `+${Math.abs(image.savings)}%`}
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSavingsClassName(image.savings)}`}>
+                      {getSavingsLabel(image.savings)}
                     </span>
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleDownload(image)}
@@ -323,7 +326,6 @@ export default function WebPConverterPage() {
         </motion.div>
       )}
 
-      {/* Tips */}
       <div className="bg-muted/50 rounded-xl p-6 border border-border">
         <h3 className="font-semibold flex items-center gap-2 mb-3">
           <ImageIcon className="w-5 h-5 text-primary" />

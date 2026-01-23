@@ -1,20 +1,32 @@
 'use client';
 
 import { motion, Reorder, useDragControls } from 'framer-motion';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Loader2, RefreshCw, GripVertical, CheckSquare, Square, Edit3, Eye, EyeOff } from 'lucide-react';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Product, Collection } from '@/types';
-import { formatPrice } from '@/lib/utils';
-import { adminFetch } from '@/lib/admin-fetch';
+import Link from 'next/link';
+import { CheckSquare, Edit3, Eye, EyeOff, GripVertical, Loader2, Pencil, Plus, RefreshCw, Square, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { MassEditModal } from '@/components/admin/mass-edit-modal';
+import { adminFetch } from '@/lib/admin-fetch';
+import { formatPrice } from '@/lib/utils';
+import type { Collection, Product } from '@/types';
 
 const PLACEHOLDER_GRADIENTS = [
   'from-primary to-accent',
   'from-accent to-accent-2',
   'from-accent-2 to-accent-3',
 ];
+
+const GRID_COLUMNS = 'grid-cols-[auto_auto_60px_1fr_100px_100px_80px_60px_100px_100px]';
+
+function getProductTypeLabel(type: Product['product_type']): string {
+  return type === 'original' ? 'Maleri' : 'Prints';
+}
+
+function isProductAvailable(product: Product): boolean {
+  const hasStock = product.stock_quantity === null || product.stock_quantity > 0;
+  return product.is_available && hasStock;
+}
 
 interface DraggableProductRowProps {
   product: Product;
@@ -35,7 +47,7 @@ function DraggableProductRow({ product, gradientIndex, onDelete, onToggleVisibil
       value={product}
       dragListener={false}
       dragControls={dragControls}
-      className={`grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_60px_100px_100px] gap-4 items-center px-6 py-4 hover:bg-muted-foreground/5 border-b border-border cursor-default transition-colors ${
+      className={`grid ${GRID_COLUMNS} gap-4 items-center px-6 py-4 hover:bg-muted-foreground/5 border-b border-border cursor-default transition-colors ${
         isSelected ? 'bg-primary/10' : 'bg-muted'
       } ${!product.is_public ? 'opacity-60' : ''}`}
       whileDrag={{
@@ -86,18 +98,16 @@ function DraggableProductRow({ product, gradientIndex, onDelete, onToggleVisibil
 
       <div>
         <span className="px-2 py-1 bg-background text-xs uppercase rounded">
-          {product.product_type === 'original' ? 'Maleri' : 'Prints'}
+          {getProductTypeLabel(product.product_type)}
         </span>
       </div>
 
       <div className="font-medium">{formatPrice(product.price)}</div>
 
       <div>
-        {product.product_type === 'original' ? (
-          <span className="text-muted-foreground">-</span>
-        ) : (
-          <span>{product.stock_quantity}</span>
-        )}
+        <span className={product.product_type === 'original' ? 'text-muted-foreground' : ''}>
+          {product.product_type === 'original' ? '-' : product.stock_quantity}
+        </span>
       </div>
 
       <div>
@@ -115,19 +125,15 @@ function DraggableProductRow({ product, gradientIndex, onDelete, onToggleVisibil
       </div>
 
       <div>
-        {(() => {
-          const hasStock = product.stock_quantity === null || product.stock_quantity > 0;
-          const isAvailable = product.is_available && hasStock;
-          return (
-            <span
-              className={`px-2 py-1 text-xs rounded ${
-                isAvailable ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
-              }`}
-            >
-              {isAvailable ? 'Tilgjengelig' : 'Solgt'}
-            </span>
-          );
-        })()}
+        {isProductAvailable(product) ? (
+          <span className="px-2 py-1 text-xs rounded bg-success/10 text-success">
+            Tilgjengelig
+          </span>
+        ) : (
+          <span className="px-2 py-1 text-xs rounded bg-error/10 text-error">
+            Solgt
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2">
@@ -425,7 +431,7 @@ export default function AdminProductsPage() {
         </div>
       ) : (
         <div className="bg-muted rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[auto_auto_60px_1fr_100px_100px_80px_60px_100px_100px] gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium">
+          <div className={`grid ${GRID_COLUMNS} gap-4 items-center px-6 py-3 bg-muted-foreground/10 text-sm font-medium`}>
             <button
               onClick={selectAll}
               className="p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -470,9 +476,8 @@ export default function AdminProductsPage() {
 
           <div className="px-6 py-3 bg-muted-foreground/5 text-xs text-muted-foreground">
             {selectionMode
-              ? `${selectedIds.size} produkt${selectedIds.size !== 1 ? 'er' : ''} valgt - klikk "Masseredigering" for å endre`
-              : 'Dra produktene for å endre rekkefølge i butikken'
-            }
+              ? `${selectedIds.size} produkt${selectedIds.size === 1 ? '' : 'er'} valgt - klikk "Masseredigering" for å endre`
+              : 'Dra produktene for å endre rekkefølge i butikken'}
           </div>
         </div>
       )}

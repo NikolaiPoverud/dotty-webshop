@@ -20,9 +20,18 @@ import {
   ShoppingCart,
   Trash2,
   TrendingUp,
-  XCircle,
+  type LucideIcon,
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-fetch';
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleString('nb-NO', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 interface GDPRStats {
   cookieConsent: {
@@ -70,14 +79,23 @@ interface GDPRStats {
   lastUpdated: string;
 }
 
+type StatCardColor = 'primary' | 'success' | 'warning' | 'error';
+
 interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: typeof Shield;
+  icon: LucideIcon;
   trend?: { value: number; label: string };
-  color?: 'primary' | 'success' | 'warning' | 'error';
+  color?: StatCardColor;
 }
+
+const STAT_CARD_COLORS: Record<StatCardColor, string> = {
+  primary: 'bg-primary/10 text-primary',
+  success: 'bg-green-500/10 text-green-500',
+  warning: 'bg-yellow-500/10 text-yellow-500',
+  error: 'bg-red-500/10 text-red-500',
+};
 
 function StatCard({
   title,
@@ -87,13 +105,6 @@ function StatCard({
   trend,
   color = 'primary',
 }: StatCardProps): React.ReactElement {
-  const colorClasses = {
-    primary: 'bg-primary/10 text-primary',
-    success: 'bg-green-500/10 text-green-500',
-    warning: 'bg-yellow-500/10 text-yellow-500',
-    error: 'bg-red-500/10 text-red-500',
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -101,9 +112,7 @@ function StatCard({
       className="bg-muted rounded-xl p-6"
     >
       <div className="flex items-start justify-between">
-        <div
-          className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[color]}`}
-        >
+        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${STAT_CARD_COLORS[color]}`}>
           <Icon className="w-6 h-6" />
         </div>
         {trend && (
@@ -124,7 +133,7 @@ function StatCard({
   );
 }
 
-const progressBarColors: Record<string, string> = {
+const PROGRESS_BAR_COLORS: Record<StatCardColor, string> = {
   primary: 'bg-primary',
   success: 'bg-green-500',
   warning: 'bg-yellow-500',
@@ -134,12 +143,10 @@ const progressBarColors: Record<string, string> = {
 interface ProgressBarProps {
   value: number;
   label: string;
-  color?: keyof typeof progressBarColors;
+  color?: StatCardColor;
 }
 
 function ProgressBar({ value, label, color = 'primary' }: ProgressBarProps): React.ReactElement {
-  const barColorClass = progressBarColors[color] || progressBarColors.primary;
-
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
@@ -151,30 +158,55 @@ function ProgressBar({ value, label, color = 'primary' }: ProgressBarProps): Rea
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           transition={{ duration: 0.5 }}
-          className={`h-full rounded-full ${barColorClass}`}
+          className={`h-full rounded-full ${PROGRESS_BAR_COLORS[color]}`}
         />
       </div>
     </div>
   );
 }
 
-const requestStatusStyles: Record<string, string> = {
-  completed: 'bg-green-500/10 text-green-500',
-  pending: 'bg-yellow-500/10 text-yellow-500',
-};
-
-const requestStatusLabels: Record<string, string> = {
-  completed: 'Fullfort',
-  pending: 'Venter',
-};
-
-function getRequestStatusStyle(status: string): string {
-  return requestStatusStyles[status] || 'bg-muted-foreground/10 text-muted-foreground';
+interface RequestStatusConfig {
+  style: string;
+  label: string;
 }
 
-function getRequestStatusLabel(status: string): string {
-  return requestStatusLabels[status] || status;
+const REQUEST_STATUS_CONFIG: Record<string, RequestStatusConfig> = {
+  completed: { style: 'bg-green-500/10 text-green-500', label: 'Fullfort' },
+  pending: { style: 'bg-yellow-500/10 text-yellow-500', label: 'Venter' },
+};
+
+const DEFAULT_REQUEST_STATUS: RequestStatusConfig = {
+  style: 'bg-muted-foreground/10 text-muted-foreground',
+  label: '',
+};
+
+function getRequestStatusConfig(status: string): RequestStatusConfig {
+  return REQUEST_STATUS_CONFIG[status] ?? { ...DEFAULT_REQUEST_STATUS, label: status };
 }
+
+const COMPLIANCE_CHECKLIST = [
+  'Cookie-samtykke banner',
+  'Nyhetsbrev double opt-in',
+  'Avmelding fra nyhetsbrev',
+  'Personvernerklæring',
+  'Data-eksport funksjon',
+  'Data-sletting funksjon',
+  'Samtykke ved checkout',
+  'Revisjonslogging',
+  'Rate limiting',
+  'Dataopprydding',
+  'Datatilsynet kontaktinfo',
+  'Behandlerliste dokumentert',
+];
+
+const DATA_RETENTION_RULES = [
+  'Avmeldte nyhetsbrev-abonnenter: slettes etter 30 dager',
+  'Kontaktskjema-meldinger: slettes etter 2 år',
+  'Fullførte data-forespørsler: slettes etter 90 dager',
+  'Cookie-samtykker: slettes etter 1 år',
+  'Revisjonslogger: slettes etter 2 år',
+  'Ordrer: anonymiseres etter 7 år (regnskapskrav)',
+];
 
 export default function GDPRDashboardPage(): React.ReactElement | null {
   const [stats, setStats] = useState<GDPRStats | null>(null);
@@ -202,7 +234,7 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
     fetchStats();
   }, [fetchStats]);
 
-  const runDataRetentionCleanup = async () => {
+  async function runDataRetentionCleanup(): Promise<void> {
     setIsRunningCleanup(true);
     setCleanupResult(null);
     try {
@@ -212,22 +244,13 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       setCleanupResult(result.message);
-      fetchStats(); // Refresh stats after cleanup
+      fetchStats();
     } catch (err) {
       setCleanupResult(`Feil: ${err instanceof Error ? err.message : 'Ukjent feil'}`);
     } finally {
       setIsRunningCleanup(false);
     }
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString('nb-NO', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  }
 
   if (isLoading) {
     return (
@@ -246,6 +269,11 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
   }
 
   if (!stats) return null;
+
+  const cleanupResultIsError = cleanupResult?.startsWith('Feil');
+  const cleanupResultClass = cleanupResultIsError
+    ? 'bg-error/10 text-error'
+    : 'bg-green-500/10 text-green-500';
 
   return (
     <div className="space-y-8">
@@ -440,9 +468,9 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
                       <span className="truncate max-w-[150px]">{req.email}</span>
                     </div>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${getRequestStatusStyle(req.status)}`}
+                      className={`px-2 py-0.5 rounded-full text-xs ${getRequestStatusConfig(req.status).style}`}
                     >
-                      {getRequestStatusLabel(req.status)}
+                      {getRequestStatusConfig(req.status).label}
                     </span>
                   </div>
                 ))}
@@ -523,13 +551,7 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
         </div>
 
         {cleanupResult && (
-          <div
-            className={`p-3 rounded-lg text-sm ${
-              cleanupResult.startsWith('Feil')
-                ? 'bg-error/10 text-error'
-                : 'bg-green-500/10 text-green-500'
-            }`}
-          >
+          <div className={`p-3 rounded-lg text-sm ${cleanupResultClass}`}>
             {cleanupResult}
           </div>
         )}
@@ -537,12 +559,9 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
         <div className="text-sm text-muted-foreground">
           <p className="font-medium mb-2">Automatiske regler:</p>
           <ul className="space-y-1 list-disc list-inside">
-            <li>Avmeldte nyhetsbrev-abonnenter: slettes etter 30 dager</li>
-            <li>Kontaktskjema-meldinger: slettes etter 2 år</li>
-            <li>Fullførte data-forespørsler: slettes etter 90 dager</li>
-            <li>Cookie-samtykker: slettes etter 1 år</li>
-            <li>Revisjonslogger: slettes etter 2 år</li>
-            <li>Ordrer: anonymiseres etter 7 år (regnskapskrav)</li>
+            {DATA_RETENTION_RULES.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
           </ul>
         </div>
       </motion.div>
@@ -560,30 +579,13 @@ export default function GDPRDashboardPage(): React.ReactElement | null {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[
-            { label: 'Cookie-samtykke banner', done: true },
-            { label: 'Nyhetsbrev double opt-in', done: true },
-            { label: 'Avmelding fra nyhetsbrev', done: true },
-            { label: 'Personvernerklæring', done: true },
-            { label: 'Data-eksport funksjon', done: true },
-            { label: 'Data-sletting funksjon', done: true },
-            { label: 'Samtykke ved checkout', done: true },
-            { label: 'Revisjonslogging', done: true },
-            { label: 'Rate limiting', done: true },
-            { label: 'Dataopprydding', done: true },
-            { label: 'Datatilsynet kontaktinfo', done: true },
-            { label: 'Behandlerliste dokumentert', done: true },
-          ].map((item, index) => (
+          {COMPLIANCE_CHECKLIST.map((label) => (
             <div
-              key={index}
+              key={label}
               className="flex items-center gap-2 p-2 bg-background rounded-lg"
             >
-              {item.done ? (
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-              ) : (
-                <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-              )}
-              <span className="text-sm">{item.label}</span>
+              <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+              <span className="text-sm">{label}</span>
             </div>
           ))}
         </div>

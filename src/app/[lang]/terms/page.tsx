@@ -3,12 +3,27 @@ import type { Locale } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
-export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
-  const { lang } = await params;
-  const isNorwegian = lang === 'no';
+interface PageProps {
+  params: Promise<{ lang: Locale }>;
+}
 
-  const title = isNorwegian ? 'Vilkår' : 'Terms & Conditions';
-  const description = isNorwegian
+interface TermsSection {
+  heading: string;
+  text: string;
+}
+
+interface TermsContent {
+  title: string;
+  intro: string;
+  sections: TermsSection[];
+  lastUpdated: string;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { lang } = await params;
+
+  const title = lang === 'no' ? 'Vilkår' : 'Terms & Conditions';
+  const description = lang === 'no'
     ? 'Les våre kjøpsvilkår for handel hos Dotty. - priser, betaling, levering, angrerett og reklamasjon.'
     : 'Read our terms and conditions for shopping at Dotty. - prices, payment, delivery, returns and complaints.';
 
@@ -25,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   };
 }
 
-const content = {
+const content: Record<Locale, TermsContent> = {
   no: {
     title: 'Vilkår',
     intro: 'Ved å handle hos Dotty. aksepterer du følgende kjøpsvilkår.',
@@ -98,14 +113,9 @@ const content = {
   },
 };
 
-export default async function TermsPage({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}) {
+export default async function TermsPage({ params }: PageProps): Promise<React.JSX.Element> {
   const { lang } = await params;
-  const locale = lang as Locale;
-  const t = content[locale];
+  const t = content[lang];
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -117,8 +127,8 @@ export default async function TermsPage({
         <p className="text-lg text-muted-foreground mb-12">{t.intro}</p>
 
         <div className="space-y-8">
-          {t.sections.map((section, i) => (
-            <section key={i}>
+          {t.sections.map((section) => (
+            <section key={section.heading}>
               <h2 className="text-xl font-semibold mb-3">{section.heading}</h2>
               <p className="text-muted-foreground">{section.text}</p>
             </section>

@@ -137,7 +137,9 @@ async function getRelatedProducts(
 }
 
 async function getCollectionInfo(collectionId: string | null): Promise<CollectionInfo> {
-  if (!collectionId) return { name: null, slug: null, shippingCost: 0 };
+  if (!collectionId) {
+    return { name: null, slug: null, shippingCost: 0 };
+  }
 
   const supabase = createPublicClient();
   const { data } = await supabase
@@ -153,8 +155,7 @@ async function getCollectionInfo(collectionId: string | null): Promise<Collectio
   };
 }
 
-
-function buildAlternates(lang: string, slug: string) {
+function buildAlternates(lang: string, slug: string): Metadata['alternates'] {
   const url = `${BASE_URL}/${lang}/shop/${slug}`;
   return {
     canonical: url,
@@ -170,16 +171,21 @@ function buildCollectionMetadata(
   lang: string,
   isNorwegian: boolean
 ): Metadata {
+  const collectionNameLower = collection.name.toLowerCase();
   const title = isNorwegian
     ? `${collection.name} | Kjop Pop-Art`
     : `${collection.name} | Buy Pop-Art`;
 
-  const description = collection.description || (isNorwegian
-    ? `Utforsk var ${collection.name.toLowerCase()} samling. Unike pop-art verk fra Dotty.`
-    : `Explore our ${collection.name.toLowerCase()} collection. Unique pop-art pieces from Dotty.`);
+  let description = collection.description;
+  if (!description) {
+    description = isNorwegian
+      ? `Utforsk var ${collectionNameLower} samling. Unike pop-art verk fra Dotty.`
+      : `Explore our ${collectionNameLower} collection. Unique pop-art pieces from Dotty.`;
+  }
 
   const url = `${BASE_URL}/${lang}/shop/${collection.slug}`;
   const ogImage = `${BASE_URL}/og-image.jpg`;
+  const locale = isNorwegian ? 'nb_NO' : 'en_US';
 
   return {
     title,
@@ -188,7 +194,7 @@ function buildCollectionMetadata(
       title,
       description,
       type: 'website',
-      locale: isNorwegian ? 'nb_NO' : 'en_US',
+      locale,
       url,
       siteName: 'Dotty.',
       images: [{ url: ogImage, width: 1200, height: 630, alt: `Dotty. ${collection.name}` }],
@@ -203,25 +209,36 @@ function buildCollectionMetadata(
   };
 }
 
+function getProductTypeLabel(productType: Product['product_type'], isNorwegian: boolean): string {
+  if (productType === 'original') {
+    return isNorwegian ? 'Original kunstverk' : 'Original artwork';
+  }
+  return isNorwegian ? 'Kunsttrykk' : 'Art print';
+}
+
 function buildProductMetadata(
   product: Product,
   lang: string,
   isNorwegian: boolean
 ): Metadata {
-  const productTypeLabel = product.product_type === 'original'
-    ? (isNorwegian ? 'Original kunstverk' : 'Original artwork')
-    : (isNorwegian ? 'Kunsttrykk' : 'Art print');
-
+  const productTypeLabel = getProductTypeLabel(product.product_type, isNorwegian);
   const title = isNorwegian
     ? `${product.title} | Kjop ${productTypeLabel}`
     : `${product.title} | Buy ${productTypeLabel}`;
 
-  const description = product.description || (isNorwegian
-    ? `Kjop ${product.title} - unik pop-art fra Dotty. ${productTypeLabel} som bringer farge og energi til ditt hjem.`
-    : `Buy ${product.title} - unique pop-art from Dotty. ${productTypeLabel} that brings color and energy to your home.`);
+  let description = product.description;
+  if (!description) {
+    description = isNorwegian
+      ? `Kjop ${product.title} - unik pop-art fra Dotty. ${productTypeLabel} som bringer farge og energi til ditt hjem.`
+      : `Buy ${product.title} - unique pop-art from Dotty. ${productTypeLabel} that brings color and energy to your home.`;
+  }
 
   const url = `${BASE_URL}/${lang}/shop/${product.slug}`;
-  const hasImage = Boolean(product.image_url);
+  const locale = isNorwegian ? 'nb_NO' : 'en_US';
+  const images = product.image_url
+    ? [{ url: product.image_url, width: 1200, height: 630, alt: product.title }]
+    : [];
+  const twitterImages = product.image_url ? [product.image_url] : [];
 
   return {
     title,
@@ -230,18 +247,16 @@ function buildProductMetadata(
       title,
       description,
       type: 'website',
-      locale: isNorwegian ? 'nb_NO' : 'en_US',
+      locale,
       url,
       siteName: 'Dotty.',
-      images: hasImage
-        ? [{ url: product.image_url!, width: 1200, height: 630, alt: product.title }]
-        : [],
+      images,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: hasImage ? [product.image_url!] : [],
+      images: twitterImages,
     },
     alternates: buildAlternates(lang, product.slug),
     other: {
@@ -255,17 +270,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
   const isNorwegian = lang === 'no';
 
+  // Try collection first, then product
   const collection = await getCollection(slug);
   if (collection) {
     return buildCollectionMetadata(collection, lang, isNorwegian);
   }
 
   const product = await getProduct(slug);
-  if (!product) {
-    return { title: 'Not Found' };
+  if (product) {
+    return buildProductMetadata(product, lang, isNorwegian);
   }
 
-  return buildProductMetadata(product, lang, isNorwegian);
+  return { title: 'Not Found' };
 }
 
 function getHomeName(locale: Locale): string {
@@ -340,11 +356,16 @@ export default async function ShopSlugPage({ params }: Props) {
   const breadcrumbItems = [
     { name: getHomeName(locale), url: `/${locale}` },
     { name: 'Shop', url: `/${locale}/shop` },
-    ...(collectionInfo.name && collectionInfo.slug
-      ? [{ name: collectionInfo.name, url: `/${locale}/shop/${collectionInfo.slug}` }]
-      : []),
-    { name: product.title, url: `/${locale}/shop/${slug}` },
   ];
+
+  if (collectionInfo.name && collectionInfo.slug) {
+    breadcrumbItems.push({
+      name: collectionInfo.name,
+      url: `/${locale}/shop/${collectionInfo.slug}`,
+    });
+  }
+
+  breadcrumbItems.push({ name: product.title, url: `/${locale}/shop/${slug}` });
 
   return (
     <>

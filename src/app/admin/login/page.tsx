@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Loader2, Mail, Lock, AlertCircle, Clock } from 'lucide-react';
+
+import { Logo } from '@/components/ui/logo';
 import { createClient } from '@/lib/supabase/client';
 
 type LoginMode = 'password' | 'reset-password';
@@ -16,7 +18,14 @@ function getButtonText(mode: LoginMode, isLoading: boolean): string {
   return isLoading ? 'Logger inn...' : 'Logg inn';
 }
 
-export default function AdminLoginPage(): React.ReactNode {
+function getErrorStyles(isTimeout: boolean): string {
+  if (isTimeout) {
+    return 'bg-warning/10 border border-warning/20 text-warning';
+  }
+  return 'bg-error/10 border border-error/20 text-error';
+}
+
+export default function AdminLoginPage(): ReactNode {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -35,7 +44,7 @@ export default function AdminLoginPage(): React.ReactNode {
     }
   }, [searchParams]);
 
-  const handlePasswordLogin = async (e: React.FormEvent) => {
+  async function handlePasswordLogin(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
@@ -70,7 +79,6 @@ export default function AdminLoginPage(): React.ReactNode {
         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
         if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
-          // User has MFA enabled but hasn't verified yet
           router.push('/admin/mfa-verify');
           return;
         }
@@ -83,16 +91,15 @@ export default function AdminLoginPage(): React.ReactNode {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  async function handleResetPassword(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
       const supabase = createClient();
-
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/admin/reset-password`,
       });
@@ -107,7 +114,15 @@ export default function AdminLoginPage(): React.ReactNode {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  function handleBackToLogin(): void {
+    setResetEmailSent(false);
+    setMode('password');
+  }
+
+  const isTimeout = searchParams.get('reason') === 'timeout';
+  const handleSubmit = mode === 'reset-password' ? handleResetPassword : handlePasswordLogin;
 
   if (resetEmailSent) {
     return (
@@ -128,13 +143,11 @@ export default function AdminLoginPage(): React.ReactNode {
             </motion.div>
             <h2 className="text-2xl font-bold mb-2">Sjekk e-posten din</h2>
             <p className="text-muted-foreground mb-6">
-              Vi har sendt en lenke for å tilbakestille passordet til <span className="text-foreground font-medium">{email}</span>
+              Vi har sendt en lenke for å tilbakestille passordet til{' '}
+              <span className="text-foreground font-medium">{email}</span>
             </p>
             <button
-              onClick={() => {
-                setResetEmailSent(false);
-                setMode('password');
-              }}
+              onClick={handleBackToLogin}
               className="text-primary hover:underline text-sm"
             >
               Tilbake til innlogging
@@ -152,16 +165,11 @@ export default function AdminLoginPage(): React.ReactNode {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">
-            <span className="text-primary">Dotty.</span>
-            <span>.</span>
-          </h1>
+          <Logo size="md" className="mx-auto" />
           <p className="text-muted-foreground mt-2">Admin innlogging</p>
         </div>
 
-        {/* Login Form */}
         <div className="bg-muted rounded-xl p-8 border border-border">
           {mode === 'reset-password' && (
             <div className="mb-6">
@@ -172,18 +180,14 @@ export default function AdminLoginPage(): React.ReactNode {
             </div>
           )}
 
-          <form onSubmit={mode === 'reset-password' ? handleResetPassword : handlePasswordLogin} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex items-center gap-3 p-4 rounded-lg ${
-                  searchParams.get('reason') === 'timeout'
-                    ? 'bg-warning/10 border border-warning/20 text-warning'
-                    : 'bg-error/10 border border-error/20 text-error'
-                }`}
+                className={`flex items-center gap-3 p-4 rounded-lg ${getErrorStyles(isTimeout)}`}
               >
-                {searchParams.get('reason') === 'timeout' ? (
+                {isTimeout ? (
                   <Clock className="w-5 h-5 flex-shrink-0" />
                 ) : (
                   <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -274,29 +278,16 @@ export default function AdminLoginPage(): React.ReactNode {
               {getButtonText(mode, isLoading)}
             </motion.button>
 
-            {mode === 'password' && (
-              <button
-                type="button"
-                onClick={() => setMode('reset-password')}
-                className="w-full text-sm text-muted-foreground hover:text-primary transition-colors mt-3"
-              >
-                Glemt passord?
-              </button>
-            )}
-
-            {mode === 'reset-password' && (
-              <button
-                type="button"
-                onClick={() => setMode('password')}
-                className="w-full text-sm text-muted-foreground hover:text-primary transition-colors mt-3"
-              >
-                Tilbake til innlogging
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'password' ? 'reset-password' : 'password')}
+              className="w-full text-sm text-muted-foreground hover:text-primary transition-colors mt-3"
+            >
+              {mode === 'password' ? 'Glemt passord?' : 'Tilbake til innlogging'}
+            </button>
           </form>
         </div>
 
-        {/* Back to shop link */}
         <p className="text-center mt-6 text-sm text-muted-foreground">
           <Link href="/no" className="hover:text-primary transition-colors">
             Tilbake til shop
