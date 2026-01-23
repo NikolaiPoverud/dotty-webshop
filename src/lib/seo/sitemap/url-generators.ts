@@ -1,19 +1,10 @@
-/**
- * Sitemap URL Generators
- *
- * Generates URLs for each sitemap segment.
- * Each generator produces locale-aware URLs for both Norwegian and English.
- */
-
 import 'server-only';
 
 import type { MetadataRoute } from 'next';
 import type { Locale } from '@/types';
 import { createPublicClient } from '@/lib/supabase/public';
-import { SEO_CONFIG } from '../config';
 import {
   STATIC_PAGES,
-  FACET_SEGMENTS,
   MAX_URLS_PER_SEGMENT,
   getDomainForLocale,
   getPageTypeConfig,
@@ -29,15 +20,7 @@ import {
   getAvailableYearsForType,
 } from '../facets/queries';
 
-// ============================================================================
-// Types
-// ============================================================================
-
 type SitemapEntry = MetadataRoute.Sitemap[number];
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
 
 function createLocalizedEntry(
   path: string,
@@ -70,10 +53,6 @@ function createBothLocaleEntries(
   ];
 }
 
-// ============================================================================
-// Static Pages Generator
-// ============================================================================
-
 export async function generateStaticSitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries: SitemapEntry[] = [];
@@ -91,10 +70,6 @@ export async function generateStaticSitemap(): Promise<MetadataRoute.Sitemap> {
 
   return entries;
 }
-
-// ============================================================================
-// Products Generator
-// ============================================================================
 
 export async function generateProductsSitemap(
   chunk: number = 1
@@ -147,10 +122,6 @@ export async function getProductCount(): Promise<number> {
   return count ?? 0;
 }
 
-// ============================================================================
-// Collections Generator
-// ============================================================================
-
 export async function generateCollectionsSitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createPublicClient();
 
@@ -181,15 +152,10 @@ export async function generateCollectionsSitemap(): Promise<MetadataRoute.Sitema
   return entries;
 }
 
-// ============================================================================
-// Facets Generator
-// ============================================================================
-
 export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries: SitemapEntry[] = [];
 
-  // Type facets
   const typeConfig = getPageTypeConfig('facet-type');
   for (const type of ['original', 'print'] as TypeFacetValue[]) {
     for (const locale of ['no', 'en'] as Locale[]) {
@@ -204,7 +170,6 @@ export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Year facets
   const years = await getAvailableYears();
   const yearConfig = getPageTypeConfig('facet-year');
   for (const year of years) {
@@ -216,7 +181,6 @@ export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
     ));
   }
 
-  // Price facets
   const priceConfig = getPageTypeConfig('facet-price');
   for (const range of PRICE_RANGES) {
     entries.push(...createBothLocaleEntries(
@@ -227,7 +191,6 @@ export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
     ));
   }
 
-  // Size facets
   const sizeConfig = getPageTypeConfig('facet-size');
   for (const size of ['small', 'medium', 'large', 'oversized'] as const) {
     for (const locale of ['no', 'en'] as Locale[]) {
@@ -242,7 +205,6 @@ export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Combined facets: type + year
   const typeYearConfig = getPageTypeConfig('facet-type-year');
   for (const type of ['original', 'print'] as TypeFacetValue[]) {
     const typeYears = await getAvailableYearsForType(type);
@@ -263,20 +225,12 @@ export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
   return entries;
 }
 
-// ============================================================================
-// Paginated Pages Generator
-// ============================================================================
-
 export async function generatePaginatedSitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries: SitemapEntry[] = [];
-
-  // Get total product count for pagination
   const productCount = await getProductCount();
-  const productsPerPage = 24; // From PAGINATION_CONFIG
+  const productsPerPage = 24;
   const totalPages = Math.ceil(productCount / productsPerPage);
-
-  // Generate paginated shop pages (skip page 1 - it's the main shop page)
   const paginatedConfig = getPageTypeConfig('shop-paginated');
   for (let page = 2; page <= totalPages; page++) {
     entries.push(...createBothLocaleEntries(
@@ -289,10 +243,6 @@ export async function generatePaginatedSitemap(): Promise<MetadataRoute.Sitemap>
 
   return entries;
 }
-
-// ============================================================================
-// Main Export: Generate Sitemap by Segment
-// ============================================================================
 
 export type SitemapSegmentType = 'static' | 'products' | 'collections' | 'facets' | 'paginated';
 

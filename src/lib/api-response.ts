@@ -47,20 +47,11 @@ export const errors = {
   internal: (message = 'Internal server error') => error(message, 500, 'INTERNAL_ERROR'),
 };
 
-/**
- * SEC-013: Safe error handler that returns generic message to client
- * while logging full details server-side
- *
- * @param context - Context identifier for logging (e.g., 'ProductAPI', 'Checkout')
- * @param error - The actual error object
- * @param userMessage - Optional user-friendly message (defaults to generic)
- */
 export function handleApiError(
   context: string,
   err: unknown,
   userMessage = 'An unexpected error occurred. Please try again.'
 ): NextResponse<ApiErrorResponse> {
-  // Log full error details server-side
   const errorMessage = err instanceof Error ? err.message : String(err);
   const errorStack = err instanceof Error ? err.stack : undefined;
 
@@ -70,7 +61,5 @@ export function handleApiError(
     timestamp: new Date().toISOString(),
   });
 
-  // Return generic message to client
   return errors.internal(userMessage);
 }
-

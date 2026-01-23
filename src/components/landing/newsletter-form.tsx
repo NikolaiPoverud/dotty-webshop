@@ -1,20 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-
 import { motion } from 'framer-motion';
 import { Check, Loader2, Send } from 'lucide-react';
+import { useState } from 'react';
 
-import type { Dictionary, Locale } from '@/types';
+import type { Dictionary } from '@/types';
 
 interface NewsletterFormProps {
-  lang: Locale;
   dictionary: Dictionary;
 }
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'already' | 'error';
 
-export function NewsletterForm({ lang, dictionary }: NewsletterFormProps): React.ReactElement {
+export function NewsletterForm({ dictionary }: NewsletterFormProps): React.ReactElement {
   const t = dictionary.newsletter;
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<FormStatus>('idle');

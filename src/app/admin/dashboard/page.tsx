@@ -98,19 +98,14 @@ const QUICK_ACTIONS = [
   { label: 'Rabattkode', icon: Tag, href: '/admin/discounts', color: 'bg-muted hover:bg-muted-foreground/20' },
 ];
 
-const MS_PER_MINUTE = 60 * 1000;
-const MS_PER_HOUR = 60 * MS_PER_MINUTE;
-const MS_PER_DAY = 24 * MS_PER_HOUR;
-
 function formatRelativeDate(dateStr: string): string {
+  const MS_PER_MINUTE = 60 * 1000;
+  const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+  const MS_PER_DAY = 24 * MS_PER_HOUR;
   const diff = Date.now() - new Date(dateStr).getTime();
 
-  if (diff < MS_PER_HOUR) {
-    return `${Math.round(diff / MS_PER_MINUTE)} min siden`;
-  }
-  if (diff < MS_PER_DAY) {
-    return `${Math.round(diff / MS_PER_HOUR)} timer siden`;
-  }
+  if (diff < MS_PER_HOUR) return `${Math.round(diff / MS_PER_MINUTE)} min siden`;
+  if (diff < MS_PER_DAY) return `${Math.round(diff / MS_PER_HOUR)} timer siden`;
   return `${Math.round(diff / MS_PER_DAY)} dager siden`;
 }
 
@@ -197,7 +192,6 @@ export default function AdminDashboardPage(): React.ReactElement {
         </button>
       </div>
 
-      {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
         {QUICK_ACTIONS.map((action) => {
           const Icon = action.icon;
@@ -233,7 +227,6 @@ export default function AdminDashboardPage(): React.ReactElement {
         </div>
       )}
 
-      {/* Order Status Overview */}
       {stats?.ordersByStatus && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {ORDER_STATUS_DISPLAY.map((status) => {
@@ -260,7 +253,6 @@ export default function AdminDashboardPage(): React.ReactElement {
         </div>
       )}
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
@@ -288,7 +280,6 @@ export default function AdminDashboardPage(): React.ReactElement {
         })}
       </div>
 
-      {/* Recent Orders */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

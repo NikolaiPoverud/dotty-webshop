@@ -1,10 +1,3 @@
-/**
- * Faceted SEO Database Queries
- *
- * Provides efficient database queries for faceted pages.
- * Uses Supabase with optimized column selection for performance.
- */
-
 import 'server-only';
 
 import type { ProductListItem, Locale, ShippingSize } from '@/types';
@@ -17,12 +10,7 @@ import {
   getPriceRange,
 } from './index';
 
-// Standard columns for product list queries
 const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
-
-// ============================================================================
-// Base Query Builder
-// ============================================================================
 
 function baseProductQuery() {
   const supabase = createPublicClient();
@@ -33,10 +21,6 @@ function baseProductQuery() {
     .is('deleted_at', null)
     .order('display_order', { ascending: true });
 }
-
-// ============================================================================
-// Type Facet Queries
-// ============================================================================
 
 export async function getProductsByType(
   typeSlug: string,
@@ -73,10 +57,6 @@ export async function getProductCountByType(
   return count ?? 0;
 }
 
-// ============================================================================
-// Year Facet Queries
-// ============================================================================
-
 export async function getProductsByYear(
   year: number
 ): Promise<ProductListItem[]> {
@@ -105,9 +85,8 @@ export async function getAvailableYears(): Promise<number[]> {
     return [];
   }
 
-  // Extract unique years
   const years = [...new Set(data?.map((p) => p.year).filter(Boolean))] as number[];
-  return years.sort((a, b) => b - a); // Descending order
+  return years.sort((a, b) => b - a);
 }
 
 export async function getProductCountByYear(
@@ -127,10 +106,6 @@ export async function getProductCountByYear(
   }
   return count ?? 0;
 }
-
-// ============================================================================
-// Price Range Facet Queries
-// ============================================================================
 
 export async function getProductsByPriceRange(
   rangeSlug: string
@@ -182,10 +157,6 @@ export async function getProductCountByPriceRange(
   return count ?? 0;
 }
 
-// ============================================================================
-// Size (Shipping Size) Facet Queries
-// ============================================================================
-
 export async function getProductsBySize(
   sizeSlug: string,
   locale: Locale
@@ -220,10 +191,6 @@ export async function getProductCountBySize(
   }
   return count ?? 0;
 }
-
-// ============================================================================
-// Combined Facet Queries (Type + Year)
-// ============================================================================
 
 export async function getProductsByTypeAndYear(
   typeSlug: string,
@@ -317,7 +284,6 @@ export async function getAllFacetCounts(): Promise<FacetCounts> {
     };
   }
 
-  // Count by type
   const types: Record<TypeFacetValue, number> = { original: 0, print: 0 };
   const sizes: Record<ShippingSize, number> = { small: 0, medium: 0, large: 0, oversized: 0 };
   const years: Record<number, number> = {};
@@ -330,22 +296,18 @@ export async function getAllFacetCounts(): Promise<FacetCounts> {
   };
 
   for (const product of products) {
-    // Type counts
     if (product.product_type in types) {
       types[product.product_type as TypeFacetValue]++;
     }
 
-    // Size counts
     if (product.shipping_size && product.shipping_size in sizes) {
       sizes[product.shipping_size as ShippingSize]++;
     }
 
-    // Year counts
     if (product.year) {
       years[product.year] = (years[product.year] || 0) + 1;
     }
 
-    // Price range counts
     const price = product.price;
     if (price < 250000) {
       priceRanges['under-2500']++;
@@ -362,10 +324,6 @@ export async function getAllFacetCounts(): Promise<FacetCounts> {
 
   return { types, sizes, years, priceRanges };
 }
-
-// ============================================================================
-// Sitemap Queries
-// ============================================================================
 
 export interface SitemapProduct {
   slug: string;

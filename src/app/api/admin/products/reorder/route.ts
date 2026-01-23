@@ -16,7 +16,6 @@ function isValidReorderItem(item: unknown): item is ReorderItem {
   );
 }
 
-// POST /api/admin/products/reorder - Update display order for multiple products
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;

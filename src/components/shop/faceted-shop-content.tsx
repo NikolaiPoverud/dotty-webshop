@@ -1,19 +1,8 @@
-/**
- * Faceted Shop Content Component
- *
- * Server-rendered component for faceted pages.
- * Products are pre-filtered server-side, so no client-side filtering needed.
- */
-
 import Link from 'next/link';
 import type { Locale, ProductListItem } from '@/types';
 import { ProductCard } from './product-card';
 import { BreadcrumbJsonLd } from '@/components/seo/breadcrumb-jsonld';
 import { ItemListJsonLd } from '@/components/seo/item-list-jsonld';
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export interface FacetBreadcrumb {
   name: string;
@@ -26,7 +15,7 @@ export interface RelatedFacet {
   count?: number;
 }
 
-export interface FacetedShopContentProps {
+interface FacetedShopContentProps {
   products: ProductListItem[];
   title: string;
   description: string;
@@ -35,10 +24,6 @@ export interface FacetedShopContentProps {
   relatedFacets?: RelatedFacet[];
   emptyMessage: string;
 }
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function FacetedShopContent({
   products,
@@ -49,7 +34,6 @@ export function FacetedShopContent({
   relatedFacets,
   emptyMessage,
 }: FacetedShopContentProps): React.ReactElement {
-  // Build breadcrumb items for JSON-LD
   const breadcrumbItems = breadcrumbs.map((crumb, index) => ({
     name: crumb.name,
     url: crumb.href,

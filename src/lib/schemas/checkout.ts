@@ -1,27 +1,10 @@
-/**
- * ARCH-002: Zod validation schemas for checkout endpoint
- *
- * These schemas validate the structure and types of checkout request data
- * to prevent malformed data from reaching the business logic.
- */
-
 import { z } from 'zod';
 
-// Norwegian phone number validation (8 digits, optionally with +47 prefix)
 const phoneRegex = /^(\+47)?[2-9]\d{7}$/;
-
-// Norwegian postal code (4 digits)
 const postalCodeRegex = /^\d{4}$/;
-
-// Email validation (basic but stricter than default)
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// UUID validation
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Shipping address schema
- */
 export const shippingAddressSchema = z.object({
   line1: z.string()
     .min(1, 'Address is required')
@@ -37,9 +20,6 @@ export const shippingAddressSchema = z.object({
     .max(100, 'Country name too long'),
 });
 
-/**
- * Order item schema
- */
 export const orderItemSchema = z.object({
   product_id: z.string()
     .regex(uuidRegex, 'Invalid product ID'),
@@ -57,12 +37,9 @@ export const orderItemSchema = z.object({
   image_url: z.string()
     .nullable()
     .optional()
-    .transform(val => val ?? ''), // Allow null/undefined, default to empty string
+    .transform(val => val ?? ''),
 });
 
-/**
- * Checkout request body schema
- */
 export const checkoutRequestSchema = z.object({
   items: z.array(orderItemSchema)
     .min(1, 'Cart cannot be empty')
@@ -128,16 +105,13 @@ export const checkoutRequestSchema = z.object({
     z.string().min(1, 'Checkout token is required'),
     z.null(),
     z.undefined(),
-  ]).transform(val => val || undefined), // Convert null/empty to undefined
+  ]).transform(val => val || undefined),
 });
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 export type ShippingAddress = z.infer<typeof shippingAddressSchema>;
 export type OrderItem = z.infer<typeof orderItemSchema>;
 
-/**
- * Validate checkout request and return parsed data or error
- */
 export function validateCheckoutRequest(data: unknown): {
   success: true;
   data: CheckoutRequest;
@@ -149,7 +123,6 @@ export function validateCheckoutRequest(data: unknown): {
   const result = checkoutRequestSchema.safeParse(data);
 
   if (!result.success) {
-    // Get the first validation error message
     const firstError = result.error.issues[0];
     const path = firstError.path.join('.');
     const message = path

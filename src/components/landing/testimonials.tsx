@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Facebook, MessageCircle } from 'lucide-react';
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Facebook, MessageCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
 import type { TestimonialCard } from '@/types';
 
 interface TestimonialsProps {

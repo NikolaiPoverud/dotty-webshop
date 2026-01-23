@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { User, LogOut, Loader2 } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { motion } from 'framer-motion';
+import { Loader2, LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+
+import { createClient } from '@/lib/supabase/client';
 
 export function UserMenu(): React.ReactNode {
   const router = useRouter();

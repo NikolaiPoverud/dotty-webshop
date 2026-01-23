@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-
 import { cn } from '@/lib/utils';
 
 export interface FilterOption {
@@ -14,11 +13,16 @@ interface FilterTabsProps {
   activeId: string;
   onChange: (id: string) => void;
   centered?: boolean;
-  /** Unique ID for the filter group (for independent sliding animations) */
   groupId?: string;
 }
 
-export function FilterTabs({ options, activeId, onChange, centered = false, groupId = 'default' }: FilterTabsProps): React.ReactElement {
+export function FilterTabs({
+  options,
+  activeId,
+  onChange,
+  centered = false,
+  groupId = 'default',
+}: FilterTabsProps): React.ReactElement {
   return (
     <div className={cn('relative -mx-4 px-4 overflow-x-auto scrollbar-hide', centered && 'flex justify-center')}>
       <motion.div

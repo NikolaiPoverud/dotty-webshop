@@ -81,63 +81,44 @@ interface AutoSaveIndicatorProps {
 }
 
 function AutoSaveIndicator({ status, lastSaved }: AutoSaveIndicatorProps): React.ReactNode {
-  if (status === 'idle') return null;
+  if (status === 'idle' || status === 'pending') return null;
 
-  const variants = {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 10 },
-  };
+  const configs = {
+    saving: {
+      icon: Loader2,
+      text: 'Lagrer...',
+      className: 'bg-muted text-muted-foreground',
+      iconClassName: 'animate-spin',
+    },
+    saved: {
+      icon: Check,
+      text: `Lagret ${lastSaved ? formatLastSaved(lastSaved) : ''}`,
+      className: 'bg-success/10 text-success',
+      iconClassName: '',
+    },
+    error: {
+      icon: AlertCircle,
+      text: 'Kunne ikke lagre',
+      className: 'bg-error/10 text-error',
+      iconClassName: '',
+    },
+  } as const;
 
-  if (status === 'saving') {
-    return (
-      <motion.div
-        key="saving"
-        variants={variants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full text-sm text-muted-foreground"
-      >
-        <Loader2 className="w-4 h-4 animate-spin" />
-        <span>Lagrer...</span>
-      </motion.div>
-    );
-  }
+  const config = configs[status];
+  const Icon = config.icon;
 
-  if (status === 'saved') {
-    return (
-      <motion.div
-        key="saved"
-        variants={variants}
-        initial={{ ...variants.initial, scale: 0.9 }}
-        animate={{ ...variants.animate, scale: 1 }}
-        exit="exit"
-        className="flex items-center gap-2 px-3 py-1.5 bg-success/10 text-success rounded-full text-sm"
-      >
-        <Check className="w-4 h-4" />
-        <span>Lagret {lastSaved && formatLastSaved(lastSaved)}</span>
-      </motion.div>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <motion.div
-        key="error"
-        variants={variants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        className="flex items-center gap-2 px-3 py-1.5 bg-error/10 text-error rounded-full text-sm"
-      >
-        <AlertCircle className="w-4 h-4" />
-        <span>Kunne ikke lagre</span>
-      </motion.div>
-    );
-  }
-
-  return null;
+  return (
+    <motion.div
+      key={status}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${config.className}`}
+    >
+      <Icon className={`w-4 h-4 ${config.iconClassName}`} />
+      <span>{config.text}</span>
+    </motion.div>
+  );
 }
 
 export default function EditProductPage(): React.ReactNode {

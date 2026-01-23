@@ -1,19 +1,7 @@
-/**
- * Sitemap Segment Definitions
- *
- * Defines all sitemap segments for the sitemap index pattern.
- * Each segment generates max 10,000 URLs to comply with sitemap protocol.
- */
-
 import type { Locale } from '@/types';
-import { SEO_CONFIG, PAGINATION_CONFIG, SEO_TEMPLATES, PageType } from '../config';
+import { SEO_CONFIG, SEO_TEMPLATES, PageType } from '../config';
 
-// Maximum URLs per sitemap segment
 export const MAX_URLS_PER_SEGMENT = 10000;
-
-// ============================================================================
-// Segment Types
-// ============================================================================
 
 export type SitemapSegment =
   | 'static'       // Home, about, privacy, terms, contact, FAQ
@@ -26,12 +14,8 @@ export interface SegmentConfig {
   segment: SitemapSegment;
   priority: number;
   changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
-  revalidate: number; // seconds
+  revalidate: number;
 }
-
-// ============================================================================
-// Segment Configurations
-// ============================================================================
 
 export const SEGMENT_CONFIGS: Record<SitemapSegment, SegmentConfig> = {
   static: {
@@ -62,13 +46,9 @@ export const SEGMENT_CONFIGS: Record<SitemapSegment, SegmentConfig> = {
     segment: 'paginated',
     priority: 0.5,
     changeFrequency: 'weekly',
-    revalidate: 3600, // 1 hour
+    revalidate: 3600,
   },
 };
-
-// ============================================================================
-// Static Page Definitions
-// ============================================================================
 
 export interface StaticPage {
   path: string;
@@ -85,12 +65,8 @@ export const STATIC_PAGES: StaticPage[] = [
   { path: '/faq', priority: 0.5, changeFrequency: 'monthly' },      // FAQ
   { path: '/contact', priority: 0.5, changeFrequency: 'monthly' },  // Contact
   { path: '/privacy', priority: 0.3, changeFrequency: 'yearly' },   // Privacy
-  { path: '/terms', priority: 0.3, changeFrequency: 'yearly' },     // Terms
+  { path: '/terms', priority: 0.3, changeFrequency: 'yearly' },
 ];
-
-// ============================================================================
-// Facet Segment Definitions
-// ============================================================================
 
 export interface FacetSegmentDef {
   type: 'type' | 'year' | 'price' | 'size' | 'type-year';
@@ -106,10 +82,6 @@ export const FACET_SEGMENTS: FacetSegmentDef[] = [
   { type: 'size', basePath: '/shop/size', priority: 0.6, changeFrequency: 'weekly' },
   { type: 'type-year', basePath: '/shop/type', priority: 0.65, changeFrequency: 'weekly' },
 ];
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
 
 export function getAllSegments(): SitemapSegment[] {
   return Object.keys(SEGMENT_CONFIGS) as SitemapSegment[];

@@ -12,7 +12,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('discount_codes')
       .select('*')
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -33,9 +33,8 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-
-    // Validate input
     const validation = validate(body, discountSchema);
+
     if (!validation.success) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }

@@ -1,16 +1,9 @@
-/**
- * Collection service with caching
- */
-
 import { createPublicClient } from '@/lib/supabase/public';
 import { getOrSet, CACHE_KEYS, CACHE_TTL, invalidatePrefix } from '@/lib/cache';
-import type { Collection, CollectionCard } from '@/types';
+import type { CollectionCard } from '@/types';
 
 const COLLECTION_FIELDS = 'id, name, slug, description, display_order';
 
-/**
- * Get all active collections (cached)
- */
 export async function getCollections(): Promise<CollectionCard[]> {
   return getOrSet(
     CACHE_KEYS.collections(),
@@ -34,9 +27,6 @@ export async function getCollections(): Promise<CollectionCard[]> {
   );
 }
 
-/**
- * Get a single collection by slug (cached)
- */
 export async function getCollectionBySlug(slug: string): Promise<CollectionCard | null> {
   return getOrSet(
     CACHE_KEYS.collection(slug),
@@ -60,9 +50,6 @@ export async function getCollectionBySlug(slug: string): Promise<CollectionCard 
   );
 }
 
-/**
- * Invalidate collection cache (call after mutations)
- */
 export function invalidateCollectionCache(): void {
   invalidatePrefix('collections:');
 }

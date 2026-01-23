@@ -1,10 +1,3 @@
-/**
- * Programmatic SEO Metadata Generator
- *
- * Generates unique, intent-matched metadata for each page to avoid
- * thin content and keyword cannibalization at scale.
- */
-
 import type { Metadata } from 'next';
 import type { Locale, Product, Collection } from '@/types';
 import {
@@ -16,7 +9,6 @@ import {
   buildAlternateUrls,
 } from './config';
 
-// Variable replacement in templates
 function interpolate(template: string, variables: Record<string, string | number>): string {
   return Object.entries(variables).reduce(
     (result, [key, value]) => result.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value)),
@@ -24,7 +16,6 @@ function interpolate(template: string, variables: Record<string, string | number
   );
 }
 
-// Truncate description to optimal length
 function truncateDescription(text: string, maxLength: number = 155): string {
   if (text.length <= maxLength) return text;
   const truncated = text.slice(0, maxLength - 3);
@@ -32,13 +23,11 @@ function truncateDescription(text: string, maxLength: number = 155): string {
   return truncated.slice(0, lastSpace) + '...';
 }
 
-// Product type labels
 const PRODUCT_TYPE_LABELS: Record<'original' | 'print', { no: string; en: string }> = {
   original: { no: 'Originalt Kunstverk', en: 'Original Artwork' },
   print: { no: 'Kunsttrykk', en: 'Art Print' },
 };
 
-// Base metadata options
 interface BaseMetadataOptions {
   locale: Locale;
   path: string;
@@ -46,7 +35,6 @@ interface BaseMetadataOptions {
   noIndex?: boolean;
 }
 
-// Page-specific metadata options
 interface HomeMetadataOptions extends BaseMetadataOptions {
   pageType: 'home';
 }
@@ -83,7 +71,6 @@ interface StaticPageMetadataOptions extends BaseMetadataOptions {
   pageType: 'sold' | 'about' | 'faq' | 'contact' | 'privacy' | 'terms';
 }
 
-// Faceted page metadata options
 interface FacetTypeMetadataOptions extends BaseMetadataOptions {
   pageType: 'facet-type';
   typeLabel: string;
@@ -132,9 +119,6 @@ type MetadataOptions =
   | FacetSizeMetadataOptions
   | FacetTypeYearMetadataOptions;
 
-/**
- * Generate complete metadata for any page type
- */
 export function generateMetadata(options: MetadataOptions): Metadata {
   const { locale, path, image, noIndex = false, pageType } = options;
   const template = SEO_TEMPLATES[pageType];
@@ -221,7 +205,6 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       break;
     }
 
-    // Faceted pages
     case 'facet-type': {
       const { typeLabel, typeDescription, productCount } = options;
       const vars = { type: typeLabel, description: typeDescription, count: productCount };
@@ -283,7 +266,6 @@ export function generateMetadata(options: MetadataOptions): Metadata {
   }
 
   const canonical = buildCanonicalUrl(locale, path);
-  const alternates = buildAlternateUrls(path);
 
   return {
     title,
@@ -294,7 +276,7 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       : { index: true, follow: true },
     alternates: {
       canonical,
-      languages: alternates,
+      languages: buildAlternateUrls(path),
     },
     openGraph: {
       title,
@@ -320,9 +302,6 @@ export function generateMetadata(options: MetadataOptions): Metadata {
   };
 }
 
-/**
- * Generate pagination metadata for rel=prev/next
- */
 export function generatePaginationLinks(
   locale: Locale,
   basePath: string,
@@ -344,9 +323,6 @@ export function generatePaginationLinks(
   return result;
 }
 
-/**
- * Generate unique content variations to avoid thin/duplicate content
- */
 export function generateUniqueContent(
   baseContent: string,
   locale: Locale,

@@ -1,10 +1,3 @@
-/**
- * Related Facets Generator
- *
- * Generates related facet links for hub-and-spoke internal linking.
- * Each product/page links to relevant faceted pages based on attributes.
- */
-
 import type { Locale, Product, ShippingSize } from '@/types';
 import {
   TYPE_FACET_LABELS,
@@ -20,10 +13,6 @@ import {
   getYearFacetPath,
 } from '../facets/url-builder';
 
-// ============================================================================
-// Types
-// ============================================================================
-
 export interface RelatedFacetLink {
   label: string;
   href: string;
@@ -36,13 +25,6 @@ export interface RelatedFacetGroup {
   links: RelatedFacetLink[];
 }
 
-// ============================================================================
-// Product-Based Related Facets
-// ============================================================================
-
-/**
- * Get related facet links based on a product's attributes
- */
 export function getRelatedFacetsForProduct(
   product: Product,
   locale: Locale,
@@ -116,9 +98,6 @@ export function getRelatedFacetsForProduct(
   return links.slice(0, maxLinks);
 }
 
-/**
- * Get price range for a given price
- */
 function getPriceRangeForPrice(priceInOre: number): typeof PRICE_RANGES[number] | null {
   for (const range of PRICE_RANGES) {
     const aboveMin = range.minPrice === null || priceInOre >= range.minPrice;
@@ -130,13 +109,6 @@ function getPriceRangeForPrice(priceInOre: number): typeof PRICE_RANGES[number] 
   return null;
 }
 
-// ============================================================================
-// Grouped Facet Navigation
-// ============================================================================
-
-/**
- * Get all facet groups for shop navigation
- */
 export function getAllFacetGroups(
   locale: Locale,
   availableYears: number[] = [],
@@ -202,13 +174,6 @@ export function getAllFacetGroups(
   return groups;
 }
 
-// ============================================================================
-// Cross-Facet Links
-// ============================================================================
-
-/**
- * Get links to other facet types from a faceted page
- */
 export function getCrossFacetLinks(
   currentFacetType: 'type' | 'year' | 'price' | 'size',
   locale: Locale

@@ -30,9 +30,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Invalidate collection cache after mutation
   invalidateCollectionCache();
-
   return NextResponse.json({ data });
 }
 
@@ -53,8 +51,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams): Pr
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Invalidate collection cache after mutation
   invalidateCollectionCache();
-
   return NextResponse.json({ success: true });
 }

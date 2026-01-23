@@ -1,8 +1,3 @@
-/**
- * Input validation utilities for API routes
- * Simple runtime validation without external dependencies
- */
-
 type ValidationResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
@@ -22,7 +17,7 @@ interface ValidationSchema {
 
 export function validate<T extends Record<string, unknown>>(
   data: unknown,
-  schema: ValidationSchema,
+  schema: ValidationSchema
 ): ValidationResult<T> {
   if (typeof data !== 'object' || data === null) {
     return { success: false, error: 'Invalid input: expected an object' };
@@ -30,29 +25,23 @@ export function validate<T extends Record<string, unknown>>(
 
   const input = data as Record<string, unknown>;
   const validated: Record<string, unknown> = {};
-  const allowedKeys = Object.keys(schema);
 
-  // Check for required fields and validate types
   for (const [key, rules] of Object.entries(schema)) {
     const value = input[key];
 
-    // Check required
     if (rules.required && (value === undefined || value === null || value === '')) {
       return { success: false, error: `Missing required field: ${key}` };
     }
 
-    // Skip validation if not provided and not required
     if (value === undefined || value === null) {
       continue;
     }
 
-    // Type check
     const actualType = Array.isArray(value) ? 'array' : typeof value;
     if (actualType !== rules.type) {
       return { success: false, error: `Invalid type for ${key}: expected ${rules.type}, got ${actualType}` };
     }
 
-    // String validations
     if (rules.type === 'string' && typeof value === 'string') {
       if (rules.minLength && value.length < rules.minLength) {
         return { success: false, error: `${key} must be at least ${rules.minLength} characters` };
@@ -65,7 +54,6 @@ export function validate<T extends Record<string, unknown>>(
       }
     }
 
-    // Number validations
     if (rules.type === 'number' && typeof value === 'number') {
       if (rules.min !== undefined && value < rules.min) {
         return { success: false, error: `${key} must be at least ${rules.min}` };
@@ -75,7 +63,6 @@ export function validate<T extends Record<string, unknown>>(
       }
     }
 
-    // Enum validation
     if (rules.enum && !rules.enum.includes(value as string | number)) {
       return { success: false, error: `${key} must be one of: ${rules.enum.join(', ')}` };
     }
@@ -83,18 +70,9 @@ export function validate<T extends Record<string, unknown>>(
     validated[key] = value;
   }
 
-  // Only allow fields defined in schema (prevent injection of extra fields)
-  for (const key of Object.keys(input)) {
-    if (!allowedKeys.includes(key)) {
-      // Silently ignore unknown fields for forward compatibility
-      continue;
-    }
-  }
-
   return { success: true, data: validated as T };
 }
 
-// Collection schema
 export const collectionSchema: ValidationSchema = {
   name: { type: 'string', required: true, minLength: 1, maxLength: 100 },
   slug: { type: 'string', required: true, minLength: 1, maxLength: 100, pattern: /^[a-z0-9-]+$/ },
@@ -105,7 +83,6 @@ export const collectionSchema: ValidationSchema = {
   is_public: { type: 'boolean' },
 };
 
-// Discount code schema
 export const discountSchema: ValidationSchema = {
   code: { type: 'string', required: true, minLength: 2, maxLength: 50, pattern: /^[A-Z0-9_-]+$/i },
   discount_type: { type: 'string', required: true, enum: ['percent', 'fixed'] },
@@ -117,7 +94,6 @@ export const discountSchema: ValidationSchema = {
   is_active: { type: 'boolean' },
 };
 
-// Testimonial schema
 export const testimonialSchema: ValidationSchema = {
   customer_name: { type: 'string', required: true, minLength: 1, maxLength: 100 },
   customer_location: { type: 'string', maxLength: 100 },
@@ -126,4 +102,3 @@ export const testimonialSchema: ValidationSchema = {
   display_order: { type: 'number', min: 0, max: 1000 },
   is_featured: { type: 'boolean' },
 };
-

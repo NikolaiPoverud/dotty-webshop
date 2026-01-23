@@ -5,7 +5,7 @@ import { DeliveryConfirmationEmail } from '@/emails/delivery-confirmation';
 import { NewOrderAlertEmail } from '@/emails/new-order-alert';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { ShippingNotificationEmail } from '@/emails/shipping-notification';
-import type { Order, OrderWithItems } from '@/types';
+import type { OrderWithItems } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
 type EmailResult = { success: boolean; error?: string };
@@ -67,7 +67,7 @@ export function sendShippingNotification(order: OrderWithItems): Promise<EmailRe
   });
 }
 
-export function sendDeliveryConfirmation(order: Order): Promise<EmailResult> {
+export function sendDeliveryConfirmation(order: OrderWithItems): Promise<EmailResult> {
   return sendEmail({
     to: order.customer_email,
     subject: `Pakken din er levert! – Ordre ${order.order_number}`,

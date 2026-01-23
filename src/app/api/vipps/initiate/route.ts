@@ -21,13 +21,11 @@ interface VippsCheckoutRequest {
   checkout_token?: string;
 }
 
+const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60000 };
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  // Rate limiting: 5 requests per minute per IP for Vipps checkout
   const clientIp = getClientIp(request);
-  const rateLimitResult = await checkRateLimit(`vipps:${clientIp}`, {
-    maxRequests: 5,
-    windowMs: 60000,
-  });
+  const rateLimitResult = await checkRateLimit(`vipps:${clientIp}`, RATE_LIMIT_CONFIG);
 
   if (!rateLimitResult.success) {
     return NextResponse.json(
@@ -39,7 +37,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json() as VippsCheckoutRequest;
 
-    // SEC-002: Validate checkout token to ensure request originated from legitimate checkout
     const tokenValidation = validateCheckoutToken(body.checkout_token);
     if (!tokenValidation.valid) {
       return NextResponse.json(
@@ -134,7 +131,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    // SEC-015: Log full error server-side but return generic message to client
     console.error('Vipps initiate error:', error);
     return NextResponse.json(
       { error: 'Failed to initiate payment. Please try again.' },

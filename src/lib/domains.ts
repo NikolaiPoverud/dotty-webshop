@@ -1,4 +1,3 @@
-// Define Locale locally to avoid importing from @/types in Edge runtime
 type Locale = 'no' | 'en';
 
 const DEV_DOMAINS = ['localhost', 'vercel.app'];
@@ -11,10 +10,6 @@ function getPrimaryDomainUrl(locale: Locale): string {
   return locale === 'en' ? 'https://dottyartwork.com' : 'https://dotty.no';
 }
 
-/**
- * Get the language switch URL - switches to the alternate locale's domain
- * Returns full URL for production, relative path for dev
- */
 export function getLanguageSwitchUrl(
   currentPath: string,
   currentLocale: Locale,

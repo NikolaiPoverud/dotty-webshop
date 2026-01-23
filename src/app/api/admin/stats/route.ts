@@ -40,7 +40,6 @@ export async function GET(): Promise<NextResponse> {
       .select('id, order_number, customer_name, total, status, created_at')
       .order('created_at', { ascending: false })
       .limit(5),
-    // Order status counts
     countQuery('orders').eq('status', 'pending'),
     countQuery('orders').eq('status', 'paid'),
     countQuery('orders').eq('status', 'shipped'),
@@ -61,7 +60,6 @@ export async function GET(): Promise<NextResponse> {
       totalSubscribers: totalSubscribersCount.count || 0,
       subscribersThisMonth: subscribersThisMonthCount.count || 0,
       recentOrders: recentOrders.data || [],
-      // Order status counts
       ordersByStatus: {
         pending: pendingOrders.count || 0,
         paid: paidOrders.count || 0,

@@ -4,7 +4,36 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
 import { constructWebhookEvent } from '@/lib/stripe';
 import { validateCheckoutToken } from '@/lib/checkout-token';
-import type { Order, OrderWithItems, OrderItem, ShippingAddress } from '@/types';
+import type { Order, OrderItem, ShippingAddress } from '@/types';
+
+type SupabaseClient = ReturnType<typeof createAdminClient>;
+
+interface OrderItemInput {
+  product_id: string;
+  quantity: number;
+}
+
+interface ProcessOrderResult {
+  success: boolean;
+  error?: string;
+  is_duplicate?: boolean;
+  order_id?: string;
+  errors?: string[];
+  items_processed?: Array<{
+    product_id: string;
+    product_type: string;
+    new_stock?: number;
+  }>;
+}
+
+function parseJSON<T>(json: string | undefined, fallback: T): T {
+  if (!json) return fallback;
+  try {
+    return JSON.parse(json) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   console.log('Stripe webhook received');
@@ -55,21 +84,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     return;
   }
 
-  console.log('Session metadata keys:', Object.keys(metadata));
-
-  // SEC-003: Validate checkout token (warning only - Stripe signature already verifies authenticity)
   const tokenValidation = validateCheckoutToken(metadata.checkout_token);
   if (!tokenValidation.valid) {
-    // Log warning but continue - Stripe webhook signature verification is the primary security check
     console.warn('Checkout token validation warning for session:', session.id, tokenValidation.error);
   }
 
   const supabase = createAdminClient();
-  console.log('Supabase admin client created');
   const items = parseJSON<OrderItemInput[]>(metadata.items, []);
   const shippingAddress = parseJSON<ShippingAddress>(metadata.shipping_address, {} as ShippingAddress);
 
-  // DB-007: Use atomic transaction function for order processing
   const { data: result, error: rpcError } = await supabase.rpc('process_order', {
     p_customer_email: metadata.customer_email,
     p_customer_name: metadata.customer_name,
@@ -111,7 +134,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     .single();
 
   if (order) {
-    // DB-003: Fetch items from order_items table for emails
     const { data: orderItems } = await supabase
       .from('order_items')
       .select('product_id, title, price, quantity, image_url')
@@ -121,13 +143,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   }
 }
 
-interface OrderItemInput {
-  product_id: string;
-  quantity: number;
-}
-
-type SupabaseClient = ReturnType<typeof createAdminClient>;
-
 async function handleCheckoutCompletedFallback(
   supabase: SupabaseClient,
   session: Stripe.Checkout.Session,
@@ -135,7 +150,6 @@ async function handleCheckoutCompletedFallback(
   items: OrderItemInput[],
   shippingAddress: ShippingAddress,
 ): Promise<void> {
-  // SEC-004: Idempotency check
   const { data: existingOrder } = await supabase
     .from('orders')
     .select('id')
@@ -181,7 +195,6 @@ async function handleCheckoutCompletedFallback(
 
   await updateInventory(supabase, items);
 
-  // DB-003: Fetch items from order_items table for emails
   const { data: orderItems } = await supabase
     .from('order_items')
     .select('product_id, title, price, quantity, image_url')
@@ -191,7 +204,6 @@ async function handleCheckoutCompletedFallback(
 }
 
 async function decrementDiscountCode(supabase: SupabaseClient, code: string): Promise<void> {
-  // SEC-006: Use atomic database function to prevent race conditions
   const { data, error } = await supabase.rpc('decrement_discount_code', {
     p_code: code,
   });
@@ -235,17 +247,9 @@ async function updateInventory(supabase: SupabaseClient, items: OrderItemInput[]
   }
 }
 
-// DB-003: Load order items from junction table for emails
-function loadOrderWithItems(order: Order, items: OrderItem[]): OrderWithItems {
-  return {
-    ...order,
-    items,
-  };
-}
-
 async function sendOrderEmailsSafe(order: Order, items: OrderItem[]): Promise<void> {
   try {
-    const orderWithItems = loadOrderWithItems(order, items);
+    const orderWithItems = { ...order, items };
     const emailResults = await sendOrderEmails(orderWithItems);
     if (!emailResults.confirmation.success) {
       console.error('Customer email failed:', emailResults.confirmation.error);
@@ -256,19 +260,6 @@ async function sendOrderEmailsSafe(order: Order, items: OrderItem[]): Promise<vo
   } catch (error) {
     console.error('Email sending error:', error);
   }
-}
-
-interface ProcessOrderResult {
-  success: boolean;
-  error?: string;
-  is_duplicate?: boolean;
-  order_id?: string;
-  errors?: string[];
-  items_processed?: Array<{
-    product_id: string;
-    product_type: string;
-    new_stock?: number;
-  }>;
 }
 
 function logInventoryUpdates(result: ProcessOrderResult): void {
@@ -284,14 +275,5 @@ function logInventoryUpdates(result: ProcessOrderResult): void {
     } else {
       console.log(`Print stock updated: product ${item.product_id} - new stock: ${item.new_stock}`);
     }
-  }
-}
-
-function parseJSON<T>(json: string | undefined, fallback: T): T {
-  if (!json) return fallback;
-  try {
-    return JSON.parse(json) as T;
-  } catch {
-    return fallback;
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+
 import type { CheckoutText } from '@/lib/i18n/cart-checkout-text';
 import { INPUT_CLASS } from './form-input';
 
@@ -12,24 +13,36 @@ interface DiscountCodeInputProps {
   subtotal: number;
 }
 
-export function DiscountCodeInput({ t, onApplyDiscount, existingCode, subtotal }: DiscountCodeInputProps): React.ReactElement {
+export function DiscountCodeInput({
+  t,
+  onApplyDiscount,
+  existingCode,
+  subtotal,
+}: DiscountCodeInputProps): React.ReactElement {
   const [discountInput, setDiscountInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  async function handleApply(): Promise<void> {
-    if (!discountInput.trim()) return;
+  const isDisabled = isLoading || !!existingCode;
 
-    setIsLoading(true);
+  function clearMessages(): void {
     setError('');
     setSuccess('');
+  }
+
+  async function handleApply(): Promise<void> {
+    const code = discountInput.trim();
+    if (!code) return;
+
+    setIsLoading(true);
+    clearMessages();
 
     try {
       const response = await fetch('/api/discounts/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: discountInput.trim(), subtotal }),
+        body: JSON.stringify({ code, subtotal }),
       });
 
       const result = await response.json();
@@ -49,8 +62,6 @@ export function DiscountCodeInput({ t, onApplyDiscount, existingCode, subtotal }
     }
   }
 
-  const isDisabled = isLoading || !!existingCode;
-
   return (
     <div className="mt-8">
       <label className="block text-sm font-medium mb-1">{t.discountCode}</label>
@@ -60,12 +71,11 @@ export function DiscountCodeInput({ t, onApplyDiscount, existingCode, subtotal }
           value={discountInput}
           onChange={(e) => {
             setDiscountInput(e.target.value);
-            setError('');
-            setSuccess('');
+            clearMessages();
           }}
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
           disabled={isDisabled}
-          placeholder={existingCode || ''}
+          placeholder={existingCode ?? ''}
           className={`flex-1 ${INPUT_CLASS} disabled:opacity-50`}
         />
         <button

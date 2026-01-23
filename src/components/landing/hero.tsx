@@ -3,8 +3,9 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
-import type { Dictionary, Locale } from '@/types';
 import Link from 'next/link';
+
+import type { Dictionary, Locale } from '@/types';
 
 const staggerContainer = {
   animate: {
@@ -67,21 +68,20 @@ interface HeroProps {
   dictionary: Dictionary;
 }
 
-export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
+export function Hero({ lang, dictionary }: HeroProps): React.ReactElement {
   const t = dictionary.hero;
 
   function scrollToArt(): void {
     const artSection = document.getElementById('art');
-    if (artSection) {
-      const rect = artSection.getBoundingClientRect();
-      const scrollTop = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-      window.scrollTo({ top: scrollTop, behavior: 'smooth' });
-    }
+    if (!artSection) return;
+
+    const rect = artSection.getBoundingClientRect();
+    const scrollTop = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+    window.scrollTo({ top: scrollTop, behavior: 'smooth' });
   }
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* Ben-Day dots pattern overlay */}
       <div
         className="absolute inset-0 z-[1] pointer-events-none opacity-[0.08]"
         style={{
@@ -90,7 +90,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
         }}
       />
 
-      {/* Hero background image */}
       <div className="absolute inset-0">
         <Image
           src="/images/hero-bg.png"
@@ -100,26 +99,21 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           className="object-cover object-center"
           sizes="100vw"
         />
-        {/* Darkened overlay for text contrast */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background/70" />
       </div>
 
-      {/* Bottom fade gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent z-[2]" />
 
-      {/* Main hero content */}
       <motion.div
         className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        {/* Pop-art speech bubble with headline */}
         <motion.div
           className="relative mb-6 sm:mb-8"
           variants={popIn}
         >
-          {/* Comic speech bubble */}
           <div className="relative inline-block">
             <div
               className="relative bg-primary px-6 py-3 sm:px-10 sm:py-5"
@@ -127,7 +121,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
                 clipPath: 'polygon(0 10%, 3% 0, 97% 0, 100% 10%, 100% 90%, 97% 100%, 8% 100%, 0 100%, 0 90%)',
               }}
             >
-              {/* Inner halftone texture */}
               <div
                 className="absolute inset-0 opacity-20 mix-blend-multiply"
                 style={{
@@ -145,7 +138,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
                 {t.headline}
               </span>
             </div>
-            {/* Speech bubble tail */}
             <div
               className="absolute -bottom-3 left-8 sm:left-12 w-6 h-6 sm:w-8 sm:h-8 bg-primary"
               style={{
@@ -155,7 +147,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           </div>
         </motion.div>
 
-        {/* Bold DOTTY logo text with comic-book styling */}
         <motion.div
           className="relative mb-4 sm:mb-6"
           variants={slideInLeft}
@@ -191,7 +182,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           </h1>
         </motion.div>
 
-        {/* Subtitle with comic panel styling */}
         <motion.div
           className="relative max-w-xl mb-8 sm:mb-10"
           variants={slideInRight}
@@ -202,7 +192,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
               boxShadow: '6px 6px 0 var(--foreground)',
             }}
           >
-            {/* Corner accent */}
             <div className="absolute -top-2 -left-2 w-4 h-4 bg-accent-3" />
             <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-primary" />
 
@@ -212,10 +201,7 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           </div>
         </motion.div>
 
-        {/* CTA Button - Bold pop-art style */}
-        <motion.div
-          variants={popIn}
-        >
+        <motion.div variants={popIn}>
           <Link
             href={`/${lang}/shop`}
             className="group relative inline-flex items-center gap-3 bg-primary text-background font-black text-lg sm:text-xl uppercase tracking-wide px-8 py-4 sm:px-10 sm:py-5 border-4 border-foreground transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 active:translate-x-1 active:translate-y-1"
@@ -235,7 +221,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
               e.currentTarget.style.boxShadow = '6px 6px 0 var(--foreground)';
             }}
           >
-            {/* Button halftone overlay */}
             <div
               className="absolute inset-0 opacity-10 pointer-events-none"
               style={{
@@ -256,7 +241,6 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
           </Link>
         </motion.div>
 
-        {/* Decorative comic elements */}
         <motion.div
           className="absolute top-8 right-4 sm:top-12 sm:right-12 hidden sm:block"
           initial={{ scale: 0, rotate: 20 }}
@@ -292,9 +276,7 @@ export function Hero({ lang, dictionary }: HeroProps): React.ReactNode {
         </motion.div>
       </motion.div>
 
-      {/* Scroll button with enhanced mobile tap target */}
       <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-10">
-        {/* Pulsing ring for attention */}
         <motion.div
           className="absolute inset-0 rounded-full border-2 border-primary/50"
           {...pulseRing}

@@ -44,7 +44,7 @@ export default function NewsletterConfirmedPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
-}) {
+}): React.ReactElement {
   const [lang, setLang] = useState<Locale>('no');
   const searchParams = useSearchParams();
   const status = (searchParams.get('status') as Status) || 'error';

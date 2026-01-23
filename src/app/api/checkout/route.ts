@@ -7,13 +7,11 @@ import { validateCheckoutToken, generateCheckoutToken } from '@/lib/checkout-tok
 import { validateCheckoutRequest } from '@/lib/schemas/checkout';
 import type { ShippingAddress, OrderItem, Locale } from '@/types';
 
+const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60000 };
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  // Rate limiting: 5 requests per minute per IP for checkout
   const clientIp = getClientIp(request);
-  const rateLimitResult = await checkRateLimit(`checkout:${clientIp}`, {
-    maxRequests: 5,
-    windowMs: 60000,
-  });
+  const rateLimitResult = await checkRateLimit(`checkout:${clientIp}`, RATE_LIMIT_CONFIG);
 
   if (!rateLimitResult.success) {
     return NextResponse.json(
@@ -22,7 +20,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ARCH-002: Zod schema validation of request body
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -41,8 +38,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const body = validationResult.data;
 
-  // SEC-002: Validate checkout token to ensure request originated from legitimate checkout
-  // Token is required in production but optional in development for testing
   if (body.checkout_token) {
     const tokenValidation = validateCheckoutToken(body.checkout_token);
     if (!tokenValidation.valid) {
@@ -72,7 +67,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     newsletter_opt_in,
   } = body;
 
-  // ARCH-001: Server-side cart validation - fetch actual prices from database
   const cartValidationResult = await validateCartServerSide(items, discount_code);
   if (!cartValidationResult.valid) {
     return NextResponse.json({ error: cartValidationResult.error }, { status: 400 });
@@ -141,6 +135,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   return NextResponse.json({ sessionId: session.id, url: session.url });
+}
+
+function getCanonicalOrigin(request: NextRequest): string {
+  const origin = request.headers.get('origin')
+    || request.headers.get('referer')?.split('/').slice(0, 3).join('/')
+    || 'https://dotty.no';
+  return origin.replace('://www.', '://');
+}
+
+async function createStripeCoupon(
+  stripe: Stripe,
+  amountOff: number,
+  code?: string,
+): Promise<string> {
+  const coupon = await stripe.coupons.create({
+    amount_off: amountOff,
+    currency: 'nok',
+    duration: 'once',
+    name: code || 'Discount',
+  });
+  return coupon.id;
 }
 
 function buildLineItems(
@@ -226,27 +241,6 @@ function buildOrderMetadata(input: OrderMetadataInput): Record<string, string> {
   };
 }
 
-function getCanonicalOrigin(request: NextRequest): string {
-  const origin = request.headers.get('origin')
-    || request.headers.get('referer')?.split('/').slice(0, 3).join('/')
-    || 'https://dotty.no';
-  return origin.replace('://www.', '://');
-}
-
-async function createStripeCoupon(
-  stripe: Stripe,
-  amountOff: number,
-  code?: string,
-): Promise<string> {
-  const coupon = await stripe.coupons.create({
-    amount_off: amountOff,
-    currency: 'nok',
-    duration: 'once',
-    name: code || 'Discount',
-  });
-  return coupon.id;
-}
-
 interface CartValidationResult {
   valid: boolean;
   error?: string;
@@ -254,10 +248,6 @@ interface CartValidationResult {
   discountAmount?: number;
 }
 
-/**
- * ARCH-001: Server-side cart validation
- * Validates prices against database and recalculates discount amounts
- */
 async function validateCartServerSide(
   clientItems: OrderItem[],
   discountCode?: string,

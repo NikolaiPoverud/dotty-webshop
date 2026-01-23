@@ -54,10 +54,8 @@ export function CookieConsent({ lang, dictionary }: CookieConsentProps): React.R
           className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
         >
           <div className="max-w-4xl mx-auto bg-muted border border-border rounded-xl shadow-2xl overflow-hidden">
-            {/* Main Banner */}
             <div className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                {/* Icon & Text */}
                 <div className="flex items-start gap-3 flex-1">
                   <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Cookie className="w-5 h-5 text-primary" />
@@ -100,7 +98,6 @@ export function CookieConsent({ lang, dictionary }: CookieConsentProps): React.R
   );
 }
 
-// Export function to check consent status
 export function getCookieConsent(): boolean | null {
   if (typeof window === 'undefined') return null;
 
@@ -115,7 +112,6 @@ export function getCookieConsent(): boolean | null {
   }
 }
 
-// Export function to reset consent (for settings page)
 export function resetCookieConsent(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(COOKIE_CONSENT_KEY);

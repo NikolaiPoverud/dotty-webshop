@@ -1,9 +1,3 @@
-/**
- * Faceted SEO URL Builder
- *
- * Generates URLs for faceted pages with proper locale handling.
- */
-
 import type { Locale, ShippingSize } from '@/types';
 import {
   type TypeFacetValue,
@@ -11,10 +5,6 @@ import {
   SIZE_FACET_SLUGS,
   FACET_BASE_PATHS,
 } from './index';
-
-// ============================================================================
-// Base URL Helpers
-// ============================================================================
 
 const DOMAIN_NO = process.env.NEXT_PUBLIC_DOMAIN_NO || 'https://dotty.no';
 const DOMAIN_EN = process.env.NEXT_PUBLIC_DOMAIN_EN || 'https://dottyartwork.com';
@@ -33,10 +23,6 @@ export function buildPathOnly(...pathSegments: string[]): string {
   return `/shop/${pathSegments.filter(Boolean).join('/')}`;
 }
 
-// ============================================================================
-// Type Facet URLs
-// ============================================================================
-
 export function getTypeFacetUrl(type: TypeFacetValue, locale: Locale): string {
   const slug = TYPE_FACET_SLUGS[locale][type];
   return buildUrl(locale, FACET_BASE_PATHS.type, slug);
@@ -53,10 +39,6 @@ export function getAllTypeFacetUrls(locale: Locale): Array<{ url: string; type: 
     type,
   }));
 }
-
-// ============================================================================
-// Year Facet URLs
-// ============================================================================
 
 export function getYearFacetUrl(year: number, locale: Locale): string {
   return buildUrl(locale, FACET_BASE_PATHS.year, String(year));
@@ -76,10 +58,6 @@ export function getYearFacetUrls(
   }));
 }
 
-// ============================================================================
-// Price Range Facet URLs
-// ============================================================================
-
 export function getPriceFacetUrl(rangeSlug: string, locale: Locale): string {
   return buildUrl(locale, FACET_BASE_PATHS.price, rangeSlug);
 }
@@ -87,10 +65,6 @@ export function getPriceFacetUrl(rangeSlug: string, locale: Locale): string {
 export function getPriceFacetPath(rangeSlug: string): string {
   return buildPathOnly(FACET_BASE_PATHS.price, rangeSlug);
 }
-
-// ============================================================================
-// Size Facet URLs
-// ============================================================================
 
 export function getSizeFacetUrl(size: ShippingSize, locale: Locale): string {
   const slug = SIZE_FACET_SLUGS[locale][size];
@@ -109,10 +83,6 @@ export function getAllSizeFacetUrls(locale: Locale): Array<{ url: string; size: 
   }));
 }
 
-// ============================================================================
-// Combined Facet URLs (Type + Year)
-// ============================================================================
-
 export function getTypeYearFacetUrl(
   type: TypeFacetValue,
   year: number,
@@ -130,10 +100,6 @@ export function getTypeYearFacetPath(
   const typeSlug = TYPE_FACET_SLUGS[locale][type];
   return buildPathOnly(FACET_BASE_PATHS.type, typeSlug, FACET_BASE_PATHS.year, String(year));
 }
-
-// ============================================================================
-// Alternate URLs for Hreflang
-// ============================================================================
 
 export interface AlternateUrls {
   'nb-NO': string;
@@ -182,34 +148,6 @@ export function getTypeYearFacetAlternates(
     'en': getTypeYearFacetUrl(type, year, 'en'),
     'x-default': getTypeYearFacetUrl(type, year, 'no'),
   };
-}
-
-// ============================================================================
-// Canonical URL Helpers
-// ============================================================================
-
-export function getTypeFacetCanonical(type: TypeFacetValue, locale: Locale): string {
-  return getTypeFacetUrl(type, locale);
-}
-
-export function getYearFacetCanonical(year: number, locale: Locale): string {
-  return getYearFacetUrl(year, locale);
-}
-
-export function getPriceFacetCanonical(rangeSlug: string, locale: Locale): string {
-  return getPriceFacetUrl(rangeSlug, locale);
-}
-
-export function getSizeFacetCanonical(size: ShippingSize, locale: Locale): string {
-  return getSizeFacetUrl(size, locale);
-}
-
-export function getTypeYearFacetCanonical(
-  type: TypeFacetValue,
-  year: number,
-  locale: Locale
-): string {
-  return getTypeYearFacetUrl(type, year, locale);
 }
 
 // ============================================================================

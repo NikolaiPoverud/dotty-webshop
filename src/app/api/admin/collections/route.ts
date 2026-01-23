@@ -29,7 +29,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const body = await request.json();
 
-  // Validate input
   const validation = validate(body, collectionSchema);
   if (!validation.success) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
@@ -47,8 +46,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Invalidate collection cache after mutation
   invalidateCollectionCache();
-
   return NextResponse.json({ data }, { status: 201 });
 }

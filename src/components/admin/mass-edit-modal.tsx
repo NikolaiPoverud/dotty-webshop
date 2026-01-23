@@ -1,12 +1,13 @@
 'use client';
 
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Check } from 'lucide-react';
-import { SizeInput } from './size-input';
+
 import { adminFetch } from '@/lib/admin-fetch';
-import type { Product, ProductSize, Collection, ShippingSize } from '@/types';
+import type { Collection, Product, ProductSize, ShippingSize } from '@/types';
 import { SHIPPING_SIZE_INFO } from '@/types';
+import { SizeInput } from './size-input';
 
 interface MassEditModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export function MassEditModal({
   selectedProducts,
   collections,
   onSuccess,
-}: MassEditModalProps) {
+}: MassEditModalProps): React.ReactElement {
   const [activeField, setActiveField] = useState<EditField | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function MassEditModal({
   const [shippingSize, setShippingSize] = useState<ShippingSize | ''>('');
   const [requiresInquiry, setRequiresInquiry] = useState(false);
 
-  const resetForm = () => {
+  function resetForm(): void {
     setActiveField(null);
     setSizes([]);
     setAddSizes(true);
@@ -68,14 +69,14 @@ export function MassEditModal({
     setRequiresInquiry(false);
     setError(null);
     setSuccess(false);
-  };
+  }
 
-  const handleClose = () => {
+  function handleClose(): void {
     resetForm();
     onClose();
-  };
+  }
 
-  const handleSubmit = async () => {
+  async function handleSubmit(): Promise<void> {
     if (!activeField) return;
 
     setIsSubmitting(true);
@@ -110,7 +111,7 @@ export function MassEditModal({
 
       // Process each product
       const promises = selectedProducts.map(async (product) => {
-        let productUpdates = { ...updates };
+        const productUpdates: Record<string, unknown> = { ...updates };
 
         // Handle sizes specially
         if (activeField === 'sizes') {
@@ -173,7 +174,7 @@ export function MassEditModal({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   const fieldOptions: { id: EditField; label: string; description: string }[] = [
     { id: 'sizes', label: 'Størrelser', description: 'Legg til eller erstatt størrelser' },
@@ -203,7 +204,6 @@ export function MassEditModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-background border border-border rounded-xl shadow-xl z-50 max-h-[90vh] overflow-hidden flex flex-col"
           >
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
                 <h2 className="text-xl font-bold">Masseredigering</h2>
@@ -219,7 +219,6 @@ export function MassEditModal({
               </button>
             </div>
 
-            {/* Content */}
             <div className="p-6 overflow-y-auto flex-1">
               {success ? (
                 <motion.div
@@ -386,7 +385,7 @@ export function MassEditModal({
                         <input
                           type="number"
                           min="0"
-                          step={priceAdjustType === 'percent' ? '1' : '1'}
+                          step="1"
                           value={priceAdjustValue}
                           onChange={(e) => setPriceAdjustValue(e.target.value)}
                           className="w-full px-4 py-3 bg-muted border border-border rounded-lg pr-12"
@@ -458,7 +457,6 @@ export function MassEditModal({
               )}
             </div>
 
-            {/* Footer */}
             {activeField && !success && (
               <div className="p-6 border-t border-border">
                 <button

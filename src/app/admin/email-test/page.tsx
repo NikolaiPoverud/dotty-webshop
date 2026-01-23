@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, ChevronDown, Loader2, Mail, Send } from 'lucide-react';
 

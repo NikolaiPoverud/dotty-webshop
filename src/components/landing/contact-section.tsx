@@ -1,9 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Send, Loader2 } from 'lucide-react';
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
+import { motion } from 'framer-motion';
+import { Loader2, Send } from 'lucide-react';
 import { useState } from 'react';
+
 import type { Dictionary, Locale } from '@/types';
 
 interface ContactSectionProps {

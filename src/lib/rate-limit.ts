@@ -1,8 +1,3 @@
-/**
- * Rate limiter with Vercel KV (Redis) backend for serverless environments.
- * Falls back to in-memory for development/testing.
- */
-
 import { kv } from '@vercel/kv';
 
 export interface RateLimitConfig {
@@ -90,16 +85,6 @@ function checkRateLimitWithMemory(
   };
 }
 
-/**
- * SEC-008: Rate limiting with fail-safe behavior
- *
- * In production, if Redis is unavailable, we return a "rate limited" response
- * rather than silently falling back to ineffective in-memory limiting.
- * This prevents rate limit bypass in serverless environments where memory
- * isn't shared across instances.
- *
- * In development, we allow memory fallback for convenience.
- */
 export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
@@ -114,54 +99,35 @@ export async function checkRateLimit(
     } catch (error) {
       console.error('Redis rate limit error:', error);
 
-      // SEC-008: In production, fail closed - treat Redis errors as rate limited
-      // This prevents bypass when Redis is unavailable
+      // In production, fail closed to prevent bypass when Redis is unavailable
       if (isProduction) {
-        console.warn('SEC-008: Rate limit fail-safe triggered - denying request');
+        console.warn('Rate limit fail-safe triggered - denying request');
         return {
           success: false,
           remaining: 0,
           resetTime: now + config.windowMs,
         };
       }
-      // In development, allow memory fallback
       console.warn('Development mode: falling back to memory rate limiting');
     }
   }
 
-  // Only use memory store in development or when KV is not configured
   if (isProduction && !isKvConfigured()) {
-    console.warn('SEC-008: KV not configured in production - rate limiting disabled for this request');
-    // Still allow through but log warning - this should be fixed by configuring KV
+    console.warn('KV not configured in production - rate limiting disabled for this request');
   }
 
   return checkRateLimitWithMemory(key, config, now);
 }
 
-/**
- * SEC-007: Get client IP with proper proxy handling
- *
- * When behind Vercel/CDN, the rightmost IP in x-forwarded-for is the most reliable
- * as it's the IP that Vercel saw. Leftmost can be spoofed by malicious clients.
- *
- * Priority order:
- * 1. x-real-ip (set by Vercel edge, most reliable)
- * 2. Rightmost x-forwarded-for IP (closest to our edge)
- * 3. 'unknown' fallback
- */
 export function getClientIp(request: Request): string {
-  // x-real-ip is set by Vercel and is the most reliable
   const realIp = request.headers.get('x-real-ip');
   if (realIp) {
     return realIp.trim();
   }
 
-  // Take rightmost IP from x-forwarded-for chain (closest to our edge)
-  // This prevents attackers from spoofing IPs via the header
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    const ips = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
-    // Rightmost IP is the one that connected to Vercel
+    const ips = forwarded.split(',').map((ip) => ip.trim()).filter(Boolean);
     return ips[ips.length - 1] || 'unknown';
   }
 

@@ -1,16 +1,6 @@
-/**
- * Internal Links Component
- *
- * Displays related facet links for SEO internal linking.
- * Used on product pages and faceted pages.
- */
-
 import Link from 'next/link';
-import type { Locale } from '@/types';
 
-// ============================================================================
-// Types
-// ============================================================================
+import type { Locale } from '@/types';
 
 interface RelatedFacetLink {
   label: string;
@@ -24,24 +14,20 @@ interface RelatedFacetGroup {
   links: RelatedFacetLink[];
 }
 
-// ============================================================================
-// Simple Related Links (for product pages)
-// ============================================================================
-
 interface RelatedLinksProps {
   links: RelatedFacetLink[];
   title?: string;
   locale: Locale;
 }
 
-export function RelatedLinks({ links, title, locale }: RelatedLinksProps) {
+export function RelatedLinks({ links, title, locale }: RelatedLinksProps): React.ReactElement | null {
   if (links.length === 0) return null;
 
-  const defaultTitle = locale === 'no' ? 'Utforsk lignende' : 'Explore Similar';
+  const displayTitle = title ?? (locale === 'no' ? 'Utforsk lignende' : 'Explore Similar');
 
   return (
     <nav className="mt-8 pt-8 border-t-2 border-primary" aria-label="Related categories">
-      <h3 className="text-lg font-bold mb-4 text-primary uppercase tracking-wider">{title || defaultTitle}</h3>
+      <h3 className="text-lg font-bold mb-4 text-primary uppercase tracking-wider">{displayTitle}</h3>
       <div className="flex flex-wrap gap-2 sm:gap-3">
         {links.map((link) => (
           <Link
@@ -61,17 +47,13 @@ export function RelatedLinks({ links, title, locale }: RelatedLinksProps) {
   );
 }
 
-// ============================================================================
-// Facet Navigation (for shop and faceted pages)
-// ============================================================================
-
 interface FacetNavigationProps {
   groups: RelatedFacetGroup[];
   locale: Locale;
   compact?: boolean;
 }
 
-export function FacetNavigation({ groups, locale, compact = false }: FacetNavigationProps) {
+export function FacetNavigation({ groups, locale, compact = false }: FacetNavigationProps): React.ReactElement | null {
   if (groups.length === 0) return null;
 
   const title = locale === 'no' ? 'Filtrer etter' : 'Filter by';
@@ -129,10 +111,6 @@ export function FacetNavigation({ groups, locale, compact = false }: FacetNaviga
   );
 }
 
-// ============================================================================
-// Breadcrumb Links (visual representation)
-// ============================================================================
-
 interface BreadcrumbItem {
   name: string;
   href: string;
@@ -142,7 +120,7 @@ interface BreadcrumbLinksProps {
   items: BreadcrumbItem[];
 }
 
-export function BreadcrumbLinks({ items }: BreadcrumbLinksProps) {
+export function BreadcrumbLinks({ items }: BreadcrumbLinksProps): React.ReactElement | null {
   if (items.length === 0) return null;
 
   return (
@@ -172,10 +150,6 @@ export function BreadcrumbLinks({ items }: BreadcrumbLinksProps) {
   );
 }
 
-// ============================================================================
-// Combined Internal Links Section
-// ============================================================================
-
 interface InternalLinksSectionProps {
   relatedLinks?: RelatedFacetLink[];
   facetGroups?: RelatedFacetGroup[];
@@ -188,7 +162,7 @@ export function InternalLinksSection({
   facetGroups,
   locale,
   showFacetNav = true,
-}: InternalLinksSectionProps) {
+}: InternalLinksSectionProps): React.ReactElement | null {
   const hasRelatedLinks = relatedLinks && relatedLinks.length > 0;
   const hasFacetGroups = showFacetNav && facetGroups && facetGroups.length > 0;
 

@@ -3,11 +3,11 @@ import { AdminLayoutWrapper } from '@/components/admin/admin-layout-wrapper';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminLayout({
-  children,
-}: {
+interface AdminLayoutProps {
   children: React.ReactNode;
-}): Promise<React.ReactNode> {
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps): React.ReactNode {
   return (
     <AdminLayoutWrapper sidebar={<AdminSidebar />}>
       {children}

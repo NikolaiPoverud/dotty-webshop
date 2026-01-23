@@ -8,7 +8,6 @@ import { refundPayment as refundStripePayment } from '@/lib/stripe';
 import { refundPayment as refundVippsPayment } from '@/lib/vipps';
 import { z } from 'zod';
 
-// SEC-003: Zod schema for order updates - whitelist allowed fields only
 const orderUpdateSchema = z.object({
   status: z.enum(['pending', 'paid', 'shipped', 'delivered', 'cancelled']).optional(),
   shipping_address: z.union([
@@ -25,9 +24,8 @@ const orderUpdateSchema = z.object({
   tracking_number: z.string().max(100).optional(),
   shipped_at: z.string().datetime().optional(),
   delivered_at: z.string().datetime().optional(),
-}).strict(); // Reject any extra fields
+}).strict();
 
-// DB-003: Helper to load order items from junction table
 async function loadOrderWithItems(order: Order): Promise<OrderWithItems> {
   const supabase = createAdminClient();
   const { data: items } = await supabase
@@ -45,11 +43,13 @@ async function sendStatusChangeEmail(order: Order, previousStatus: string | unde
   if (previousStatus === order.status) return;
 
   try {
-    if (order.status === 'shipped') {
+    if (order.status === 'shipped' || order.status === 'delivered') {
       const orderWithItems = await loadOrderWithItems(order);
-      await sendShippingNotification(orderWithItems);
-    } else if (order.status === 'delivered') {
-      await sendDeliveryConfirmation(order);
+      if (order.status === 'shipped') {
+        await sendShippingNotification(orderWithItems);
+      } else {
+        await sendDeliveryConfirmation(orderWithItems);
+      }
     }
   } catch (err) {
     console.error(`Failed to send ${order.status} email for order ${order.id}:`, err);
@@ -66,9 +66,8 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-
-    // SEC-003: Validate input with Zod schema - prevents mass assignment
     const parseResult = orderUpdateSchema.safeParse(body);
+
     if (!parseResult.success) {
       return NextResponse.json(
         { error: 'Invalid request data', details: parseResult.error.flatten().fieldErrors },
@@ -87,7 +86,6 @@ export async function PUT(
 
     const previousStatus = currentOrder?.status;
 
-    // Handle automatic refund when cancelling an order
     let refundResult: { success: boolean; refundId?: string; error?: string } | null = null;
     if (validatedData.status === 'cancelled' && previousStatus !== 'cancelled' && currentOrder) {
       const { payment_provider, payment_session_id, total } = currentOrder;
@@ -118,7 +116,6 @@ export async function PUT(
       }
     }
 
-    // Build final update data, including payment_status for refunds
     const updateData: Record<string, unknown> = { ...validatedData };
     if (validatedData.status === 'cancelled' && refundResult?.success) {
       updateData.payment_status = 'refunded';
@@ -160,7 +157,6 @@ export async function PUT(
       ...getAuditHeadersFromRequest(request),
     });
 
-    // Include refund result in response for UI feedback
     return NextResponse.json({
       data,
       refund: refundResult ? {

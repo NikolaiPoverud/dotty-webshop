@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
 import { motion } from 'framer-motion';
 import {
   ChevronLeft,
@@ -17,9 +18,9 @@ import {
   ShoppingCart,
   User,
 } from 'lucide-react';
+
 import { adminFetch } from '@/lib/admin-fetch';
 
-// Types
 interface AuditLogEntry {
   id: string;
   action: string;
@@ -54,7 +55,6 @@ interface Filters {
   search: string;
 }
 
-// Constants
 const TIME_CONSTANTS = {
   MINUTE: 60 * 1000,
   HOUR: 60 * 60 * 1000,
@@ -158,7 +158,6 @@ function filterLogs(logs: AuditLogEntry[], search: string): AuditLogEntry[] {
   });
 }
 
-// Reusable filter select component
 interface FilterSelectProps {
   label: string;
   value: string;
@@ -193,7 +192,6 @@ function FilterSelect({
   );
 }
 
-// Reusable date input component
 interface DateInputProps {
   label: string;
   value: string;
@@ -214,7 +212,6 @@ function DateInput({ label, value, onChange }: DateInputProps): React.ReactEleme
   );
 }
 
-// Table row component
 interface LogRowProps {
   log: AuditLogEntry;
 }
@@ -272,7 +269,6 @@ function LogRow({ log }: LogRowProps): React.ReactElement {
   );
 }
 
-// Main component
 export default function AuditLogPage(): React.ReactElement {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [pagination, setPagination] = useState<Pagination>(INITIAL_PAGINATION);

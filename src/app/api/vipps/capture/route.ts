@@ -9,17 +9,11 @@ interface CaptureRequest {
   amount?: number; // For partial capture/refund (in ore)
 }
 
-/**
- * Admin endpoint to capture, cancel, or refund Vipps payments
- * Reserve capture: Call this when shipping the order
- */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  // Verify admin authentication using consistent auth method
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
   try {
-
     const body = await request.json() as CaptureRequest;
     const { reference, action, amount } = body;
 
@@ -135,7 +129,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
   } catch (error) {
-    // SEC-015: Log full error server-side but return generic message to client
     console.error('Vipps capture error:', error);
     return NextResponse.json(
       { error: 'Failed to process payment action. Please try again.' },

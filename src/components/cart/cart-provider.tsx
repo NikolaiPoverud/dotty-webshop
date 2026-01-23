@@ -1,10 +1,10 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+
 import type { Product, CartProduct, CartItem, Cart, ProductSize } from '@/types';
 import { calculateCartTotalsSimple, type CartItemInput } from '@/lib/services/cart-service';
 
-// Cart actions
 type CartAction =
   | { type: 'ADD_ITEM'; payload: { product: Product; quantity?: number; reservationId?: string; expiresAt?: string; selectedSize?: ProductSize } }
   | { type: 'REMOVE_ITEM'; payload: { productId: string; selectedSize?: ProductSize } }
@@ -15,7 +15,6 @@ type CartAction =
   | { type: 'LOAD_CART'; payload: Cart }
   | { type: 'REMOVE_EXPIRED' };
 
-// Helper to generate unique item key
 function getItemKey(productId: string, size?: ProductSize): string {
   return size ? `${productId}-${size.width}x${size.height}` : productId;
 }
@@ -25,7 +24,6 @@ function itemMatchesKey(item: CartItem, targetKey: string): boolean {
   return itemKey === targetKey;
 }
 
-// ARCH-007: Extract only essential product fields for cart storage
 function toCartProduct(product: Product): CartProduct {
   return {
     id: product.id,
@@ -41,7 +39,6 @@ function toCartProduct(product: Product): CartProduct {
   };
 }
 
-// Initial cart state
 const initialCart: Cart = {
   items: [],
   subtotal: 0,
@@ -51,11 +48,12 @@ const initialCart: Cart = {
   total: 0,
 };
 
-// ARCH-008: Use CartService for consistent calculations
-function calculateTotals(items: CartItem[], discountAmount: number, freeShipping?: boolean): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
-  // Convert CartItem[] to CartItemInput[] for the service
-  // Use size price if available, otherwise use product price
-  const serviceItems: CartItemInput[] = items.map(item => ({
+function calculateTotals(
+  items: CartItem[],
+  discountAmount: number,
+  freeShipping?: boolean
+): Pick<Cart, 'subtotal' | 'shippingCost' | 'artistLevy' | 'total'> {
+  const serviceItems: CartItemInput[] = items.map((item) => ({
     productId: item.product.id,
     title: item.product.title,
     price: item.selectedSize?.price ?? item.product.price,
@@ -63,25 +61,25 @@ function calculateTotals(items: CartItem[], discountAmount: number, freeShipping
     shippingCost: item.product.shipping_cost,
   }));
 
-  // Pass 0 as custom shipping cost if free shipping is applied
   const customShippingCost = freeShipping ? 0 : undefined;
   return calculateCartTotalsSimple(serviceItems, discountAmount, customShippingCost);
 }
 
-// Helper to create updated cart state with recalculated totals
-function withTotals(state: Cart, items: CartItem[], discountAmount: number = state.discountAmount, freeShipping?: boolean): Cart {
+function withTotals(
+  state: Cart,
+  items: CartItem[],
+  discountAmount: number = state.discountAmount,
+  freeShipping?: boolean
+): Cart {
   const hasFreeShipping = freeShipping ?? state.freeShipping;
   return { ...state, items, ...calculateTotals(items, discountAmount, hasFreeShipping) };
 }
 
-// Cart reducer
 function cartReducer(state: Cart, action: CartAction): Cart {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { product, quantity = 1, reservationId, expiresAt, selectedSize } = action.payload;
       const cartProduct = toCartProduct(product);
-
-      // For products with size pricing, treat each size as a separate item
       const targetKey = getItemKey(product.id, selectedSize);
       const existingIndex = state.items.findIndex((item) => itemMatchesKey(item, targetKey));
 
@@ -144,7 +142,6 @@ function cartReducer(state: Cart, action: CartAction): Cart {
   }
 }
 
-// Context
 interface CartContextType {
   cart: Cart;
   addItem: (product: Product, quantity?: number, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize) => void;
@@ -160,7 +157,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'dotty-cart';
 const CART_STORAGE_VERSION = 1;
-const CART_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const CART_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface StoredCart {
   version: number;
@@ -168,50 +165,35 @@ interface StoredCart {
   cart: Cart;
 }
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({ children }: { children: ReactNode }): React.ReactElement {
   const [cart, dispatch] = useReducer(cartReducer, initialCart);
 
-  // SEC-016: Load cart from localStorage with expiration check
   useEffect(() => {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
+    if (!stored) return;
 
-        // Handle legacy format (direct cart object)
-        if (!data.version) {
-          // Legacy cart without versioning - clear it
-          console.log('Clearing legacy cart format');
-          localStorage.removeItem(CART_STORAGE_KEY);
-          return;
-        }
+    try {
+      const data = JSON.parse(stored);
 
-        const storedCart = data as StoredCart;
-
-        // Check version compatibility
-        if (storedCart.version !== CART_STORAGE_VERSION) {
-          console.log('Cart version mismatch, clearing cart');
-          localStorage.removeItem(CART_STORAGE_KEY);
-          return;
-        }
-
-        // Check if cart has expired
-        const age = Date.now() - storedCart.timestamp;
-        if (age > CART_MAX_AGE_MS) {
-          console.log('Cart expired, clearing');
-          localStorage.removeItem(CART_STORAGE_KEY);
-          return;
-        }
-
-        dispatch({ type: 'LOAD_CART', payload: storedCart.cart });
-      } catch (e) {
-        console.error('Failed to parse cart from localStorage:', e);
+      if (!data.version || data.version !== CART_STORAGE_VERSION) {
         localStorage.removeItem(CART_STORAGE_KEY);
+        return;
       }
+
+      const storedCart = data as StoredCart;
+      const age = Date.now() - storedCart.timestamp;
+
+      if (age > CART_MAX_AGE_MS) {
+        localStorage.removeItem(CART_STORAGE_KEY);
+        return;
+      }
+
+      dispatch({ type: 'LOAD_CART', payload: storedCart.cart });
+    } catch {
+      localStorage.removeItem(CART_STORAGE_KEY);
     }
   }, []);
 
-  // SEC-016: Save cart to localStorage with version and timestamp
   useEffect(() => {
     const storedCart: StoredCart = {
       version: CART_STORAGE_VERSION,
@@ -221,12 +203,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(storedCart));
   }, [cart]);
 
-  // Check for expired reservations periodically
   useEffect(() => {
-    const interval = setInterval(() => {
-      dispatch({ type: 'REMOVE_EXPIRED' });
-    }, 30000); // Check every 30 seconds
-
+    const interval = setInterval(() => dispatch({ type: 'REMOVE_EXPIRED' }), 30000);
     return () => clearInterval(interval);
   }, []);
 

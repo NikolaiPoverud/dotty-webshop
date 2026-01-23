@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Image as ImageIcon, Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { useRef, useState } from 'react';
+
 import { adminFetch } from '@/lib/admin-fetch';
+import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
   value?: string;
@@ -14,39 +15,9 @@ interface ImageUploadProps {
   onRemove?: () => void;
 }
 
-interface DropZoneContentProps {
-  isDragging: boolean;
-}
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-function UploadingState(): React.ReactElement {
-  return (
-    <>
-      <Loader2 className="w-10 h-10 text-primary animate-spin" />
-      <p className="text-sm text-muted-foreground">Laster opp...</p>
-    </>
-  );
-}
-
-function DropZoneContent({ isDragging }: DropZoneContentProps): React.ReactElement {
-  const Icon = isDragging ? Upload : ImageIcon;
-  const iconClass = isDragging ? 'text-primary' : 'text-muted-foreground';
-  const promptText = isDragging ? 'Slipp for å laste opp' : 'Dra og slipp bilde her';
-
-  return (
-    <>
-      <div className="p-4 rounded-full bg-muted">
-        <Icon className={cn('w-8 h-8', iconClass)} />
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-medium">{promptText}</p>
-        <p className="text-xs text-muted-foreground mt-1">eller klikk for å velge</p>
-      </div>
-      <p className="text-xs text-muted-foreground">JPEG, PNG, WebP, GIF (maks 10MB)</p>
-    </>
-  );
-}
-
-export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProps) {
+export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProps): React.ReactElement {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,9 +29,7 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
       return;
     }
 
-    // Validate file size client-side
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-    if (file.size > MAX_SIZE) {
+    if (file.size > MAX_FILE_SIZE) {
       setError(`File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max 10MB)`);
       return;
     }
@@ -194,9 +163,27 @@ export function ImageUpload({ value, path, onChange, onRemove }: ImageUploadProp
 
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
               {isUploading ? (
-                <UploadingState />
+                <>
+                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">Laster opp...</p>
+                </>
               ) : (
-                <DropZoneContent isDragging={isDragging} />
+                <>
+                  <div className="p-4 rounded-full bg-muted">
+                    {isDragging ? (
+                      <Upload className="w-8 h-8 text-primary" />
+                    ) : (
+                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium">
+                      {isDragging ? 'Slipp for å laste opp' : 'Dra og slipp bilde her'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">eller klikk for å velge</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPEG, PNG, WebP, GIF (maks 10MB)</p>
+                </>
               )}
             </div>
           </motion.div>

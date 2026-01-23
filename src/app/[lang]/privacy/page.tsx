@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 import type { Locale } from '@/types';
 import Link from 'next/link';
 

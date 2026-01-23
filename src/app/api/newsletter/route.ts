@@ -6,9 +6,6 @@ import { newsletterConfirmationTemplate } from '@/lib/email/templates';
 
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 
-// SEC-004: Strong email validation regex
-// - Requires alphanumeric chars plus common special chars in local part
-// - Requires valid domain with at least 2-char TLD
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

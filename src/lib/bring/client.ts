@@ -1,12 +1,3 @@
-/**
- * Bring Shipping Guide API Client
- *
- * Requires environment variables:
- * - BRING_API_UID: MyBring login email
- * - BRING_API_KEY: MyBring API key
- * - BRING_CUSTOMER_NUMBER: (optional) For net pricing
- */
-
 import 'server-only';
 import type {
   BringShippingRequest,
@@ -14,12 +5,10 @@ import type {
   BringConsignment,
   BringPackage,
   ShippingOption,
-  DEFAULT_CHECKOUT_SERVICES,
 } from './types';
 
 const BRING_API_URL = 'https://api.bring.com/shippingguide/api/v2/products';
 
-// Default sender location (shop address)
 const DEFAULT_FROM_POSTAL_CODE = process.env.BRING_FROM_POSTAL_CODE || '0173';
 const DEFAULT_FROM_COUNTRY = 'NO';
 
@@ -43,12 +32,8 @@ function validateConfig(config: BringClientConfig): void {
   }
 }
 
-/**
- * Get today's date formatted for Bring API
- */
 function getShippingDate(): { year: string; month: string; day: string } {
   const today = new Date();
-  // Add 1 day for processing time
   today.setDate(today.getDate() + 1);
 
   return {
@@ -58,9 +43,6 @@ function getShippingDate(): { year: string; month: string; day: string } {
   };
 }
 
-/**
- * Make a request to the Bring Shipping Guide API
- */
 async function fetchBringApi(request: BringShippingRequest): Promise<BringShippingResponse> {
   const config = getConfig();
   validateConfig(config);
@@ -90,21 +72,16 @@ async function fetchBringApi(request: BringShippingRequest): Promise<BringShippi
   return response.json();
 }
 
-/**
- * Convert Bring API response to simplified shipping options
- */
 function parseShippingOptions(response: BringShippingResponse): ShippingOption[] {
   const options: ShippingOption[] = [];
 
   for (const consignment of response.consignments) {
     for (const product of consignment.products) {
-      // Skip products with errors
       if (product.errors && product.errors.length > 0) {
         console.warn(`Bring product ${product.id} error:`, product.errors);
         continue;
       }
 
-      // Skip products without price
       if (!product.price?.listPrice?.amountWithVAT) {
         continue;
       }
@@ -120,7 +97,7 @@ function parseShippingOptions(response: BringShippingResponse): ShippingOption[]
         deliveryType: gui?.deliveryType || 'unknown',
         estimatedDelivery: delivery?.formattedExpectedDeliveryDate || delivery?.userMessage || '',
         workingDays: parseInt(delivery?.workingDays || '0', 10),
-        priceWithVat: Math.round(parseFloat(price.listPrice!.amountWithVAT) * 100), // Convert to øre
+        priceWithVat: Math.round(parseFloat(price.listPrice!.amountWithVAT) * 100),
         priceWithoutVat: Math.round(parseFloat(price.listPrice!.amountWithoutVAT) * 100),
         logo: gui?.logo,
         environmentalInfo: product.environmentalData
@@ -134,7 +111,6 @@ function parseShippingOptions(response: BringShippingResponse): ShippingOption[]
     }
   }
 
-  // Sort by price
   options.sort((a, b) => a.priceWithVat - b.priceWithVat);
 
   return options;
@@ -157,9 +133,6 @@ export interface GetShippingOptionsParams {
   language?: 'NO' | 'EN';
 }
 
-/**
- * Get available shipping options for a delivery
- */
 export async function getShippingOptions(params: GetShippingOptionsParams): Promise<ShippingOption[]> {
   const {
     toPostalCode,
@@ -172,8 +145,6 @@ export async function getShippingOptions(params: GetShippingOptionsParams): Prom
   } = params;
 
   const config = getConfig();
-
-  // Build packages array
   const bringPackages: BringPackage[] = packages.map((pkg, index) => ({
     id: (index + 1).toString(),
     length: pkg.lengthCm,
@@ -182,7 +153,6 @@ export async function getShippingOptions(params: GetShippingOptionsParams): Prom
     grossWeight: pkg.weightGrams,
   }));
 
-  // Build consignment
   const consignment: BringConsignment = {
     id: '1',
     fromCountryCode,
@@ -191,7 +161,6 @@ export async function getShippingOptions(params: GetShippingOptionsParams): Prom
     toPostalCode,
     shippingDate: getShippingDate(),
     packages: bringPackages,
-    // If specific services requested, include them with customer number for net pricing
     products: services?.map((id) => ({
       id,
       customerNumber: config.customerNumber,
@@ -211,17 +180,12 @@ export async function getShippingOptions(params: GetShippingOptionsParams): Prom
   return parseShippingOptions(response);
 }
 
-/**
- * Get shipping options for cart items with default package dimensions
- * Use this when product dimensions are not available
- */
 export async function getShippingOptionsForCart(params: {
   toPostalCode: string;
   toCountryCode?: string;
   totalWeightGrams?: number;
   language?: 'NO' | 'EN';
 }): Promise<ShippingOption[]> {
-  // Default package dimensions for art prints (approximate)
   const defaultPackage: PackageDimensions = {
     lengthCm: 60,
     widthCm: 10,
@@ -237,9 +201,6 @@ export async function getShippingOptionsForCart(params: {
   });
 }
 
-/**
- * Validate a Norwegian postal code format
- */
 export function isValidNorwegianPostalCode(code: string): boolean {
   return /^\d{4}$/.test(code);
 }

@@ -186,8 +186,6 @@ function FAQItem({ faq, index }: FAQItemProps): React.ReactElement {
   );
 }
 
-const DECORATIVE_DOT_COUNT = 5;
-
 interface FAQPageProps {
   params: Promise<{ lang: string }>;
 }
@@ -242,7 +240,7 @@ export default function FAQPage({ params }: FAQPageProps): React.ReactElement {
           transition={{ delay: 0.6 }}
           className="flex justify-center gap-2 mt-12"
         >
-          {Array.from({ length: DECORATIVE_DOT_COUNT }, (_, i) => (
+          {Array.from({ length: 5 }, (_, i) => (
             <motion.div
               key={i}
               className="w-3 h-3 rounded-full bg-primary"

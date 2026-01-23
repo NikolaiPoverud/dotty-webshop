@@ -5,7 +5,6 @@ import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 import { parsePaginationParams, getPaginationRange, buildPaginationResult } from '@/lib/pagination';
 import { z } from 'zod';
 
-// SEC-003: Zod schema for order creation - whitelist allowed fields
 const orderItemSchema = z.object({
   product_id: z.string().uuid(),
   title: z.string().min(1).max(200),
@@ -57,7 +56,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (search) {
-      // SEC-016: Escape special characters to prevent pattern injection in LIKE queries
       const sanitizedSearch = search.replace(/[%_\\]/g, '\\$&');
       query = query.or(`customer_name.ilike.%${sanitizedSearch}%,customer_email.ilike.%${sanitizedSearch}%,order_number.ilike.%${sanitizedSearch}%`);
     }
@@ -85,9 +83,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createAdminClient();
     const body = await request.json();
-
-    // SEC-003: Validate input with Zod schema - prevents mass assignment
     const parseResult = orderCreateSchema.safeParse(body);
+
     if (!parseResult.success) {
       return NextResponse.json(
         { error: 'Invalid request data', details: parseResult.error.flatten().fieldErrors },

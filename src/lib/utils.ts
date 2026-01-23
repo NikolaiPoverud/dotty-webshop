@@ -1,11 +1,10 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-// Format price in NOK
 export function formatPrice(priceInOre: number): string {
   return new Intl.NumberFormat('nb-NO', {
     style: 'currency',
@@ -15,7 +14,6 @@ export function formatPrice(priceInOre: number): string {
   }).format(priceInOre / 100);
 }
 
-// Generate slug from title
 export function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -25,17 +23,15 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-// SEC-016: Generate random alphanumeric suffix for unique slugs
-export function generateRandomSuffix(length: number = 6): string {
+export function generateRandomSuffix(length = 6): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   const randomValues = crypto.getRandomValues(new Uint8Array(length));
   return Array.from(randomValues, (byte) => chars[byte % chars.length]).join('');
 }
 
-// Norwegian artist levy (kunsteravgift) - 5% for items priced over 2500 NOK
-// This is a legal requirement under the Norwegian Visual Artists Copyright Act
-export const ARTIST_LEVY_THRESHOLD = 250000; // 2500 NOK in øre
-export const ARTIST_LEVY_RATE = 0.05; // 5%
+// Norwegian artist levy (kunsteravgift) - 5% for items over 2500 NOK
+export const ARTIST_LEVY_THRESHOLD = 250000;
+export const ARTIST_LEVY_RATE = 0.05;
 
 export interface ArtistLevyItem {
   productId: string;
@@ -45,11 +41,9 @@ export interface ArtistLevyItem {
   levyAmount: number;
 }
 
-/**
- * Calculate artist levy (kunsteravgift) for cart items
- * Returns the total levy amount and breakdown per qualifying item
- */
-export function calculateArtistLevy(items: { id: string; title: string; price: number; quantity: number }[]): {
+export function calculateArtistLevy(
+  items: { id: string; title: string; price: number; quantity: number }[]
+): {
   totalLevy: number;
   items: ArtistLevyItem[];
 } {

@@ -160,11 +160,7 @@ export default function NewOrderPage(): React.JSX.Element {
   }
 
   function handlePaymentProviderChange(value: string): void {
-    if (value === '') {
-      setPaymentProvider(null);
-    } else {
-      setPaymentProvider(value as PaymentProvider);
-    }
+    setPaymentProvider(value ? (value as PaymentProvider) : null);
   }
 
   return (

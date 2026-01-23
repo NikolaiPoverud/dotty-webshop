@@ -4,9 +4,6 @@ export type Locale = 'no' | 'en';
 
 let resendInstance: Resend | null = null;
 
-/**
- * Get or create the Resend client instance (lazy initialization)
- */
 export function getResend(): Resend {
   if (!resendInstance) {
     const apiKey = process.env.RESEND_API_KEY;
@@ -28,9 +25,6 @@ export const emailConfig = {
   },
 } as const;
 
-/**
- * Get the base URL for a specific locale
- */
 export function getEmailBaseUrl(locale: Locale = 'no'): string {
   return emailConfig.domains[locale];
 }

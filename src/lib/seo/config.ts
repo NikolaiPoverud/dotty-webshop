@@ -1,13 +1,5 @@
-/**
- * Centralized SEO Configuration
- *
- * This module provides all SEO-related configuration for programmatic SEO at scale.
- * Designed to support 100,000+ pages with proper deduplication and canonicalization.
- */
-
 import type { Locale } from '@/types';
 
-// Domain Configuration
 export const SEO_CONFIG = {
   domains: {
     no: process.env.NEXT_PUBLIC_DOMAIN_NO || 'https://dotty.no',
@@ -20,7 +12,6 @@ export const SEO_CONFIG = {
   twitterHandle: '@dottyartwork',
 } as const;
 
-// Pagination Configuration
 export const PAGINATION_CONFIG = {
   productsPerPage: 24,
   maxPagesInSitemap: 500, // Limit sitemap entries per file
@@ -28,7 +19,6 @@ export const PAGINATION_CONFIG = {
   productRevalidateSeconds: 86400, // 24 hours for product pages
 } as const;
 
-// Page Type Definitions for Programmatic SEO
 export type PageType =
   | 'home'
   | 'shop'
@@ -49,7 +39,6 @@ export type PageType =
   | 'facet-size'
   | 'facet-type-year';
 
-// SEO Templates by Page Type
 export const SEO_TEMPLATES: Record<PageType, {
   titleTemplate: { no: string; en: string };
   descriptionTemplate: { no: string; en: string };
@@ -200,7 +189,6 @@ export const SEO_TEMPLATES: Record<PageType, {
     priority: 0.3,
     changeFrequency: 'yearly',
   },
-  // Faceted pages
   'facet-type': {
     titleTemplate: {
       no: 'Kjøp {type} | Pop-Art | Dotty.',
@@ -262,8 +250,6 @@ export const SEO_TEMPLATES: Record<PageType, {
     changeFrequency: 'weekly',
   },
 };
-
-// Schema.org Types by Page
 export const SCHEMA_TYPES: Record<PageType, string[]> = {
   home: ['Organization', 'WebSite'],
   shop: ['CollectionPage', 'BreadcrumbList'],
@@ -277,7 +263,6 @@ export const SCHEMA_TYPES: Record<PageType, string[]> = {
   contact: ['ContactPage', 'BreadcrumbList'],
   privacy: ['WebPage', 'BreadcrumbList'],
   terms: ['WebPage', 'BreadcrumbList'],
-  // Faceted pages
   'facet-type': ['CollectionPage', 'ItemList', 'BreadcrumbList'],
   'facet-year': ['CollectionPage', 'ItemList', 'BreadcrumbList'],
   'facet-price': ['CollectionPage', 'ItemList', 'BreadcrumbList'],
@@ -285,31 +270,24 @@ export const SCHEMA_TYPES: Record<PageType, string[]> = {
   'facet-type-year': ['CollectionPage', 'ItemList', 'BreadcrumbList'],
 };
 
-// Internal Linking Configuration (Hub and Spoke)
 export const INTERNAL_LINKING = {
-  // Hub pages that should link to many spokes
   hubs: ['shop', 'collection', 'facet-type', 'facet-year'] as PageType[],
-  // Maximum related items to show
   maxRelatedProducts: 6,
   maxRelatedCollections: 4,
   maxRelatedFacets: 4,
-  // Breadcrumb depth limit
   maxBreadcrumbDepth: 4,
 } as const;
 
-// Helper to get domain for locale
 export function getDomainForLocale(locale: Locale): string {
   return SEO_CONFIG.domains[locale];
 }
 
-// Helper to build canonical URL
 export function buildCanonicalUrl(locale: Locale, path: string): string {
   const domain = getDomainForLocale(locale);
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   return `${domain}/${locale}${cleanPath}`;
 }
 
-// Helper to build alternate URLs for hreflang
 export function buildAlternateUrls(path: string): Record<string, string> {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   return {

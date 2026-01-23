@@ -1,10 +1,8 @@
-// Product Types
-
 export interface ProductSize {
   width: number;
   height: number;
   label: string;
-  price?: number; // Price in øre, overrides product.price if set
+  price?: number;
 }
 
 export interface GalleryImage {
@@ -54,8 +52,6 @@ export type ProductListItem = Pick<Product,
 
 export type ProductCard = ProductListItem;
 
-// Collection Types
-
 export interface Collection {
   id: string;
   name: string;
@@ -68,8 +64,6 @@ export interface Collection {
 }
 
 export type CollectionCard = Pick<Collection, 'id' | 'name' | 'slug' | 'description'>;
-
-// Order Types
 
 export interface ShippingAddress {
   line1: string;
@@ -97,8 +91,6 @@ export interface Order {
   customer_name: string;
   customer_phone: string;
   shipping_address: ShippingAddress;
-  // DB-003: items removed - now stored in order_items junction table
-  // Use OrderWithItems for orders that include items
   subtotal: number;
   discount_code: string | null;
   discount_amount: number;
@@ -131,8 +123,6 @@ export interface DiscountCode {
   created_at: string;
 }
 
-// Testimonial Types
-
 export interface Testimonial {
   id: string;
   feedback: string;
@@ -145,8 +135,6 @@ export interface Testimonial {
 }
 
 export type TestimonialCard = Pick<Testimonial, 'id' | 'name' | 'feedback' | 'source'>;
-
-// Cart Types
 
 export interface CartReservation {
   id: string;
@@ -167,7 +155,7 @@ export interface CartItem {
   quantity: number;
   reservationId?: string;
   expiresAt?: string;
-  selectedSize?: ProductSize; // Selected size with optional price override
+  selectedSize?: ProductSize;
 }
 
 export interface Cart {
@@ -181,8 +169,6 @@ export interface Cart {
   total: number;
 }
 
-// Newsletter Types
-
 export interface NewsletterSubscriber {
   id: string;
   email: string;
@@ -190,7 +176,6 @@ export interface NewsletterSubscriber {
   resend_synced: boolean;
 }
 
-// Shipping Types (Bring integration)
 export interface ShippingOption {
   id: string;
   name: string;
@@ -198,7 +183,7 @@ export interface ShippingOption {
   deliveryType: string;
   estimatedDelivery: string;
   workingDays: number;
-  priceWithVat: number; // In øre (cents)
+  priceWithVat: number;
   priceWithoutVat: number;
   logo?: string;
   environmentalInfo?: {
@@ -206,7 +191,6 @@ export interface ShippingOption {
   };
 }
 
-// i18n Types
 export type Locale = 'no' | 'en';
 
 export interface Dictionary {
@@ -437,13 +421,11 @@ export interface Dictionary {
   };
 }
 
-// API Response Types
 export interface ApiResponse<T> {
   data?: T;
   error?: string;
 }
 
-// Admin Types
 export interface AdminStats {
   salesThisMonth: number;
   ordersThisMonth: number;

@@ -1,28 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+
+import { verifyCronAuth } from '@/lib/cron-auth';
 import {
-  getPendingEmails,
-  markEmailSent,
-  markEmailFailed,
+  sendDeliveryConfirmation,
+  sendNewOrderAlert,
+  sendOrderConfirmation,
+  sendShippingNotification,
+} from '@/lib/email/send';
+import {
   cleanupEmailQueue,
+  getPendingEmails,
+  markEmailFailed,
+  markEmailSent,
   type QueuedEmail,
 } from '@/lib/services/email-queue-service';
-import {
-  sendOrderConfirmation,
-  sendNewOrderAlert,
-  sendShippingNotification,
-  sendDeliveryConfirmation,
-} from '@/lib/email/send';
-import type { Order, OrderWithItems, OrderItem } from '@/types';
+import { createAdminClient } from '@/lib/supabase/admin';
+import type { OrderItem, OrderWithItems } from '@/types';
 
-/**
- * ARCH-010: Cron endpoint for processing the email queue
- *
- * Runs every minute to process pending emails.
- * Configured in vercel.json.
- */
-
-// Load order with items for email templates
 async function loadOrderWithItems(orderId: string): Promise<OrderWithItems | null> {
   const supabase = createAdminClient();
 
@@ -48,59 +42,34 @@ async function loadOrderWithItems(orderId: string): Promise<OrderWithItems | nul
   } as OrderWithItems;
 }
 
+type EmailSender = (order: OrderWithItems) => Promise<{ success: boolean; error?: string }>;
+
+const EMAIL_HANDLERS: Record<string, EmailSender> = {
+  order_confirmation: sendOrderConfirmation,
+  new_order_alert: sendNewOrderAlert,
+  shipping_notification: sendShippingNotification,
+  delivery_confirmation: sendDeliveryConfirmation,
+};
+
 async function processEmail(email: QueuedEmail): Promise<boolean> {
   try {
-    let result: { success: boolean; error?: string };
+    if (!email.entity_id) throw new Error('Missing order ID');
 
-    switch (email.email_type) {
-      case 'order_confirmation': {
-        if (!email.entity_id) throw new Error('Missing order ID');
-        const order = await loadOrderWithItems(email.entity_id);
-        if (!order) throw new Error('Order not found');
-        result = await sendOrderConfirmation(order);
-        break;
-      }
+    const sender = EMAIL_HANDLERS[email.email_type];
+    if (!sender) throw new Error(`Unknown email type: ${email.email_type}`);
 
-      case 'new_order_alert': {
-        if (!email.entity_id) throw new Error('Missing order ID');
-        const order = await loadOrderWithItems(email.entity_id);
-        if (!order) throw new Error('Order not found');
-        result = await sendNewOrderAlert(order);
-        break;
-      }
+    const order = await loadOrderWithItems(email.entity_id);
+    if (!order) throw new Error('Order not found');
 
-      case 'shipping_notification': {
-        if (!email.entity_id) throw new Error('Missing order ID');
-        const order = await loadOrderWithItems(email.entity_id);
-        if (!order) throw new Error('Order not found');
-        result = await sendShippingNotification(order);
-        break;
-      }
-
-      case 'delivery_confirmation': {
-        if (!email.entity_id) throw new Error('Missing order ID');
-        const supabase = createAdminClient();
-        const { data: order, error } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('id', email.entity_id)
-          .single();
-        if (error || !order) throw new Error('Order not found');
-        result = await sendDeliveryConfirmation(order as Order);
-        break;
-      }
-
-      default:
-        throw new Error(`Unknown email type: ${email.email_type}`);
-    }
+    const result = await sender(order);
 
     if (result.success) {
       await markEmailSent(email.id);
       return true;
-    } else {
-      await markEmailFailed(email.id, result.error || 'Unknown error');
-      return false;
     }
+
+    await markEmailFailed(email.id, result.error || 'Unknown error');
+    return false;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     await markEmailFailed(email.id, message);
@@ -109,18 +78,15 @@ async function processEmail(email: QueuedEmail): Promise<boolean> {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // SEC-017: Verify cron request is authenticated
-  const { verifyCronAuth } = await import('@/lib/cron-auth');
   const authResult = verifyCronAuth(request);
   if (!authResult.authorized) return authResult.response!;
 
   try {
     const startTime = Date.now();
+    const emails = await getPendingEmails(10);
+
     let sent = 0;
     let failed = 0;
-
-    // Process emails in batches
-    const emails = await getPendingEmails(10);
 
     for (const email of emails) {
       const success = await processEmail(email);
@@ -131,9 +97,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Cleanup old processed emails (keep 30 days)
     const cleaned = await cleanupEmailQueue(30);
-
     const duration = Date.now() - startTime;
 
     console.log('[EmailQueue] Processing complete:', { sent, failed, cleaned, duration });

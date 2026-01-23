@@ -1,15 +1,4 @@
-/**
- * Faceted SEO Definitions
- *
- * Defines all facet types, their URL slugs, labels, and configurations
- * for programmatic SEO at scale (100,000+ pages).
- */
-
 import type { Locale, ShippingSize } from '@/types';
-
-// ============================================================================
-// Type Facet (original/print)
-// ============================================================================
 
 export type TypeFacetValue = 'original' | 'print';
 
@@ -46,7 +35,6 @@ export const TYPE_FACET_DESCRIPTIONS: Record<Locale, Record<TypeFacetValue, stri
   },
 };
 
-// Reverse lookup: slug -> db value
 export function getTypeValueFromSlug(slug: string, locale: Locale): TypeFacetValue | null {
   const slugs = TYPE_FACET_SLUGS[locale];
   for (const [value, s] of Object.entries(slugs)) {
@@ -54,10 +42,6 @@ export function getTypeValueFromSlug(slug: string, locale: Locale): TypeFacetVal
   }
   return null;
 }
-
-// ============================================================================
-// Price Range Facet
-// ============================================================================
 
 export interface PriceRange {
   slug: string;
@@ -110,10 +94,6 @@ export const PRICE_RANGE_DESCRIPTIONS: Record<Locale, Record<string, string>> = 
 export function getPriceRange(slug: string): PriceRange | null {
   return PRICE_RANGES.find((r) => r.slug === slug) ?? null;
 }
-
-// ============================================================================
-// Size (Shipping Size) Facet
-// ============================================================================
 
 export const SIZE_FACET_SLUGS: Record<Locale, Record<ShippingSize, string>> = {
   no: {
@@ -168,13 +148,6 @@ export function getSizeValueFromSlug(slug: string, locale: Locale): ShippingSize
   return null;
 }
 
-// ============================================================================
-// Year Facet
-// ============================================================================
-
-// Year facets are generated dynamically from the database
-// But we define the URL pattern and label format
-
 export const YEAR_FACET_LABELS: Record<Locale, (year: number) => string> = {
   no: (year) => `Kunstverk fra ${year}`,
   en: (year) => `Artworks from ${year}`,
@@ -184,10 +157,6 @@ export const YEAR_FACET_DESCRIPTIONS: Record<Locale, (year: number) => string> =
   no: (year) => `Utforsk pop-art kunstverk skapt i ${year}. Se hva kunstneren laget dette året.`,
   en: (year) => `Explore pop-art artworks created in ${year}. See what the artist made this year.`,
 };
-
-// ============================================================================
-// All Facets Configuration
-// ============================================================================
 
 export type FacetType = 'type' | 'year' | 'price' | 'size';
 
@@ -212,12 +181,7 @@ export const FACET_CHANGE_FREQUENCIES: Record<FacetType, 'daily' | 'weekly' | 'm
   size: 'weekly',
 };
 
-// Minimum products required to index a faceted page (avoid thin content)
 export const MIN_PRODUCTS_FOR_INDEX = 3;
-
-// ============================================================================
-// Static Params Generation Helpers
-// ============================================================================
 
 export function getAllTypeFacetParams(): Array<{ type: string }> {
   const params: Array<{ type: string }> = [];
@@ -226,7 +190,6 @@ export function getAllTypeFacetParams(): Array<{ type: string }> {
       params.push({ type: slug });
     }
   }
-  // Deduplicate (in case slugs are same across locales)
   return [...new Map(params.map((p) => [p.type, p])).values()];
 }
 

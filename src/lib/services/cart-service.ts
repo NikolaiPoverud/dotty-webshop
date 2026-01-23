@@ -1,20 +1,4 @@
-/**
- * ARCH-008: Cart calculation service
- *
- * Consolidates cart calculation logic for consistent pricing across:
- * - Client-side cart provider
- * - Server-side checkout validation
- * - Webhook order processing
- *
- * This ensures price calculations are always consistent and prevents
- * manipulation of cart totals.
- */
-
 import { calculateArtistLevy as calculateLevyFromUtils } from '@/lib/utils';
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export interface CartItemInput {
   productId: string;
@@ -44,40 +28,20 @@ export interface CartCalculationWithBreakdown extends CartCalculation {
 
 export interface DiscountInfo {
   code: string;
-  amount: number; // Amount in øre
+  amount: number;
 }
 
-// ============================================================================
-// Constants
-// ============================================================================
+export const ARTIST_LEVY_RATE = 0.05;
+export const ARTIST_LEVY_THRESHOLD = 250000;
 
-// Artist levy configuration
-export const ARTIST_LEVY_RATE = 0.05; // 5%
-export const ARTIST_LEVY_THRESHOLD = 250000; // 2500 NOK in øre
-
-// ============================================================================
-// Calculation Functions
-// ============================================================================
-
-/**
- * Calculate subtotal from cart items
- */
 export function calculateSubtotal(items: CartItemInput[]): number {
   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-/**
- * Calculate shipping cost using highest-shipping-cost approach
- * Customer pays shipping for the most expensive shipping item
- */
 export function calculateShippingCost(items: CartItemInput[]): number {
   return items.reduce((max, item) => Math.max(max, item.shippingCost ?? 0), 0);
 }
 
-/**
- * Calculate artist levy (kunsteravgift) for items over threshold
- * Uses the shared utility function for consistent calculation
- */
 export function calculateArtistLevy(items: CartItemInput[]): {
   totalLevy: number;
   levyItems: Array<{ productId: string; title: string; price: number; levy: number }>;
@@ -102,13 +66,6 @@ export function calculateArtistLevy(items: CartItemInput[]): {
   };
 }
 
-/**
- * Calculate complete cart totals
- *
- * @param items - Cart items with price and quantity
- * @param discount - Optional discount to apply
- * @param customShippingCost - Optional override for shipping (e.g., from Bring API)
- */
 export function calculateCartTotals(
   items: CartItemInput[],
   discount?: DiscountInfo | null,
@@ -136,10 +93,6 @@ export function calculateCartTotals(
   };
 }
 
-/**
- * Simplified cart calculation (without levy breakdown)
- * Useful for quick price updates
- */
 export function calculateCartTotalsSimple(
   items: CartItemInput[],
   discountAmount: number = 0,
@@ -162,18 +115,6 @@ export function calculateCartTotalsSimple(
   };
 }
 
-// ============================================================================
-// Validation Functions
-// ============================================================================
-
-/**
- * Validate cart calculation matches expected values
- * Used for server-side validation before checkout
- *
- * @param submitted - Values submitted from client
- * @param calculated - Values calculated server-side
- * @param tolerance - Allowed difference in øre (default: 100 = 1 NOK)
- */
 export function validateCartTotals(
   submitted: CartCalculation,
   calculated: CartCalculation,
@@ -203,13 +144,6 @@ export function validateCartTotals(
   };
 }
 
-/**
- * Verify discount amount is within allowed bounds
- *
- * @param discountAmount - Claimed discount amount
- * @param subtotal - Cart subtotal
- * @param maxDiscountPercent - Maximum discount as percentage (default: 100%)
- */
 export function validateDiscountAmount(
   discountAmount: number,
   subtotal: number,
@@ -221,13 +155,6 @@ export function validateDiscountAmount(
   return true;
 }
 
-// ============================================================================
-// Formatting Helpers
-// ============================================================================
-
-/**
- * Format price in øre to NOK string
- */
 export function formatPriceFromOre(ore: number): string {
   const nok = ore / 100;
   return new Intl.NumberFormat('nb-NO', {
@@ -238,16 +165,10 @@ export function formatPriceFromOre(ore: number): string {
   }).format(nok);
 }
 
-/**
- * Convert NOK to øre (for API responses that return NOK)
- */
 export function nokToOre(nok: number): number {
   return Math.round(nok * 100);
 }
 
-/**
- * Convert øre to NOK
- */
 export function oreToNok(ore: number): number {
   return ore / 100;
 }

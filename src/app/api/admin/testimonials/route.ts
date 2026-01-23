@@ -12,7 +12,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('testimonials')
       .select('*')
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('display_order', { ascending: true });
 
     if (error) throw error;
@@ -33,9 +33,8 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-
-    // Validate input
     const validation = validate(body, testimonialSchema);
+
     if (!validation.success) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }

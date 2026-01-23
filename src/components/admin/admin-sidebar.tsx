@@ -1,8 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ExternalLink,
   FileImage,
@@ -20,10 +17,13 @@ import {
   Tag,
   Users,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { UserMenu } from '@/components/admin/user-menu';
 import { adminFetch } from '@/lib/admin-fetch';
 import { cn } from '@/lib/utils';
-import { UserMenu } from '@/components/admin/user-menu';
 
 const THROTTLE_MS = 30000;
 const POLL_INTERVAL_MS = 60000;
@@ -79,6 +79,7 @@ export function AdminSidebar(): React.ReactNode {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial data fetch on mount is expected
     fetchCounts();
 
     function handleVisibilityChange(): void {
@@ -117,11 +118,9 @@ export function AdminSidebar(): React.ReactNode {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isActiveRoute(item.href);
-
-          // Determine badge count based on route
-          let badgeCount = 0;
-          if (item.href === '/admin/contact') badgeCount = unreadCount;
-          if (item.href === '/admin/orders') badgeCount = pendingOrdersCount;
+          const badgeCount =
+            item.href === '/admin/contact' ? unreadCount :
+            item.href === '/admin/orders' ? pendingOrdersCount : 0;
 
           return (
             <Link

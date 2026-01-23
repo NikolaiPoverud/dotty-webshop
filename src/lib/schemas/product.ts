@@ -1,18 +1,7 @@
-/**
- * SEC-007: Zod validation schemas for product creation/update
- *
- * These schemas validate product data to prevent malformed input
- * from reaching the database and ensure data integrity.
- */
-
 import { z } from 'zod';
 
-// UUID validation
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Product size schema
- */
 export const productSizeSchema = z.object({
   width: z.number()
     .min(0, 'Width cannot be negative')
@@ -32,27 +21,14 @@ export const productSizeSchema = z.object({
     .optional(),
 });
 
-/**
- * Gallery image schema
- */
 export const galleryImageSchema = z.object({
   url: z.string().url('Invalid URL').or(z.literal('')),
   path: z.string().max(500, 'Path too long'),
 });
 
-/**
- * Shipping size enum
- */
 export const shippingSizeEnum = z.enum(['small', 'medium', 'large', 'oversized']);
-
-/**
- * Product type enum
- */
 export const productTypeEnum = z.enum(['original', 'print']);
 
-/**
- * Product creation schema
- */
 export const createProductSchema = z.object({
   title: z.string()
     .min(1, 'Title is required')
@@ -146,11 +122,7 @@ export const createProductSchema = z.object({
     .optional(),
 });
 
-/**
- * Product update schema (all fields optional except explicit ones)
- */
 export const updateProductSchema = createProductSchema.partial().extend({
-  // ID is required for updates
   id: z.string()
     .regex(uuidRegex, 'Invalid product ID')
     .optional(),
@@ -159,9 +131,6 @@ export const updateProductSchema = createProductSchema.partial().extend({
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
-/**
- * Validate product creation data
- */
 export function validateCreateProduct(data: unknown): {
   success: true;
   data: CreateProductInput;
@@ -192,9 +161,6 @@ export function validateCreateProduct(data: unknown): {
   };
 }
 
-/**
- * Validate product update data
- */
 export function validateUpdateProduct(data: unknown): {
   success: true;
   data: UpdateProductInput;

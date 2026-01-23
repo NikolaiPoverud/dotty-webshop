@@ -84,6 +84,10 @@ export default function AdminDiscountsPage(): React.ReactElement {
     return () => clearTimeout(timer);
   }, [error]);
 
+  function updateFormField<K extends keyof FormData>(field: K, value: FormData[K]): void {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
   function openNewModal(): void {
     setEditingDiscount(null);
     setFormData(INITIAL_FORM_DATA);
@@ -164,10 +168,6 @@ export default function AdminDiscountsPage(): React.ReactElement {
     navigator.clipboard.writeText(code);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  }
-
-  function updateFormField<K extends keyof FormData>(field: K, value: FormData[K]): void {
-    setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
   if (isLoading) {

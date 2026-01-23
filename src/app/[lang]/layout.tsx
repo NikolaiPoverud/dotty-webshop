@@ -5,7 +5,6 @@ import { Footer } from '@/components/layout/footer';
 import { CookieConsent } from '@/components/gdpr/cookie-consent';
 import { createPublicClient } from '@/lib/supabase/public';
 
-// Revalidate every 5 minutes - collections change infrequently
 export const revalidate = 300;
 
 export async function generateStaticParams() {

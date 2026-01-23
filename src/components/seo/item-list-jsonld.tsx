@@ -1,13 +1,9 @@
-/**
- * ItemList JSON-LD for Faceted Pages
- *
- * Generates Schema.org ItemList structured data for faceted pages
- * that don't have an associated collection.
- */
-
 import type { ReactElement } from 'react';
+
 import type { Locale, ProductListItem } from '@/types';
+
 import { BASE_URL, JsonLd } from './json-ld';
+import { getProductAvailability } from './utils';
 
 interface ItemListJsonLdProps {
   name: string;
@@ -15,11 +11,6 @@ interface ItemListJsonLdProps {
   products: ProductListItem[];
   lang: Locale;
   url?: string;
-}
-
-function getAvailability(product: ProductListItem): string {
-  const inStock = product.is_available && product.stock_quantity !== 0;
-  return inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
 }
 
 export function ItemListJsonLd({
@@ -54,7 +45,7 @@ export function ItemListJsonLd({
             '@type': 'Offer',
             price: (product.price / 100).toFixed(2),
             priceCurrency: 'NOK',
-            availability: getAvailability(product),
+            availability: getProductAvailability(product),
           },
         },
       })),

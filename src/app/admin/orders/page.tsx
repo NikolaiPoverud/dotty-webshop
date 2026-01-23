@@ -58,15 +58,13 @@ function formatRelativeDate(dateStr: string): string {
   return `${days} dager siden`;
 }
 
-function getPaymentBadgeStyle(provider: string): string {
-  if (provider === 'vipps') {
-    return 'bg-[#ff5b24]/10 text-[#ff5b24]';
-  }
-  return 'bg-[#635bff]/10 text-[#635bff]';
-}
+const PAYMENT_CONFIG = {
+  vipps: { style: 'bg-[#ff5b24]/10 text-[#ff5b24]', label: 'Vipps' },
+  stripe: { style: 'bg-[#635bff]/10 text-[#635bff]', label: 'Kort' },
+} as const;
 
-function getPaymentLabel(provider: string): string {
-  return provider === 'vipps' ? 'Vipps' : 'Kort';
+function getPaymentConfig(provider: string): { style: string; label: string } {
+  return PAYMENT_CONFIG[provider as keyof typeof PAYMENT_CONFIG] || PAYMENT_CONFIG.stripe;
 }
 
 function getFilterLabel(status: FilterStatus): string {
@@ -360,8 +358,8 @@ function OrderCard({
                 {statusInfo.label}
               </span>
               {order.payment_provider && (
-                <span className={`px-2 py-0.5 text-xs rounded ${getPaymentBadgeStyle(order.payment_provider)}`}>
-                  {getPaymentLabel(order.payment_provider)}
+                <span className={`px-2 py-0.5 text-xs rounded ${getPaymentConfig(order.payment_provider).style}`}>
+                  {getPaymentConfig(order.payment_provider).label}
                 </span>
               )}
             </div>

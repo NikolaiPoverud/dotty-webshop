@@ -1,21 +1,4 @@
-/**
- * ARCH-010: Email Queue Service
- *
- * Provides async email processing with retry capability.
- * Emails are queued in the database and processed by a cron job.
- *
- * Benefits:
- * - Prevents webhook timeouts
- * - Automatic retry with exponential backoff
- * - Audit trail of all email attempts
- * - Better error handling and monitoring
- */
-
 import { createAdminClient } from '@/lib/supabase/admin';
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export type EmailType =
   | 'order_confirmation'
@@ -56,15 +39,6 @@ export interface QueueEmailParams {
   metadata?: Record<string, unknown>;
 }
 
-// ============================================================================
-// Queue Functions
-// ============================================================================
-
-/**
- * Add an email to the processing queue
- *
- * @returns The ID of the queued email
- */
 export async function queueEmail(params: QueueEmailParams): Promise<string | null> {
   const supabase = createAdminClient();
 
@@ -86,11 +60,6 @@ export async function queueEmail(params: QueueEmailParams): Promise<string | nul
   return data;
 }
 
-/**
- * Queue order-related emails
- *
- * Convenience function to queue all emails for a new order.
- */
 export async function queueOrderEmails(
   orderId: string,
   customerEmail: string,
@@ -118,9 +87,6 @@ export async function queueOrderEmails(
   return { confirmationId, alertId };
 }
 
-/**
- * Get pending emails for processing
- */
 export async function getPendingEmails(batchSize: number = 10): Promise<QueuedEmail[]> {
   const supabase = createAdminClient();
 
@@ -136,9 +102,6 @@ export async function getPendingEmails(batchSize: number = 10): Promise<QueuedEm
   return data as QueuedEmail[];
 }
 
-/**
- * Mark an email as successfully sent
- */
 export async function markEmailSent(emailId: string): Promise<void> {
   const supabase = createAdminClient();
 
@@ -149,9 +112,6 @@ export async function markEmailSent(emailId: string): Promise<void> {
   }
 }
 
-/**
- * Mark an email as failed (will retry if attempts remain)
- */
 export async function markEmailFailed(emailId: string, errorMessage: string): Promise<void> {
   const supabase = createAdminClient();
 
@@ -165,9 +125,6 @@ export async function markEmailFailed(emailId: string, errorMessage: string): Pr
   }
 }
 
-/**
- * Cleanup old processed emails
- */
 export async function cleanupEmailQueue(daysToKeep: number = 30): Promise<number> {
   const supabase = createAdminClient();
 
@@ -183,9 +140,6 @@ export async function cleanupEmailQueue(daysToKeep: number = 30): Promise<number
   return data || 0;
 }
 
-/**
- * Get queue statistics
- */
 export async function getQueueStats(): Promise<{
   pending: number;
   processing: number;

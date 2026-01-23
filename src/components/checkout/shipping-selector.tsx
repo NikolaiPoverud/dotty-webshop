@@ -3,14 +3,26 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Truck, Package, MapPin, Leaf } from 'lucide-react';
-import type { Dictionary, ShippingOption, Locale } from '@/types';
+
+import type { ShippingOption, Locale } from '@/types';
 import { formatPrice } from '@/lib/utils';
+
+interface ShippingText {
+  title: string;
+  loading: string;
+  enterPostalCode: string;
+  noOptions: string;
+  estimated: string;
+  fossilFree: string;
+  pickup: string;
+  homeDelivery: string;
+  error: string;
+}
 
 interface ShippingSelectorProps {
   postalCode: string;
   countryCode?: string;
   locale: Locale;
-  dictionary?: Dictionary;
   selectedOption: ShippingOption | null;
   onSelect: (option: ShippingOption) => void;
   disabled?: boolean;
@@ -19,8 +31,7 @@ interface ShippingSelectorProps {
 
 const DEBOUNCE_MS = 500;
 
-// Fallback text for backwards compatibility when dictionary is not provided
-const fallbackText = {
+const SHIPPING_TEXT: Record<Locale, ShippingText> = {
   no: {
     title: 'Velg frakt',
     loading: 'Laster fraktalternativer...',
@@ -60,7 +71,6 @@ export function ShippingSelector({
   postalCode,
   countryCode = 'NO',
   locale,
-  dictionary,
   selectedOption,
   onSelect,
   disabled = false,
@@ -70,11 +80,9 @@ export function ShippingSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use refs to avoid re-fetching when selection changes
   const selectedOptionRef = useRef(selectedOption);
   const onSelectRef = useRef(onSelect);
 
-  // Keep refs in sync
   useEffect(() => {
     selectedOptionRef.current = selectedOption;
   }, [selectedOption]);
@@ -83,7 +91,7 @@ export function ShippingSelector({
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
-  const t = dictionary?.shipping ?? fallbackText[locale];
+  const t = SHIPPING_TEXT[locale];
 
   const fetchShippingOptions = useCallback(async () => {
     if (!postalCode || postalCode.length !== 4) {

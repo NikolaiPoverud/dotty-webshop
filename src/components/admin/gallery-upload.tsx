@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
-import { Plus, X, Loader2, GripVertical } from 'lucide-react';
+import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
+import { GripVertical, Loader2, Plus, X } from 'lucide-react';
 import Image from 'next/image';
+import { useRef, useState } from 'react';
+
 import type { GalleryImage } from '@/types';
 
 interface GalleryUploadProps {

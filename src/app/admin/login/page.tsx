@@ -2,7 +2,6 @@
 
 import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Loader2, Mail, Lock, AlertCircle, Clock } from 'lucide-react';
 
@@ -11,19 +10,10 @@ import { createClient } from '@/lib/supabase/client';
 
 type LoginMode = 'password' | 'reset-password';
 
-function getButtonText(mode: LoginMode, isLoading: boolean): string {
-  if (mode === 'reset-password') {
-    return isLoading ? 'Sender...' : 'Send tilbakestillingslenke';
-  }
-  return isLoading ? 'Logger inn...' : 'Logg inn';
-}
-
-function getErrorStyles(isTimeout: boolean): string {
-  if (isTimeout) {
-    return 'bg-warning/10 border border-warning/20 text-warning';
-  }
-  return 'bg-error/10 border border-error/20 text-error';
-}
+const BUTTON_TEXT = {
+  password: { loading: 'Logger inn...', idle: 'Logg inn' },
+  'reset-password': { loading: 'Sender...', idle: 'Send tilbakestillingslenke' },
+} as const;
 
 export default function AdminLoginPage(): ReactNode {
   const router = useRouter();
@@ -123,6 +113,9 @@ export default function AdminLoginPage(): ReactNode {
 
   const isTimeout = searchParams.get('reason') === 'timeout';
   const handleSubmit = mode === 'reset-password' ? handleResetPassword : handlePasswordLogin;
+  const errorStyles = isTimeout
+    ? 'bg-warning/10 border border-warning/20 text-warning'
+    : 'bg-error/10 border border-error/20 text-error';
 
   if (resetEmailSent) {
     return (
@@ -185,7 +178,7 @@ export default function AdminLoginPage(): ReactNode {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex items-center gap-3 p-4 rounded-lg ${getErrorStyles(isTimeout)}`}
+                className={`flex items-center gap-3 p-4 rounded-lg ${errorStyles}`}
               >
                 {isTimeout ? (
                   <Clock className="w-5 h-5 flex-shrink-0" />
@@ -275,7 +268,7 @@ export default function AdminLoginPage(): ReactNode {
               whileTap={{ scale: 0.98 }}
             >
               {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-              {getButtonText(mode, isLoading)}
+              {BUTTON_TEXT[mode][isLoading ? 'loading' : 'idle']}
             </motion.button>
 
             <button
@@ -289,9 +282,9 @@ export default function AdminLoginPage(): ReactNode {
         </div>
 
         <p className="text-center mt-6 text-sm text-muted-foreground">
-          <Link href="/no" className="hover:text-primary transition-colors">
+          <a href="/no" className="hover:text-primary transition-colors">
             Tilbake til shop
-          </Link>
+          </a>
         </p>
       </motion.div>
     </div>

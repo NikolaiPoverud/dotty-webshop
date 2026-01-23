@@ -88,16 +88,19 @@ function ToolbarButton({ onClick, icon: Icon, title }: ToolbarButtonProps): Reac
   );
 }
 
+const SOURCE_CONFIG = {
+  order: { icon: ShoppingBag, label: 'Ordre', colorClass: 'bg-success/10 text-success' },
+  newsletter: { icon: Newspaper, label: 'Nyhetsbrev', colorClass: 'bg-accent/10 text-accent' },
+} as const;
+
 function SourceBadge({ source }: { source: Customer['source'] }): React.ReactNode {
-  const isOrder = source === 'order';
-  const Icon = isOrder ? ShoppingBag : Newspaper;
-  const label = isOrder ? 'Ordre' : 'Nyhetsbrev';
-  const colorClass = isOrder ? 'bg-success/10 text-success' : 'bg-accent/10 text-accent';
+  const config = SOURCE_CONFIG[source];
+  const Icon = config.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${colorClass}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${config.colorClass}`}>
       <Icon className="w-3 h-3" />
-      {label}
+      {config.label}
     </span>
   );
 }
@@ -136,17 +139,10 @@ export default function CustomersPage() {
 
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // SEC-004: Sanitize HTML content to prevent XSS attacks in preview
-  // DOMPurify requires window, so we only use it on the client
   const sanitizedContent = useMemo(() => {
-    if (!content) {
-      return '<p class="text-gray-400">Ingen innhold enda...</p>';
-    }
-    // Only sanitize on client-side where DOMPurify can access window
-    if (typeof window === 'undefined') {
-      return content;
-    }
-    // Dynamic import workaround - use the already loaded module
+    if (!content) return '<p class="text-gray-400">Ingen innhold enda...</p>';
+    if (typeof window === 'undefined') return content;
+
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const DOMPurify = require('dompurify');
     return DOMPurify.sanitize(content, {
@@ -168,7 +164,6 @@ export default function CustomersPage() {
     loadCustomers();
   }, []);
 
-  // SEC-013: URL validation for createLink command to prevent XSS
   function isValidUrl(url: string): boolean {
     try {
       const parsed = new URL(url);
@@ -180,7 +175,6 @@ export default function CustomersPage() {
   }
 
   function applyFormatting(command: string, value?: string): void {
-    // SEC-013: Validate URLs before creating links
     if (command === 'createLink' && value) {
       if (!isValidUrl(value)) {
         alert('Ugyldig URL. Bruk en gyldig https:// eller mailto: adresse.');

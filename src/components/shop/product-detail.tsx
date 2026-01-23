@@ -12,9 +12,11 @@ import { ProductGallery } from './product-gallery';
 
 type InquiryStatus = 'idle' | 'sending' | 'sent' | 'error';
 
-function parseJsonField<T>(value: T | string | undefined | null, fallback: T): T {
+function parseJsonField<T>(value: T | string | null | undefined, fallback: T): T {
   if (!value) return fallback;
-  if (typeof value === 'string') return JSON.parse(value) as T;
+  if (typeof value === 'string') {
+    return JSON.parse(value) as T;
+  }
   return value;
 }
 
@@ -110,18 +112,17 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
-
-  // Close size dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    if (!isSizeDropdownOpen) return;
+
+    function handleClickOutside(event: MouseEvent): void {
       if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
         setIsSizeDropdownOpen(false);
       }
     }
-    if (isSizeDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isSizeDropdownOpen]);
 
   const isInCart = cart.items.some((item) => item.product.id === product.id);
@@ -143,17 +144,20 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
     : product.price;
 
   function handleAddToCart(): void {
-    if (isSold) return;
-    // Require size selection for prints with multiple sizes
-    if (needsSizeSelection && selectedSizeIndex === null) return;
-    // Pass selected size for prints with size-specific pricing
-    const sizeToAdd = isPrint && selectedSize ? selectedSize : (sizes.length === 1 ? sizes[0] : undefined);
+    if (isSold || (needsSizeSelection && selectedSizeIndex === null)) return;
+
+    const sizeToAdd = isPrint && selectedSize ? selectedSize : sizes[0];
     addItem(product, 1, undefined, undefined, sizeToAdd);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 3000);
   }
 
-  async function submitInquiry(type: 'product_inquiry' | 'sold_out_inquiry'): Promise<void> {
+  async function handleInquirySubmit(type: 'product_inquiry' | 'sold_out_inquiry', e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!inquiryEmail || inquiryStatus === 'sending') return;
+
+    setInquiryStatus('sending');
+
     const message = type === 'product_inquiry'
       ? `Inquiry about artwork: ${product.title} (${product.id})`
       : `Interest in sold artwork: ${product.title} (${product.id}) - Customer wants similar work`;
@@ -171,25 +175,12 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
       }),
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to send inquiry');
+    if (response.ok) {
+      setInquiryStatus('sent');
+    } else {
+      setInquiryStatus('error');
+      setTimeout(() => setInquiryStatus('idle'), 3000);
     }
-  }
-
-  function handleInquiry(type: 'product_inquiry' | 'sold_out_inquiry') {
-    return async (e: React.FormEvent): Promise<void> => {
-      e.preventDefault();
-      if (!inquiryEmail || inquiryStatus === 'sending') return;
-
-      setInquiryStatus('sending');
-      try {
-        await submitInquiry(type);
-        setInquiryStatus('sent');
-      } catch {
-        setInquiryStatus('error');
-        setTimeout(() => setInquiryStatus('idle'), 3000);
-      }
-    };
   }
 
   function renderPurchaseSection(): React.ReactElement {
@@ -202,7 +193,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
           email={inquiryEmail}
           setEmail={setInquiryEmail}
           status={inquiryStatus}
-          onSubmit={handleInquiry('product_inquiry')}
+          onSubmit={(e) => handleInquirySubmit('product_inquiry', e)}
           successMessage={t.inquirySent}
           errorMessage={t.inquiryError}
           emailPlaceholder={t.emailPlaceholder}
@@ -242,7 +233,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
           email={inquiryEmail}
           setEmail={setInquiryEmail}
           status={inquiryStatus}
-          onSubmit={handleInquiry('sold_out_inquiry')}
+          onSubmit={(e) => handleInquirySubmit('sold_out_inquiry', e)}
           successMessage={t.inquirySent}
           errorMessage={t.inquiryError}
           emailPlaceholder={t.emailPlaceholder}

@@ -2,10 +2,6 @@ import Stripe from 'stripe';
 
 let stripeInstance: Stripe | null = null;
 
-/**
- * Get or create the Stripe client instance.
- * Throws if STRIPE_SECRET_KEY is not configured.
- */
 export function getStripe(): Stripe {
   if (stripeInstance) return stripeInstance;
 
@@ -90,15 +86,9 @@ export interface RefundResult {
   error?: string;
 }
 
-/**
- * Refund a Stripe payment using the checkout session ID.
- * Retrieves the payment intent from the session and issues a full refund.
- */
 export async function refundPayment(sessionId: string): Promise<RefundResult> {
   try {
     const stripe = getStripe();
-
-    // Retrieve the checkout session to get the payment intent
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session.payment_intent) {
@@ -109,7 +99,6 @@ export async function refundPayment(sessionId: string): Promise<RefundResult> {
       ? session.payment_intent
       : session.payment_intent.id;
 
-    // Create a full refund
     const refund = await stripe.refunds.create({
       payment_intent: paymentIntentId,
     });

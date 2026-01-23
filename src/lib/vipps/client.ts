@@ -1,32 +1,12 @@
-/**
- * Vipps ePayment API Client
- * Documentation: https://developer.vippsmobilepay.com/docs/APIs/epayment-api/
- *
- * SEC-010: CREDENTIAL ROTATION REMINDER
- * ======================================
- * Vipps credentials should be rotated regularly:
- * - CLIENT_SECRET: Rotate every 6 months
- * - SUBSCRIPTION_KEY: Rotate every 12 months
- *
- * To rotate credentials:
- * 1. Generate new credentials in Vipps Portal (portal.vippsmobilepay.com)
- * 2. Update environment variables in production (Vercel/hosting)
- * 3. Verify payment flow still works in test environment
- * 4. Deploy to production
- * 5. Revoke old credentials in Vipps Portal
- *
- * Set calendar reminders for rotation dates!
- */
-
-// Use test API if VIPPS_TEST_MODE is set, otherwise use production in prod
-const VIPPS_API_URL = process.env.VIPPS_TEST_MODE === 'true'
-  ? 'https://apitest.vipps.no'
-  : (process.env.NODE_ENV === 'production' ? 'https://api.vipps.no' : 'https://apitest.vipps.no');
-
-const VIPPS_CLIENT_ID = process.env.VIPPS_CLIENT_ID!;
-const VIPPS_CLIENT_SECRET = process.env.VIPPS_CLIENT_SECRET!;
-const VIPPS_SUBSCRIPTION_KEY = process.env.VIPPS_SUBSCRIPTION_KEY!;
-const VIPPS_MSN = process.env.VIPPS_MERCHANT_SERIAL_NUMBER!;
+function getVippsApiUrl(): string {
+  if (process.env.VIPPS_TEST_MODE === 'true') {
+    return 'https://apitest.vipps.no';
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://api.vipps.no';
+  }
+  return 'https://apitest.vipps.no';
+}
 
 interface VippsAccessToken {
   access_token: string;
@@ -76,22 +56,19 @@ interface VippsCaptureRequest {
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
-/**
- * Get OAuth2 access token for Vipps API
- */
 async function getAccessToken(): Promise<string> {
-  // Return cached token if still valid (with 60s buffer)
   if (cachedToken && Date.now() < cachedToken.expiresAt - 60000) {
     return cachedToken.token;
   }
 
-  const response = await fetch(`${VIPPS_API_URL}/accesstoken/get`, {
+  const apiUrl = getVippsApiUrl();
+  const response = await fetch(`${apiUrl}/accesstoken/get`, {
     method: 'POST',
     headers: {
-      'client_id': VIPPS_CLIENT_ID,
-      'client_secret': VIPPS_CLIENT_SECRET,
-      'Ocp-Apim-Subscription-Key': VIPPS_SUBSCRIPTION_KEY,
-      'Merchant-Serial-Number': VIPPS_MSN,
+      'client_id': process.env.VIPPS_CLIENT_ID!,
+      'client_secret': process.env.VIPPS_CLIENT_SECRET!,
+      'Ocp-Apim-Subscription-Key': process.env.VIPPS_SUBSCRIPTION_KEY!,
+      'Merchant-Serial-Number': process.env.VIPPS_MERCHANT_SERIAL_NUMBER!,
     },
   });
 
@@ -110,21 +87,16 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-/**
- * Make authenticated request to Vipps API
- */
-async function vippsRequest<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function vippsRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = await getAccessToken();
+  const apiUrl = getVippsApiUrl();
 
-  const response = await fetch(`${VIPPS_API_URL}${endpoint}`, {
+  const response = await fetch(`${apiUrl}${endpoint}`, {
     ...options,
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Ocp-Apim-Subscription-Key': VIPPS_SUBSCRIPTION_KEY,
-      'Merchant-Serial-Number': VIPPS_MSN,
+      'Ocp-Apim-Subscription-Key': process.env.VIPPS_SUBSCRIPTION_KEY!,
+      'Merchant-Serial-Number': process.env.VIPPS_MERCHANT_SERIAL_NUMBER!,
       'Content-Type': 'application/json',
       'Vipps-System-Name': 'dotty-webshop',
       'Vipps-System-Version': '1.0.0',
@@ -135,7 +107,7 @@ async function vippsRequest<T>(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error(`[Vipps] API error - Status: ${response.status}, URL: ${VIPPS_API_URL}${endpoint}`);
+    console.error(`[Vipps] API error - Status: ${response.status}, URL: ${apiUrl}${endpoint}`);
     console.error(`[Vipps] Response: ${error}`);
     throw new Error(`Vipps API error (${response.status}): ${error}`);
   }
@@ -143,9 +115,6 @@ async function vippsRequest<T>(
   return response.json();
 }
 
-/**
- * Create a new payment
- */
 export async function createPayment(params: {
   reference: string;
   amount: number; // In ore
@@ -182,18 +151,11 @@ export async function createPayment(params: {
   return result;
 }
 
-/**
- * Get payment status
- */
 export async function getPayment(reference: string): Promise<VippsPaymentResponse> {
   console.log(`[Vipps] Getting payment status for reference: ${reference}`);
-  console.log(`[Vipps] API URL: ${VIPPS_API_URL}/epayment/v1/payments/${reference}`);
   return vippsRequest<VippsPaymentResponse>(`/epayment/v1/payments/${reference}`);
 }
 
-/**
- * Capture an authorized payment (Reserve capture flow)
- */
 export async function capturePayment(
   reference: string,
   amount: number, // In ore
@@ -214,9 +176,6 @@ export async function capturePayment(
   );
 }
 
-/**
- * Cancel an authorized payment
- */
 export async function cancelPayment(reference: string): Promise<VippsPaymentResponse> {
   return vippsRequest<VippsPaymentResponse>(
     `/epayment/v1/payments/${reference}/cancel`,
@@ -224,9 +183,6 @@ export async function cancelPayment(reference: string): Promise<VippsPaymentResp
   );
 }
 
-/**
- * Refund a captured payment
- */
 export async function refundPayment(
   reference: string,
   amount: number, // In ore

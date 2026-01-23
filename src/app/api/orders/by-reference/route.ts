@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-/**
- * Get order info by reference (order_number)
- * Used by success page for Vipps payments
- */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const reference = request.nextUrl.searchParams.get('reference');
 

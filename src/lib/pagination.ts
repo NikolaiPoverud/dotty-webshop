@@ -1,5 +1,3 @@
-// DB-010: Pagination utilities for admin endpoints
-
 export interface PaginationParams {
   page: number;
   limit: number;

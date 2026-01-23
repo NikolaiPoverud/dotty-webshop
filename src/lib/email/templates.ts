@@ -1,6 +1,5 @@
 import { formatPrice } from '@/lib/utils';
 
-// Dotty Brand Colors - Matching Website Design System
 const COLORS = {
   background: '#131316',
   foreground: '#fafafa',
@@ -14,7 +13,6 @@ const COLORS = {
   success: '#22c55e',
 } as const;
 
-// Common inline styles extracted for reuse
 const STYLES = {
   fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
   monoFont: "'SF Mono', Monaco, monospace",
@@ -123,17 +121,12 @@ function infoBox(content: string): string {
     </div>`;
 }
 
-// Reusable success icon component
 function successIcon(size: number = 72): string {
   return `
     <div style="width: ${size}px; height: ${size}px; margin: 0 auto 24px; background: linear-gradient(135deg, ${COLORS.success}25 0%, ${COLORS.success}10 100%); border-radius: 50%; line-height: ${size}px; text-align: center;">
       <span style="font-size: ${Math.round(size * 0.5)}px; color: ${COLORS.success};">&#10003;</span>
     </div>`;
 }
-
-// ============================================
-// EMAIL TEMPLATES
-// ============================================
 
 export function testEmailTemplate(): string {
   const content = `

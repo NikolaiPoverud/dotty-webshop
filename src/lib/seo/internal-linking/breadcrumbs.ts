@@ -1,17 +1,6 @@
-/**
- * Breadcrumb Generation for Internal Linking
- *
- * Generates breadcrumb trails for all page types to support
- * hub-and-spoke internal linking architecture.
- */
-
 import type { Locale, Product, Collection } from '@/types';
 import { TYPE_FACET_LABELS, SIZE_FACET_LABELS, PRICE_RANGE_LABELS } from '../facets';
 import { getTypeFacetPath, getSizeFacetPath, getPriceFacetPath, getYearFacetPath } from '../facets/url-builder';
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export interface BreadcrumbItem {
   name: string;
@@ -23,10 +12,6 @@ export interface BreadcrumbOptions {
   locale: Locale;
   includeHome?: boolean;
 }
-
-// ============================================================================
-// Base Breadcrumb Items
-// ============================================================================
 
 export function getHomeBreadcrumb(locale: Locale): BreadcrumbItem {
   return {
@@ -41,10 +26,6 @@ export function getShopBreadcrumb(locale: Locale): BreadcrumbItem {
     href: `/${locale}/shop`,
   };
 }
-
-// ============================================================================
-// Product Breadcrumbs
-// ============================================================================
 
 export function getProductBreadcrumbs(
   product: Product,
@@ -80,10 +61,6 @@ export function getProductBreadcrumbs(
   }));
 }
 
-// ============================================================================
-// Collection Breadcrumbs
-// ============================================================================
-
 export function getCollectionBreadcrumbs(
   collection: Collection,
   options: BreadcrumbOptions
@@ -107,10 +84,6 @@ export function getCollectionBreadcrumbs(
     position: index + 1,
   }));
 }
-
-// ============================================================================
-// Faceted Page Breadcrumbs
-// ============================================================================
 
 export function getTypeFacetBreadcrumbs(
   type: 'original' | 'print',
@@ -237,10 +210,6 @@ export function getTypeYearFacetBreadcrumbs(
     position: index + 1,
   }));
 }
-
-// ============================================================================
-// JSON-LD Format Conversion
-// ============================================================================
 
 export function breadcrumbsToJsonLdItems(
   breadcrumbs: BreadcrumbItem[]

@@ -1,10 +1,11 @@
 'use client';
 
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, Loader2, Pencil, Plus, Ruler, X } from 'lucide-react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Ruler, Loader2, Check, Pencil } from 'lucide-react';
-import type { ProductSize } from '@/types';
+
 import { formatPrice } from '@/lib/utils';
+import type { ProductSize } from '@/types';
 
 interface SizeInputProps {
   value: ProductSize[];
@@ -82,6 +83,7 @@ export function SizeInput({ value, onChange, onAutoSave }: SizeInputProps): Reac
     const newPrice = editPrice ? parseInt(editPrice, 10) * 100 : undefined;
     const newSizes = value.map((size, i) => {
       if (i === editingIndex) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { price: _, ...sizeWithoutPrice } = size;
         return newPrice ? { ...sizeWithoutPrice, price: newPrice } : sizeWithoutPrice;
       }

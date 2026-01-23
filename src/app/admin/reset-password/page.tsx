@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Loader2, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, Lock } from 'lucide-react';
 
 import { Logo } from '@/components/ui/logo';
 import { createClient } from '@/lib/supabase/client';
@@ -33,7 +34,7 @@ function validatePassword(password: string): string | null {
   return null;
 }
 
-export default function ResetPasswordPage(): ReactNode {
+export default function ResetPasswordPage(): React.ReactElement {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

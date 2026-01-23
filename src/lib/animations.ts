@@ -1,6 +1,6 @@
 import type { Variants } from 'framer-motion';
 
-const springDefault = { type: 'spring' as const, stiffness: 300, damping: 24 };
+const springTransition = { type: 'spring' as const, stiffness: 300, damping: 24 };
 
 export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
@@ -30,7 +30,7 @@ export const fadeUpItem: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: springDefault,
+    transition: springTransition,
   },
   exit: {
     opacity: 0,

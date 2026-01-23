@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState, useRef, type ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Shield, Loader2, AlertCircle, HelpCircle } from 'lucide-react';
+import { AlertCircle, HelpCircle, Loader2, Shield } from 'lucide-react';
 
 import { Logo } from '@/components/ui/logo';
 import { createClient } from '@/lib/supabase/client';
 
-export default function MFAVerifyPage(): ReactNode {
+export default function MFAVerifyPage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);

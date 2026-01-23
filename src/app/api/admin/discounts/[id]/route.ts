@@ -44,7 +44,6 @@ export async function DELETE(
     const { id } = await params;
     const supabase = createAdminClient();
 
-    // Soft delete
     const { error } = await supabase
       .from('discount_codes')
       .update({ deleted_at: new Date().toISOString() })

@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, AlertCircle, Info } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, Check, Info, X } from 'lucide-react';
+import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -21,7 +21,7 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | null>(null);
 
-export function useToast() {
+export function useToast(): ToastContextType {
   const context = useContext(ToastContext);
   if (!context) {
     throw new Error('useToast must be used within a ToastProvider');
@@ -35,7 +35,12 @@ const toastConfig = {
   info: { icon: Info, style: 'bg-primary text-white' },
 } as const;
 
-function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
+interface ToastItemProps {
+  toast: Toast;
+  onRemove: () => void;
+}
+
+function ToastItem({ toast, onRemove }: ToastItemProps): React.ReactElement {
   const { icon: Icon, style } = toastConfig[toast.type];
 
   return (
@@ -58,7 +63,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
   );
 }
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({ children }: { children: ReactNode }): React.ReactElement {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const removeToast = useCallback((id: string) => {

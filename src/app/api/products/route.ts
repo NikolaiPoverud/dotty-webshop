@@ -5,10 +5,6 @@ import type { ProductListItem } from '@/types';
 
 const PRODUCT_FIELDS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
 
-const CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-};
-
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = await createClient();
   const { searchParams } = new URL(request.url);
@@ -19,9 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   let query = supabase
     .from('products')
     .select(PRODUCT_FIELDS)
-    // DB-004: Filter out deleted products
     .is('deleted_at', null)
-    // Only show public products on public API
     .eq('is_public', true)
     .order('display_order', { ascending: true });
 
@@ -48,10 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return errors.internal('Failed to fetch products');
   }
 
-  // Return with cache headers
   const response = success<ProductListItem[]>(products ?? []);
-  Object.entries(CACHE_HEADERS).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   return response;
 }

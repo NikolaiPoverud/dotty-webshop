@@ -11,14 +11,11 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const isNorwegian = lang === 'no';
 
-  const title = isNorwegian ? 'Solgte verk' : 'Sold Works';
-  const description = isNorwegian
-    ? 'Utforsk solgte originale kunstverk fra Dotty. Interessert i lignende verk? Ta kontakt!'
-    : 'Explore sold original artworks from Dotty. Interested in similar work? Get in touch!';
-
   return {
-    title,
-    description,
+    title: isNorwegian ? 'Solgte verk' : 'Sold Works',
+    description: isNorwegian
+      ? 'Utforsk solgte originale kunstverk fra Dotty. Interessert i lignende verk? Ta kontakt!'
+      : 'Explore sold original artworks from Dotty. Interested in similar work? Get in touch!',
     alternates: {
       canonical: `${BASE_URL}/${lang}/sold`,
       languages: {
@@ -28,7 +25,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     },
   };
 }
-
 
 async function getSoldProducts(): Promise<Product[]> {
   const supabase = createPublicClient();
@@ -43,7 +39,7 @@ async function getSoldProducts(): Promise<Product[]> {
     return [];
   }
 
-  return data || [];
+  return data ?? [];
 }
 
 async function getCollections(): Promise<Collection[]> {
@@ -58,10 +54,10 @@ async function getCollections(): Promise<Collection[]> {
     return [];
   }
 
-  return data || [];
+  return data ?? [];
 }
 
-export default async function SoldGalleryPage({
+export default async function SoldPage({
   params,
 }: {
   params: Promise<{ lang: string }>;

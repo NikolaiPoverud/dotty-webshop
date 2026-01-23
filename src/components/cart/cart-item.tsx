@@ -4,11 +4,12 @@ import { memo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Minus, Plus, X } from 'lucide-react';
+
 import type { CartItem as CartItemType, Locale } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from './cart-provider';
 
-const translations = {
+const TRANSLATIONS: Record<Locale, { remove: string; reserved: string; expires: string; original: string; print: string }> = {
   no: {
     remove: 'Fjern',
     reserved: 'Reservert',
@@ -25,15 +26,11 @@ const translations = {
   },
 };
 
-const gradients = [
-  'from-primary to-accent',
-  'from-accent to-accent-2',
-  'from-accent-2 to-accent-3',
-];
+const GRADIENTS = ['from-primary to-accent', 'from-accent to-accent-2', 'from-accent-2 to-accent-3'];
 
 function getGradientForId(id: string): string {
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return gradients[hash % gradients.length];
+  return GRADIENTS[hash % GRADIENTS.length];
 }
 
 function formatTimeRemaining(expiresAt: string): string {
@@ -48,13 +45,16 @@ interface CartItemProps {
   lang: Locale;
 }
 
-export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemProps): React.ReactElement {
+export const CartItemRow = memo(function CartItemRow({
+  item,
+  lang,
+}: CartItemProps): React.ReactElement {
   const { removeItem, updateQuantity } = useCart();
-  const t = translations[lang];
-  const { product, quantity, expiresAt } = item;
-
+  const t = TRANSLATIONS[lang];
+  const { product, quantity, expiresAt, selectedSize } = item;
   const isPrint = product.product_type === 'print';
   const canIncrement = isPrint && (product.stock_quantity === null || quantity < product.stock_quantity);
+  const displayPrice = selectedSize?.price ?? product.price;
 
   return (
     <motion.div
@@ -84,14 +84,12 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
             <h3 className="font-semibold truncate">{product.title}</h3>
             <p className="text-sm text-muted-foreground capitalize">
               {isPrint ? t.print : t.original}
-              {item.selectedSize && (
-                <span className="ml-2 text-primary">• {item.selectedSize.label}</span>
-              )}
+              {selectedSize && <span className="ml-2 text-primary">• {selectedSize.label}</span>}
             </p>
           </div>
 
           <button
-            onClick={() => removeItem(product.id, item.selectedSize)}
+            onClick={() => removeItem(product.id, selectedSize)}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={t.remove}
           >
@@ -109,7 +107,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
           {isPrint ? (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => updateQuantity(product.id, quantity - 1, item.selectedSize)}
+                onClick={() => updateQuantity(product.id, quantity - 1, selectedSize)}
                 className="p-1 rounded bg-muted hover:bg-muted/80 transition-colors"
                 aria-label="Decrease quantity"
               >
@@ -117,7 +115,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
               </button>
               <span className="w-8 text-center font-medium">{quantity}</span>
               <button
-                onClick={() => updateQuantity(product.id, quantity + 1, item.selectedSize)}
+                onClick={() => updateQuantity(product.id, quantity + 1, selectedSize)}
                 disabled={!canIncrement}
                 className="p-1 rounded bg-muted hover:bg-muted/80 transition-colors disabled:opacity-50"
                 aria-label="Increase quantity"
@@ -129,9 +127,7 @@ export const CartItemRow = memo(function CartItemRow({ item, lang }: CartItemPro
             <span className="text-sm text-muted-foreground">Qty: 1</span>
           )}
 
-          <span className="font-semibold">
-            {formatPrice((item.selectedSize?.price ?? product.price) * quantity)}
-          </span>
+          <span className="font-semibold">{formatPrice(displayPrice * quantity)}</span>
         </div>
       </div>
     </motion.div>

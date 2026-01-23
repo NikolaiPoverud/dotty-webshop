@@ -68,7 +68,7 @@ export default function MyDataPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
-}) {
+}): React.ReactElement {
   const [lang, setLang] = useState<Locale>('no');
   const [email, setEmail] = useState('');
   const [exportStatus, setExportStatus] = useState<RequestStatus>('idle');
@@ -178,7 +178,6 @@ export default function MyDataPage({
           <p className="text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
-        {/* Email Input */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -196,7 +195,6 @@ export default function MyDataPage({
         </motion.div>
 
         <div className="space-y-6">
-          {/* Export Data */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -239,7 +237,6 @@ export default function MyDataPage({
             </div>
           </motion.div>
 
-          {/* Delete Data */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -284,7 +281,6 @@ export default function MyDataPage({
           </motion.div>
         </div>
 
-        {/* Privacy Link */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

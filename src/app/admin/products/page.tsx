@@ -166,7 +166,6 @@ export default function AdminProductsPage() {
   const originalOrderRef = useRef<string[]>([]);
   const pendingOperationsRef = useRef<Set<string>>(new Set());
 
-  // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isMassEditOpen, setIsMassEditOpen] = useState(false);
 
@@ -203,12 +202,10 @@ export default function AdminProductsPage() {
     }
   }, []);
 
-  // Auto-clear errors after 5 seconds
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
+    if (!error) return;
+    const timer = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(timer);
   }, [error]);
 
   const toggleSelect = (id: string) => {

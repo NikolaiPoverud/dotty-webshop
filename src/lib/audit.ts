@@ -29,10 +29,6 @@ export interface AuditLogEntry {
   referer?: string;
 }
 
-/**
- * Log an action to the audit log.
- * Failures are logged but do not throw - audit logging should not break operations.
- */
 export async function logAudit(entry: AuditLogEntry): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase.from('audit_log').insert({
@@ -52,10 +48,6 @@ export async function logAudit(entry: AuditLogEntry): Promise<void> {
   }
 }
 
-/**
- * SEC-015: Extract all audit-relevant headers from a request.
- * Extracts IP, User-Agent, and Referer with appropriate truncation.
- */
 export function getAuditHeadersFromRequest(request: Request): {
   ip_address: string;
   user_agent?: string;

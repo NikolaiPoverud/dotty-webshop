@@ -4,13 +4,8 @@ import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-lim
 import { errors } from '@/lib/api-response';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-// SEC-008: Rate limit login attempts - 5 attempts per 15 minutes per IP
-const LOGIN_RATE_LIMIT = {
-  maxRequests: 5,
-  windowMs: 15 * 60 * 1000, // 15 minutes
-};
+const LOGIN_RATE_LIMIT = { maxRequests: 5, windowMs: 15 * 60 * 1000 };
 
-// Log login attempt to database
 async function logLoginAttempt(
   email: string,
   success: boolean,
@@ -33,7 +28,6 @@ async function logLoginAttempt(
   }
 }
 
-// Update last login for successful authentication
 async function updateLastLogin(userId: string, ip: string | null): Promise<void> {
   try {
     const adminClient = createAdminClient();
@@ -50,8 +44,6 @@ async function updateLastLogin(userId: string, ip: string | null): Promise<void>
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get('user-agent');
-
-  // Apply rate limiting
   const rateLimitResult = await checkRateLimit(`admin-login:${clientIp}`, LOGIN_RATE_LIMIT);
 
   if (!rateLimitResult.success) {
@@ -81,14 +73,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const { email, password } = body;
-  // Note: rememberMe is passed by client but Supabase handles session persistence
-  // The client can use this preference when setting up local session handling
 
   if (!email || !password) {
     return errors.badRequest('Email and password are required');
   }
 
-  // Create Supabase client with anon key for auth operations
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -100,10 +89,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   if (signInError) {
-    // Log failed attempt
     await logLoginAttempt(email, false, clientIp, userAgent, signInError.message);
-
-    // Don't reveal whether email exists - return generic error
     console.warn(`Login failed for ${email}:`, signInError.message);
     return NextResponse.json(
       { success: false, error: 'Invalid email or password' },
@@ -114,7 +100,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // Log successful attempt and update last login
   if (data.user) {
     await Promise.all([
       logLoginAttempt(email, true, clientIp, userAgent),
@@ -122,7 +107,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     ]);
   }
 
-  // Build response with session tokens
   const response = NextResponse.json(
     {
       success: true,

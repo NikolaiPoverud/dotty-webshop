@@ -7,7 +7,6 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// Mark as read/unread
 export async function PATCH(request: Request, { params }: RouteParams) {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
@@ -53,24 +52,20 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 }
 
-// Delete a submission
 export async function DELETE(request: Request, { params }: RouteParams) {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
 
   try {
     const { id } = await params;
-
     const supabase = createAdminClient();
 
-    // First get the submission for audit logging
     const { data: submission } = await supabase
       .from('contact_submissions')
       .select('email, name')
       .eq('id', id)
       .single();
 
-    // Soft delete
     const { error } = await supabase
       .from('contact_submissions')
       .update({ deleted_at: new Date().toISOString() })

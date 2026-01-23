@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Clock, LogOut, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { createClient } from '@/lib/supabase/client';
 
 interface IdleTimeoutProps {
@@ -22,14 +23,12 @@ export function IdleTimeout({
   const [showWarning, setShowWarning] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
 
-  // Use refs to track state without triggering re-renders
   const lastActivityRef = useRef<number>(0);
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const logoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const showWarningRef = useRef(false);
 
-  // Keep ref in sync with state
   useEffect(() => {
     showWarningRef.current = showWarning;
   }, [showWarning]);
@@ -59,7 +58,6 @@ export function IdleTimeout({
     router.push('/admin/login?reason=timeout');
   }, [clearAllTimers, router]);
 
-  // Setup timers - separated to avoid lint warnings about setState in effects
   const setupTimers = useCallback(() => {
     lastActivityRef.current = Date.now();
     clearAllTimers();
@@ -93,34 +91,26 @@ export function IdleTimeout({
   }, [setupTimers]);
 
   useEffect(() => {
-    // Initialize on mount
     lastActivityRef.current = Date.now();
     setupTimers();
 
-    // Activity events
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
-
-    // Throttle activity detection
+    const THROTTLE_MS = 1000;
     let lastEventTime = 0;
-    const throttleMs = 1000;
 
-    const throttledHandler = () => {
+    function throttledHandler(): void {
       const now = Date.now();
-      if (now - lastEventTime > throttleMs) {
+      if (now - lastEventTime > THROTTLE_MS && !showWarningRef.current) {
         lastEventTime = now;
-        // Only reset if we're not in the warning state
-        if (!showWarningRef.current) {
-          setupTimers();
-        }
+        setupTimers();
       }
-    };
+    }
 
     events.forEach((event) => {
       document.addEventListener(event, throttledHandler, { passive: true });
     });
 
-    // Handle visibility change
-    const handleVisibilityChange = () => {
+    function handleVisibilityChange(): void {
       if (document.visibilityState === 'visible') {
         const idleTime = Date.now() - lastActivityRef.current;
 
@@ -147,7 +137,7 @@ export function IdleTimeout({
           }, 1000);
         }
       }
-    };
+    }
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 

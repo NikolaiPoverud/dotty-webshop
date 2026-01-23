@@ -1,10 +1,3 @@
-/**
- * Internal Linking Module
- *
- * Provides utilities for generating internal links to support
- * hub-and-spoke SEO architecture.
- */
-
 export * from './breadcrumbs';
 export * from './related-facets';
 
@@ -21,19 +14,12 @@ import {
   type RelatedFacetGroup,
 } from './related-facets';
 
-// ============================================================================
-// Unified Internal Linking Interface
-// ============================================================================
-
 export interface InternalLinkingData {
   breadcrumbs: BreadcrumbItem[];
   relatedFacets: RelatedFacetLink[];
   facetGroups?: RelatedFacetGroup[];
 }
 
-/**
- * Get all internal linking data for a product page
- */
 export function getProductInternalLinks(
   product: Product,
   collection: Collection | null,
@@ -45,9 +31,6 @@ export function getProductInternalLinks(
   };
 }
 
-/**
- * Get all internal linking data for a collection page
- */
 export function getCollectionInternalLinks(
   collection: Collection,
   locale: Locale,
@@ -60,9 +43,6 @@ export function getCollectionInternalLinks(
   };
 }
 
-/**
- * Get internal linking data for the main shop page
- */
 export function getShopInternalLinks(
   locale: Locale,
   availableYears: number[] = [],

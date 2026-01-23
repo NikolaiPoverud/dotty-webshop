@@ -9,47 +9,31 @@ import type { Locale, ProductListItem } from '@/types';
 import { cn, formatPrice } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
-interface ShopDictionary {
-  original: string;
-  print: string;
-  sold: string;
-  sizes: string;
-  left: string;
-}
-
 interface ProductCardProps {
   product: ProductListItem;
   lang: Locale;
   index?: number;
-  dictionary?: ShopDictionary;
   isHighlighted?: boolean;
   priority?: boolean;
 }
 
-const fallbackText: Record<Locale, ShopDictionary> = {
-  no: { original: 'Maleri', print: 'Prints', sold: 'Solgt', sizes: 'Størrelser', left: 'igjen' },
-  en: { original: 'Painting', print: 'Print', sold: 'Sold', sizes: 'Sizes', left: 'left' },
-};
+const FALLBACK_TEXT = {
+  no: { original: 'Maleri', print: 'Prints', sold: 'Solgt', left: 'igjen' },
+  en: { original: 'Painting', print: 'Print', sold: 'Sold', left: 'left' },
+} as const;
 
-/**
- * Get the display price for a product. Returns lowest price if multiple sizes have prices.
- */
 function getDisplayPrice(product: ProductListItem): { price: number; isFromPrice: boolean } {
   const sizes = product.sizes ?? [];
-  const sizesWithPrices = sizes.filter((s) => s.price !== undefined && s.price !== null);
+  const sizesWithPrices = sizes.filter((s) => s.price != null);
 
-  // If multiple sizes have different prices, show the lowest
   if (sizesWithPrices.length > 1) {
-    const lowestPrice = Math.min(...sizesWithPrices.map((s) => s.price!));
-    return { price: lowestPrice, isFromPrice: true };
+    return { price: Math.min(...sizesWithPrices.map((s) => s.price!)), isFromPrice: true };
   }
 
-  // If one size has a price, use it
   if (sizesWithPrices.length === 1) {
     return { price: sizesWithPrices[0].price!, isFromPrice: false };
   }
 
-  // Fall back to product base price
   return { price: product.price, isFromPrice: sizes.length > 1 };
 }
 
@@ -70,17 +54,12 @@ export const ProductCard = memo(function ProductCard({
   product,
   lang,
   index = 0,
-  dictionary,
   isHighlighted,
   priority = false,
 }: ProductCardProps): React.ReactElement {
-  const t = dictionary ?? fallbackText[lang];
+  const t = FALLBACK_TEXT[lang];
   const isSold = !product.is_available || product.stock_quantity === 0;
-  const isLowStock =
-    product.product_type === 'print' &&
-    product.stock_quantity !== null &&
-    product.stock_quantity <= 3 &&
-    product.is_available;
+  const isLowStock = product.product_type === 'print' && product.stock_quantity != null && product.stock_quantity <= 3 && product.is_available;
   const productTypeLabel = product.product_type === 'original' ? t.original : t.print;
   const { price: displayPrice, isFromPrice } = getDisplayPrice(product);
   const fromLabel = lang === 'no' ? 'fra ' : 'from ';

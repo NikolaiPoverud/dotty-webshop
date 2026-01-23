@@ -1,19 +1,21 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+import type { Factor } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
 import {
+  AlertCircle,
+  Check,
+  Copy,
+  Loader2,
   Shield,
   ShieldCheck,
   ShieldX,
-  Loader2,
-  Copy,
-  Check,
-  AlertCircle,
   Smartphone,
 } from 'lucide-react';
+
 import { createClient } from '@/lib/supabase/client';
-import type { Factor } from '@supabase/supabase-js';
 
 type MFAStatus = 'loading' | 'disabled' | 'enrolling' | 'enabled';
 
@@ -36,7 +38,7 @@ export default function SecuritySettingsPage(): React.ReactNode {
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [factors, setFactors] = useState<Factor[]>([]);
 
-  const checkMFAStatus = useCallback(async function checkMFAStatus() {
+  const checkMFAStatus = useCallback(async () => {
     const supabase = createClient();
 
     const { data: userData } = await supabase.auth.getUser();
@@ -57,12 +59,9 @@ export default function SecuritySettingsPage(): React.ReactNode {
     setStatus(hasVerifiedFactor ? 'enabled' : 'disabled');
   }, []);
 
-  useEffect(
-    function initMFAStatus() {
-      checkMFAStatus();
-    },
-    [checkMFAStatus]
-  );
+  useEffect(() => {
+    checkMFAStatus();
+  }, [checkMFAStatus]);
 
   async function startEnrollment(): Promise<void> {
     setError(null);
@@ -180,15 +179,12 @@ export default function SecuritySettingsPage(): React.ReactNode {
     setVerificationCode(cleaned);
   }
 
-  useEffect(
-    function autoSubmitVerificationCode() {
-      if (verificationCode.length === 6 && status === 'enrolling') {
-        verifyEnrollment();
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Auto-submit should only trigger on code/status change
-    [verificationCode, status]
-  );
+  useEffect(() => {
+    if (verificationCode.length === 6 && status === 'enrolling') {
+      verifyEnrollment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verificationCode, status]);
 
   if (status === 'loading') {
     return (

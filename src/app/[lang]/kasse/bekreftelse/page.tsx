@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import Image from 'next/image';
-import { CheckCircle, Package, Loader2, Share2 } from 'lucide-react';
 import { Suspense, use, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import Link from 'next/link';
+import { CheckCircle, Loader2, Package, Share2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 import type { Locale, OrderItem } from '@/types';
@@ -14,13 +14,8 @@ import { formatPrice } from '@/lib/utils';
 import { getSuccessText, type SuccessText } from '@/lib/i18n/cart-checkout-text';
 
 const SHARE_TEXT: Record<Locale, string> = {
-  no: 'Jeg kjøpte nettopp kunst fra Dotty. 🎨',
-  en: 'I just bought art from Dotty. 🎨',
-};
-
-const SHARE_BUTTON_TEXT: Record<Locale, string> = {
-  no: 'Del med venner',
-  en: 'Share with friends',
+  no: 'Jeg kjøpte nettopp kunst fra Dotty.',
+  en: 'I just bought art from Dotty.',
 };
 
 interface SuccessPageProps {
@@ -35,71 +30,16 @@ interface OrderInfo {
   items: OrderItem[];
 }
 
-function LoadingFallback({ t }: { t: SuccessText }): React.ReactElement {
-  return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-      <div className="flex items-center gap-2">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <span className="text-muted-foreground">{t.loading}</span>
-      </div>
-    </div>
-  );
-}
-
-function OrderItemDisplay({ item }: { item: OrderItem }): React.ReactElement {
-  return (
-    <div className="flex items-center gap-3 text-left">
-      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background flex-shrink-0">
-        <Image
-          src={item.image_url}
-          alt={item.title}
-          fill
-          className="object-cover"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{item.title}</p>
-        <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
-      </div>
-    </div>
-  );
-}
-
-function DecorativeDots(): React.ReactElement {
-  return (
-    <motion.div
-      className="mt-12 flex justify-center gap-2"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.7 }}
-    >
-      {[0, 1, 2, 3, 4].map((i) => (
-        <motion.div
-          key={i}
-          className="w-3 h-3 rounded-full bg-primary"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.8 + i * 0.1 }}
-        />
-      ))}
-    </motion.div>
-  );
-}
-
-interface ShareButtonsProps {
-  locale: Locale;
-}
-
-function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement | null {
+function ShareButton({ locale }: { locale: Locale }): React.ReactElement | null {
   const [canShare, setCanShare] = useState(false);
 
   useEffect(() => {
     setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
   }, []);
 
-  async function handleShare(): Promise<void> {
-    if (!navigator.share) return;
+  if (!canShare) return null;
 
+  async function handleShare(): Promise<void> {
     try {
       await navigator.share({
         title: 'Dotty.',
@@ -111,8 +51,6 @@ function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement | null 
     }
   }
 
-  if (!canShare) return null;
-
   return (
     <motion.button
       onClick={handleShare}
@@ -122,20 +60,20 @@ function ShareButtons({ locale }: ShareButtonsProps): React.ReactElement | null 
       transition={{ delay: 0.8 }}
     >
       <Share2 className="w-4 h-4" />
-      {SHARE_BUTTON_TEXT[locale]}
+      {locale === 'no' ? 'Del med venner' : 'Share with friends'}
     </motion.button>
   );
 }
 
-interface OrderDetailsCardProps {
+function OrderDetailsCard({
+  orderInfo,
+  isLoading,
+  t,
+}: {
   orderInfo: OrderInfo | null;
   isLoading: boolean;
   t: SuccessText;
-}
-
-function OrderDetailsCard({ orderInfo, isLoading, t }: OrderDetailsCardProps): React.ReactElement {
-  const orderNumber = orderInfo?.order_number || 'Behandles...';
-
+}): React.ReactElement {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center gap-2 py-4">
@@ -144,6 +82,8 @@ function OrderDetailsCard({ orderInfo, isLoading, t }: OrderDetailsCardProps): R
       </div>
     );
   }
+
+  const orderNumber = orderInfo?.order_number ?? 'Behandles...';
 
   return (
     <>
@@ -165,7 +105,15 @@ function OrderDetailsCard({ orderInfo, isLoading, t }: OrderDetailsCardProps): R
           <p className="text-sm text-muted-foreground mb-3">{t.yourOrder}</p>
           <div className="space-y-3">
             {orderInfo.items.map((item) => (
-              <OrderItemDisplay key={item.product_id} item={item} />
+              <div key={item.product_id} className="flex items-center gap-3 text-left">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-background flex-shrink-0">
+                  <Image src={item.image_url} alt={item.title} fill className="object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{item.title}</p>
+                  <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -185,19 +133,13 @@ function OrderDetailsCard({ orderInfo, isLoading, t }: OrderDetailsCardProps): R
   );
 }
 
-interface FetchOrderCallbacks {
-  onOrderUpdate: (order: OrderInfo) => void;
-  onComplete: () => void;
-}
-
 async function fetchOrderWithRetry(
   url: string,
-  callbacks: FetchOrderCallbacks,
+  onOrderUpdate: (order: OrderInfo) => void,
+  onComplete: () => void,
   maxRetries = 5,
   initialDelay = 1000
 ): Promise<void> {
-  const { onOrderUpdate, onComplete } = callbacks;
-
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const res = await fetch(url);
@@ -210,12 +152,12 @@ async function fetchOrderWithRetry(
           return;
         }
       }
-    } catch (err) {
-      console.error('Fetch attempt failed:', err);
+    } catch {
+      // Fetch failed, will retry
     }
 
     if (attempt < maxRetries - 1) {
-      await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
+      await new Promise((resolve) => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
     }
   }
   onComplete();
@@ -234,18 +176,19 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
   useEffect(() => {
     clearCart();
 
-    const callbacks: FetchOrderCallbacks = {
-      onOrderUpdate: setOrderInfo,
-      onComplete: () => setIsLoading(false),
-    };
+    const onComplete = (): void => setIsLoading(false);
 
     if (sessionId) {
-      fetchOrderWithRetry(`/api/checkout/session?session_id=${sessionId}`, callbacks);
+      fetchOrderWithRetry(`/api/checkout/session?session_id=${sessionId}`, setOrderInfo, onComplete);
       return;
     }
 
     if (reference && provider === 'vipps') {
-      fetchOrderWithRetry(`/api/orders/by-reference?reference=${encodeURIComponent(reference)}`, callbacks);
+      fetchOrderWithRetry(
+        `/api/orders/by-reference?reference=${encodeURIComponent(reference)}`,
+        setOrderInfo,
+        onComplete
+      );
       return;
     }
 
@@ -312,11 +255,26 @@ function SuccessContent({ locale, t }: { locale: Locale; t: SuccessText }): Reac
           </Link>
 
           <div className="flex justify-center">
-            <ShareButtons locale={locale} />
+            <ShareButton locale={locale} />
           </div>
         </motion.div>
 
-        <DecorativeDots />
+        <motion.div
+          className="mt-12 flex justify-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
+          {[0, 1, 2, 3, 4].map((i) => (
+            <motion.div
+              key={i}
+              className="w-3 h-3 rounded-full bg-primary"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.8 + i * 0.1 }}
+            />
+          ))}
+        </motion.div>
       </motion.div>
     </div>
   );
@@ -328,7 +286,16 @@ export default function SuccessPage({ params }: SuccessPageProps): React.ReactEl
   const t = getSuccessText(locale);
 
   return (
-    <Suspense fallback={<LoadingFallback t={t} />}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="text-muted-foreground">{t.loading}</span>
+          </div>
+        </div>
+      }
+    >
       <SuccessContent locale={locale} t={t} />
     </Suspense>
   );

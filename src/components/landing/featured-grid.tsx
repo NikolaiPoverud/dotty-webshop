@@ -1,15 +1,15 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo, useRef, useCallback } from 'react';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-import type { Dictionary, Locale, ProductListItem, CollectionCard } from '@/types';
-import { cn } from '@/lib/utils';
-import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 import { ProductCard } from '@/components/shop/product-card';
+import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import { cn } from '@/lib/utils';
+import type { CollectionCard, Dictionary, Locale, ProductListItem } from '@/types';
 
 const PRODUCTS_PER_PAGE = 3;
 
@@ -21,6 +21,9 @@ interface CarouselArrowProps {
 function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactElement {
   const isLeft = direction === 'left';
   const Icon = isLeft ? ChevronLeft : ChevronRight;
+  const positionStyles = isLeft
+    ? 'left-0 -translate-x-1 sm:-translate-x-3 shadow-[3px_3px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]'
+    : 'right-0 translate-x-1 sm:translate-x-3 shadow-[-3px_3px_0_0_theme(colors.primary)] sm:shadow-[-4px_4px_0_0_theme(colors.primary)]';
 
   return (
     <motion.button
@@ -30,17 +33,16 @@ function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactE
       whileTap={{ scale: 0.9 }}
       onClick={onClick}
       aria-label={isLeft ? 'Previous products' : 'Next products'}
-      className={`group absolute top-1/2 -translate-y-1/2 z-20
-                  w-12 h-12 sm:w-14 sm:h-14
-                  bg-background border-[3px] border-primary
-                  flex items-center justify-center
-                  transition-all duration-200
-                  hover:bg-primary active:bg-primary
-                  touch-manipulation
-                  ${isLeft
-                    ? 'left-0 -translate-x-1 sm:-translate-x-3 shadow-[3px_3px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]'
-                    : 'right-0 translate-x-1 sm:translate-x-3 shadow-[-3px_3px_0_0_theme(colors.primary)] sm:shadow-[-4px_4px_0_0_theme(colors.primary)]'
-                  }`}
+      className={cn(
+        'group absolute top-1/2 -translate-y-1/2 z-20',
+        'w-12 h-12 sm:w-14 sm:h-14',
+        'bg-background border-[3px] border-primary',
+        'flex items-center justify-center',
+        'transition-all duration-200',
+        'hover:bg-primary active:bg-primary',
+        'touch-manipulation',
+        positionStyles
+      )}
     >
       <Icon
         className="w-6 h-6 sm:w-8 sm:h-8 text-primary group-hover:text-background group-active:text-background transition-colors"
@@ -97,13 +99,10 @@ export function FeaturedGrid({
     isNavigating.current = true;
 
     setCurrentPage((prev) => {
-      if (direction === 'next') {
-        return Math.min(prev + 1, maxPage);
-      }
+      if (direction === 'next') return Math.min(prev + 1, maxPage);
       return Math.max(prev - 1, 0);
     });
 
-    // Debounce: prevent rapid clicks for 300ms
     setTimeout(() => {
       isNavigating.current = false;
     }, 300);
@@ -122,7 +121,6 @@ export function FeaturedGrid({
   return (
     <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* View All Link */}
         <div className="flex justify-center mb-4">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -138,7 +136,6 @@ export function FeaturedGrid({
           </motion.div>
         </div>
 
-        {/* Filter Tabs - Centered */}
         {showFilters && filterOptions.length > 1 && (
           <motion.div
             className="mb-8"
@@ -156,7 +153,6 @@ export function FeaturedGrid({
           </motion.div>
         )}
 
-        {/* Product Grid with Navigation */}
         <div className="relative">
           <AnimatePresence>
             {hasPrevPage && (
@@ -222,7 +218,6 @@ export function FeaturedGrid({
           )}
         </div>
 
-        {/* Empty state for filtered results */}
         {filteredProducts.length === 0 && (
           <motion.p
             className="text-muted-foreground text-center py-12"

@@ -3,16 +3,12 @@ import type { ReactElement } from 'react';
 import type { CollectionCard, Locale, ProductListItem } from '@/types';
 
 import { BASE_URL, JsonLd } from './json-ld';
+import { getProductAvailability } from './utils';
 
 interface CollectionJsonLdProps {
   collection: CollectionCard;
   products: ProductListItem[];
   lang: Locale;
-}
-
-function getAvailability(product: ProductListItem): string {
-  const inStock = product.is_available && product.stock_quantity !== 0;
-  return inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
 }
 
 export function CollectionJsonLd({ collection, products, lang }: CollectionJsonLdProps): ReactElement {
@@ -39,7 +35,7 @@ export function CollectionJsonLd({ collection, products, lang }: CollectionJsonL
             '@type': 'Offer',
             price: (product.price / 100).toFixed(2),
             priceCurrency: 'NOK',
-            availability: getAvailability(product),
+            availability: getProductAvailability(product),
           },
         },
       })),

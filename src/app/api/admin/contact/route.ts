@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from('contact_submissions')
       .select('*')
-      .is('deleted_at', null)  // Exclude soft-deleted
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (unreadOnly) {

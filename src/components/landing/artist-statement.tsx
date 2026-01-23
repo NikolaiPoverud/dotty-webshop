@@ -3,10 +3,11 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Locale } from '@/types';
-import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 
-interface Props {
+import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import type { Locale } from '@/types';
+
+interface ArtistStatementProps {
   lang: Locale;
 }
 
@@ -31,14 +32,13 @@ const artistText: Record<Locale, { title: string; paragraphs: string[]; cta: str
   },
 };
 
-export function ArtistStatement({ lang }: Props): React.ReactElement {
+export function ArtistStatement({ lang }: ArtistStatementProps): React.ReactElement {
   const t = artistText[lang];
 
   return (
     <section id="about" className="py-20 sm:py-32 relative overflow-hidden scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Artist Image */}
           <motion.div
             className="relative aspect-square max-w-md mx-auto lg:mx-0 bg-muted overflow-hidden rounded-lg"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -57,7 +57,6 @@ export function ArtistStatement({ lang }: Props): React.ReactElement {
             <div className="absolute inset-0 bg-primary/10" />
           </motion.div>
 
-          {/* Text Content */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -76,7 +75,6 @@ export function ArtistStatement({ lang }: Props): React.ReactElement {
               ))}
             </div>
 
-            {/* Signature dots */}
             <div className="mt-8 flex items-center gap-4">
               <div className="flex gap-2">
                 {[0, 1, 2, 3, 4].map((i) => (

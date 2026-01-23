@@ -1,23 +1,12 @@
-/**
- * API v1: Products endpoint
- * GET /api/v1/products - List available products
- *
- * Query params:
- * - collection: Filter by collection slug
- * - featured: Filter featured products only (true/false)
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+
 import { success, errors } from '@/lib/api-response';
 import { API_VERSION_HEADER, API_VERSION } from '@/lib/api-version';
+import { createClient } from '@/lib/supabase/server';
 import type { ProductListItem } from '@/types';
 
-const PRODUCT_FIELDS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
-
-const CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-};
+const PRODUCT_FIELDS =
+  'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = await createClient();
@@ -57,12 +46,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const response = success<ProductListItem[]>(products ?? []);
-
-  // Add version and cache headers
   response.headers.set(API_VERSION_HEADER, API_VERSION);
-  Object.entries(CACHE_HEADERS).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
   return response;
 }

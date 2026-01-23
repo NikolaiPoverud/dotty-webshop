@@ -3,15 +3,14 @@
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
-import { ToastProvider } from './toast';
 import { IdleTimeout } from './idle-timeout';
+import { ToastProvider } from './toast';
 
-interface Props {
+interface AdminLayoutWrapperProps {
   children: ReactNode;
   sidebar: ReactNode;
 }
 
-// Pages that don't show the admin layout (login, reset password, MFA verify)
 const PUBLIC_ADMIN_PAGES = ['/admin/login', '/admin/reset-password', '/admin/mfa-verify'];
 
 function isPublicAdminPage(pathname: string | null): boolean {
@@ -21,7 +20,7 @@ function isPublicAdminPage(pathname: string | null): boolean {
   );
 }
 
-export function AdminLayoutWrapper({ children, sidebar }: Props): ReactNode {
+export function AdminLayoutWrapper({ children, sidebar }: AdminLayoutWrapperProps): ReactNode {
   const pathname = usePathname();
 
   if (isPublicAdminPage(pathname)) {

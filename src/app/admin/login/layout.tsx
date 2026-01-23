@@ -1,8 +1,7 @@
-// Login page bypasses the admin sidebar layout
-export default function LoginLayout({
-  children,
-}: {
+interface LoginLayoutProps {
   children: React.ReactNode;
-}): React.ReactNode {
+}
+
+export default function LoginLayout({ children }: LoginLayoutProps): React.ReactNode {
   return children;
 }

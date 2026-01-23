@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useState } from 'react';
+
+import { AnimatePresence, motion } from 'framer-motion';
+import JSZip from 'jszip';
 import { AlertCircle, CheckCircle, Download, FileText, Loader2, Upload, X } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
-import JSZip from 'jszip';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 

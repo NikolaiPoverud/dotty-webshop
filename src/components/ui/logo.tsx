@@ -1,30 +1,32 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
-import { useState, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
+type LogoSize = 'sm' | 'md' | 'lg' | 'hero';
+
 interface LogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'hero';
+  size?: LogoSize;
 }
 
-const IMAGE_SIZES = {
+const IMAGE_SIZES: Record<LogoSize, { width: number; height: number }> = {
   sm: { width: 80, height: 40 },
   md: { width: 120, height: 60 },
   lg: { width: 160, height: 80 },
   hero: { width: 600, height: 200 },
-} as const;
+};
 
-const TEXT_CLASSES = {
+const TEXT_CLASSES: Record<LogoSize, string> = {
   sm: 'text-lg',
   md: 'text-2xl',
   lg: 'text-3xl',
   hero: 'text-7xl sm:text-8xl lg:text-9xl',
-} as const;
+};
 
-export function Logo({ className, size = 'md' }: LogoProps): ReactNode {
+export function Logo({ className, size = 'md' }: LogoProps): React.ReactElement {
   const [imageError, setImageError] = useState(false);
   const { width, height } = IMAGE_SIZES[size];
 

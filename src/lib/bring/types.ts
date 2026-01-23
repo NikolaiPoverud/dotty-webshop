@@ -1,9 +1,3 @@
-/**
- * Bring Shipping Guide API Types
- * Based on: https://api.bring.com/shippingguide/api-docs
- */
-
-// Request types
 export interface BringShippingDate {
   year: string;
   month: string;
@@ -50,7 +44,6 @@ export interface BringShippingRequest {
   language?: 'NO' | 'EN' | 'SE' | 'DK' | 'FI';
 }
 
-// Response types
 export interface BringGuiInformation {
   sortOrder: string;
   mainDisplayCategory: string;
@@ -129,7 +122,6 @@ export interface BringShippingResponse {
   consignments: BringConsignmentResponse[];
 }
 
-// Simplified shipping option for the checkout
 export interface ShippingOption {
   id: string;
   name: string;
@@ -145,22 +137,15 @@ export interface ShippingOption {
   };
 }
 
-// Common Bring service codes for Norway
 export const BRING_SERVICES = {
-  // Pickup point services
-  PICKUP_PARCEL: '5800', // Pakke til hentested
-  SERVICEPAKKE: 'SERVICEPAKKE', // Servicepakke (locker/pickup)
-
-  // Home delivery services
-  HOME_DELIVERY_MAILBOX: '3584', // Pakke i postkassen
-  HOME_DELIVERY: '5600', // Pakke levert hjem
-
-  // Express services
-  EXPRESS_NORDIC: '4850', // Bedriftspakke
-  EXPRESS_SAME_DAY: '1736', // Ekspress neste dag
+  PICKUP_PARCEL: '5800',
+  SERVICEPAKKE: 'SERVICEPAKKE',
+  HOME_DELIVERY_MAILBOX: '3584',
+  HOME_DELIVERY: '5600',
+  EXPRESS_NORDIC: '4850',
+  EXPRESS_SAME_DAY: '1736',
 } as const;
 
-// Default services to request for checkout
 export const DEFAULT_CHECKOUT_SERVICES = [
   BRING_SERVICES.PICKUP_PARCEL,
   BRING_SERVICES.SERVICEPAKKE,

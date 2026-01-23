@@ -4,17 +4,25 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
 import type { Locale, Order, OrderItem } from '@/types';
 
-/**
- * Vipps callback handler
- * User is redirected here after completing/cancelling payment in Vipps app
- */
+function getCanonicalOrigin(): string {
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
+}
+
+function redirectToCheckout(locale: Locale, reason: string): NextResponse {
+  const origin = getCanonicalOrigin();
+  const checkoutUrl = locale === 'en'
+    ? `${origin}/en/checkout?vipps_error=${reason}`
+    : `${origin}/no/kasse?vipps_error=${reason}`;
+  return NextResponse.redirect(checkoutUrl);
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const searchParams = request.nextUrl.searchParams;
   const reference = searchParams.get('reference');
   const locale = (searchParams.get('locale') || 'no') as Locale;
 
   if (!reference) {
-    return redirectToCheckout(request, locale, 'missing_reference');
+    return redirectToCheckout(locale, 'missing_reference');
   }
 
   try {
@@ -84,7 +92,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       case 'TERMINATED':
       case 'EXPIRED': {
-        // Payment was cancelled or expired
         await supabase
           .from('orders')
           .update({
@@ -94,26 +101,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           })
           .eq('order_number', reference);
 
-        return redirectToCheckout(request, locale, 'canceled');
+        return redirectToCheckout(locale, 'canceled');
       }
 
       case 'CREATED': {
-        // User returned but payment not yet completed
-        // This can happen if user closes Vipps app without completing
-        return redirectToCheckout(request, locale, 'incomplete');
+        return redirectToCheckout(locale, 'incomplete');
       }
 
       default: {
         console.warn(`Unexpected Vipps payment state: ${payment.state}`);
-        return redirectToCheckout(request, locale, 'error');
+        return redirectToCheckout(locale, 'error');
       }
     }
 
   } catch (error) {
     console.error('Vipps callback error:', error);
 
-    // If we can't verify payment status but user returned from Vipps,
-    // check if order exists and redirect to success with pending status
     const supabase = createAdminClient();
     const { data: order } = await supabase
       .from('orders')
@@ -122,7 +125,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (order) {
-      // Order exists - payment likely succeeded, mark as pending verification
       await supabase
         .from('orders')
         .update({
@@ -140,26 +142,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.redirect(successUrl);
     }
 
-    return redirectToCheckout(request, locale, 'error');
+    return redirectToCheckout(locale, 'error');
   }
-}
-
-function redirectToCheckout(
-  request: NextRequest,
-  locale: Locale,
-  reason: string,
-): NextResponse {
-  const origin = getCanonicalOrigin();
-  const isEnglish = locale === 'en';
-  const checkoutUrl = isEnglish
-    ? `${origin}/en/checkout?vipps_error=${reason}`
-    : `${origin}/no/kasse?vipps_error=${reason}`;
-
-  return NextResponse.redirect(checkoutUrl);
-}
-
-function getCanonicalOrigin(): string {
-  // Always use configured site URL for redirects after Vipps payment
-  // Request headers come from Vipps, not from our domain
-  return process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 }

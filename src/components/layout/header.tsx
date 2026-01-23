@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronRight, Menu, ShoppingBag, X } from 'lucide-react';
 
@@ -71,24 +71,20 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
 
   const { itemCount } = useCart();
   const pathname = usePathname();
-  const router = useRouter();
 
   const altLang = getAlternateLocale(lang);
   const t = dictionary ?? FALLBACK_NAV[lang];
   const isHomePage = pathname === `/${lang}` || pathname === '/';
   const langSwitchUrl = getLanguageSwitchUrl(pathname, lang, hostname);
 
-  // Check if we're on a product detail page (shop/[slug] but not shop index)
   const isProductPage = pathname?.match(/\/shop\/[^/]+$/) !== null;
 
-  // Reset hidden state when leaving product pages
   useEffect(() => {
     if (!isProductPage) {
       setIsHidden(false);
     }
   }, [isProductPage]);
 
-  // Initialize client-side state and set up event listeners
   useEffect(() => {
     setHostname(window.location.hostname);
     setActiveHash(window.location.hash);
@@ -102,17 +98,13 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
       const currentScrollY = window.scrollY;
       setIsVisible(currentScrollY > 100);
 
-      // On product pages, hide header when scrolling down, show when scrolling up
       if (isProductPage) {
         const scrollDelta = currentScrollY - lastScrollY;
 
-        // Only trigger hide/show after scrolling a minimum distance (10px)
         if (Math.abs(scrollDelta) > 10) {
           if (scrollDelta > 0 && currentScrollY > 100) {
-            // Scrolling down - hide header
             setIsHidden(true);
           } else if (scrollDelta < 0) {
-            // Scrolling up - show header
             setIsHidden(false);
           }
           setLastScrollY(currentScrollY);
@@ -133,7 +125,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
     if (isHomePage) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      router.push(`/${lang}`);
+      window.location.href = `/${lang}`;
     }
   }
 

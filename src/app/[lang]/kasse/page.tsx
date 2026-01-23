@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState, Suspense } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -55,7 +55,6 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
   const [checkoutToken, setCheckoutToken] = useState<string | null>(null);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
 
-  // SEC-002: Fetch checkout token when page loads
   useEffect(() => {
     let isCancelled = false;
 
@@ -68,13 +67,10 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
           const data = await response.json();
           setCheckoutToken(data.token);
         } else if (!isRetry) {
-          console.error('Failed to fetch checkout token:', response.status);
           setTimeout(() => fetchToken(true), 1000);
         }
-      } catch (err) {
-        if (!isCancelled) {
-          console.error('Failed to fetch checkout token:', err);
-        }
+      } catch {
+        // Token fetch failed, will be validated at checkout
       }
     }
 
@@ -94,15 +90,12 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
     const vippsError = searchParams.get('vipps_error');
     if (!vippsError) return;
 
-    switch (vippsError) {
-      case 'canceled':
-        setError(t.paymentCanceled);
-        break;
-      case 'incomplete':
-        setError(t.vippsIncomplete ?? 'Vipps-betaling ble ikke fullført. Prøv igjen.');
-        break;
-      default:
-        setError(t.genericError);
+    if (vippsError === 'canceled') {
+      setError(t.paymentCanceled);
+    } else if (vippsError === 'incomplete') {
+      setError(t.vippsIncomplete ?? 'Vipps-betaling ble ikke fullført. Prøv igjen.');
+    } else {
+      setError(t.genericError);
     }
   }, [searchParams, t.paymentCanceled, t.vippsIncomplete, t.genericError]);
 
@@ -146,9 +139,8 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
 
     if (!validateForm()) return;
 
-    // Check if checkout token was loaded
     if (!checkoutToken) {
-      setError(t.sessionExpired || 'Checkout session expired. Please refresh the page and try again.');
+      setError(t.sessionExpired ?? 'Checkout session expired. Please refresh the page and try again.');
       return;
     }
 
@@ -161,7 +153,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart.items.map(item => ({
+          items: cart.items.map((item) => ({
             product_id: item.product.id,
             title: item.product.title,
             price: item.product.price,
@@ -178,7 +170,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
             postal_code: formData.postalCode,
             country: formData.country,
           },
-          discount_code: cart.discountCode || undefined,
+          discount_code: cart.discountCode ?? undefined,
           discount_amount: cart.discountAmount ?? 0,
           shipping_cost: cart.freeShipping ? 0 : (selectedShipping?.priceWithVat ?? cart.shippingCost ?? 0),
           shipping_option_id: selectedShipping?.id,
@@ -194,19 +186,16 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
       const result = await response.json();
 
       if (!response.ok) {
-        // Show the actual API error message to help users understand what went wrong
         setError(result.error || t.genericError);
         setIsLoading(false);
         return;
       }
 
-      // Handle redirect URL (Stripe uses 'url', Vipps uses 'redirectUrl')
-      const redirectUrl = result.url || result.redirectUrl;
+      const redirectUrl = result.url ?? result.redirectUrl;
       if (redirectUrl) {
         window.location.href = redirectUrl;
       }
-    } catch (err) {
-      console.error('Checkout error:', err);
+    } catch {
       setError(t.genericError);
     } finally {
       setIsLoading(false);

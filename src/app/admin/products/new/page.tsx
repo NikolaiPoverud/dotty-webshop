@@ -93,14 +93,12 @@ export default function NewProductPage(): React.ReactNode {
   }
 
   useEffect(() => {
-    async function fetchCollections(): Promise<void> {
-      const response = await adminFetch('/api/admin/collections');
+    adminFetch('/api/admin/collections').then(async (response) => {
       if (response.ok) {
         const result = await response.json();
         setCollections(result.data || []);
       }
-    }
-    fetchCollections();
+    });
   }, []);
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {

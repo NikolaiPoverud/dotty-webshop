@@ -8,17 +8,12 @@ import { parsePaginationParams, getPaginationRange, buildPaginationResult } from
 import { validateCreateProduct } from '@/lib/schemas/product';
 import { success, errors } from '@/lib/api-response';
 
-/**
- * Revalidate all cached pages that display product data.
- */
 function revalidateProductPages(): void {
   revalidatePath('/no/shop', 'page');
   revalidatePath('/en/shop', 'page');
   revalidatePath('/no', 'page');
   revalidatePath('/en', 'page');
 }
-
-// GET /api/admin/products - List all products with pagination
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
@@ -66,7 +61,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createAdminClient();
 
-    // SEC-007: Zod validation of request body
     let rawBody: unknown;
     try {
       rawBody = await request.json();
@@ -139,10 +133,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ...getAuditHeadersFromRequest(request),
     });
 
-    // Revalidate cached pages to show new product immediately
     revalidateProductPages();
-
-    // Return created product with 201 status
     const response = success(product);
     return new NextResponse(response.body, { status: 201, headers: response.headers });
   } catch (error) {

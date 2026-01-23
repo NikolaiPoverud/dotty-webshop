@@ -5,7 +5,6 @@ import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-lim
 import { errors } from '@/lib/api-response';
 import type { ShippingOption } from '@/lib/bring';
 
-// Rate limit: 30 requests per minute per IP
 const RATE_LIMIT = { maxRequests: 30, windowMs: 60000 };
 
 const ShippingRequestSchema = z.object({
@@ -16,7 +15,6 @@ const ShippingRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  // Rate limiting
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`shipping:${clientIp}`, RATE_LIMIT);
 
@@ -34,7 +32,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return errors.badRequest('Invalid request body');
   }
 
-  // Validate request
   const parsed = ShippingRequestSchema.safeParse(body);
   if (!parsed.success) {
     return errors.badRequest(parsed.error.issues[0].message);
@@ -76,10 +73,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-/**
- * Fallback shipping options when Bring API is unavailable
- * These are approximate prices for Norwegian domestic shipping
- */
 function getFallbackShippingOptions(locale: 'no' | 'en'): ShippingOption[] {
   const isNorwegian = locale === 'no';
 

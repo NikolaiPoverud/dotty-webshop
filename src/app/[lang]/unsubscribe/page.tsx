@@ -40,47 +40,42 @@ const text = {
 
 type Status = 'loading' | 'success' | 'already' | 'error' | 'invalid';
 
+async function processUnsubscribe(token: string): Promise<Status> {
+  try {
+    const res = await fetch(`/api/newsletter/unsubscribe?token=${token}`);
+    const data = await res.json();
+
+    if (data.error) {
+      return data.error.includes('Invalid') ? 'invalid' : 'error';
+    }
+    if (data.already_unsubscribed) {
+      return 'already';
+    }
+    return 'success';
+  } catch {
+    return 'error';
+  }
+}
+
 export default function UnsubscribePage({
   params,
 }: {
   params: Promise<{ lang: string }>;
-}) {
+}): React.ReactElement {
   const [lang, setLang] = useState<Locale>('no');
-  const [status, setStatus] = useState<Status>('loading');
   const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  const [status, setStatus] = useState<Status>(() => (token ? 'loading' : 'invalid'));
 
   useEffect(() => {
     params.then(({ lang }) => setLang(lang as Locale));
   }, [params]);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-
-    if (!token) {
-      setStatus('invalid');
-      return;
+    if (token) {
+      processUnsubscribe(token).then(setStatus);
     }
-
-    // Process unsubscription
-    fetch(`/api/newsletter/unsubscribe?token=${token}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          if (data.error.includes('Invalid')) {
-            setStatus('invalid');
-          } else {
-            setStatus('error');
-          }
-        } else if (data.already_unsubscribed) {
-          setStatus('already');
-        } else {
-          setStatus('success');
-        }
-      })
-      .catch(() => {
-        setStatus('error');
-      });
-  }, [searchParams]);
+  }, [token]);
 
   const t = text[lang];
 

@@ -72,10 +72,9 @@ export default function AdminTestimonialsPage() {
   }, [fetchTestimonials]);
 
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
+    if (!error) return;
+    const timer = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(timer);
   }, [error]);
 
   function openNewModal(): void {

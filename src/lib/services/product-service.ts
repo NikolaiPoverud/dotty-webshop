@@ -1,11 +1,3 @@
-/**
- * ARCH-004: Product Service Layer
- *
- * Extracts product-related business logic from API routes into a
- * reusable service layer. This improves testability, maintainability,
- * and separation of concerns.
- */
-
 import { createAdminClient } from '@/lib/supabase/admin';
 import { slugify, generateRandomSuffix } from '@/lib/utils';
 import type { Product, ProductListItem } from '@/types';
@@ -37,9 +29,6 @@ export interface ProductFilters {
   isFeatured?: boolean;
 }
 
-/**
- * Get paginated list of products with optional filters
- */
 export async function listProducts(
   params: PaginationParams,
   filters: ProductFilters = {}
@@ -87,9 +76,6 @@ export async function listProducts(
   };
 }
 
-/**
- * Get a single product by ID
- */
 export async function getProductById(
   id: string
 ): Promise<ServiceResult<Product>> {
@@ -113,9 +99,6 @@ export async function getProductById(
   return { success: true, data };
 }
 
-/**
- * Get a single product by slug
- */
 export async function getProductBySlug(
   slug: string
 ): Promise<ServiceResult<Product>> {
@@ -139,9 +122,6 @@ export async function getProductBySlug(
   return { success: true, data };
 }
 
-/**
- * Create a new product
- */
 export async function createProduct(
   input: CreateProductInput
 ): Promise<ServiceResult<Product>> {
@@ -202,9 +182,6 @@ export async function createProduct(
   return { success: true, data };
 }
 
-/**
- * Update an existing product
- */
 export async function updateProduct(
   id: string,
   updates: Partial<CreateProductInput>
@@ -258,9 +235,6 @@ export async function updateProduct(
   return { success: true, data };
 }
 
-/**
- * Soft delete a product
- */
 export async function deleteProduct(
   id: string
 ): Promise<ServiceResult<{ id: string }>> {
@@ -280,9 +254,6 @@ export async function deleteProduct(
   return { success: true, data: { id } };
 }
 
-/**
- * Reorder products
- */
 export async function reorderProducts(
   items: Array<{ id: string; display_order: number }>
 ): Promise<ServiceResult<void>> {
@@ -306,9 +277,6 @@ export async function reorderProducts(
   return { success: true };
 }
 
-/**
- * Get featured products for homepage
- */
 export async function getFeaturedProducts(
   limit = 6
 ): Promise<ServiceResult<ProductListItem[]>> {

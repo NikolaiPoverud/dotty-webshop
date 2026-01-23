@@ -38,8 +38,6 @@ function generateFilename(ext: string): string {
   return `products/${timestamp}-${randomId}.${ext}`;
 }
 
-// SEC-014: Strict path validation to prevent path traversal
-// Using explicit ASCII character classes instead of \w which matches Unicode
 function isValidProductPath(path: string): boolean {
   const normalized = String(path).trim();
   return (
@@ -51,7 +49,6 @@ function isValidProductPath(path: string): boolean {
   );
 }
 
-// POST /api/admin/upload - Upload image to Supabase storage
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;
@@ -111,7 +108,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// DELETE /api/admin/upload - Delete image from storage
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth();
   if (!auth.authorized) return auth.response;

@@ -12,7 +12,20 @@ interface ConsentCheckboxesProps {
   onNewsletterChange: (value: boolean) => void;
 }
 
-export function ConsentCheckboxes({ locale, t, privacyAccepted, newsletterOptIn, onPrivacyChange, onNewsletterChange }: ConsentCheckboxesProps): React.ReactElement {
+const CHECKBOX_CLASS =
+  'mt-0.5 w-5 h-5 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0';
+
+const LABEL_CLASS =
+  'text-sm text-muted-foreground group-hover:text-foreground group-active:text-foreground transition-colors';
+
+export function ConsentCheckboxes({
+  locale,
+  t,
+  privacyAccepted,
+  newsletterOptIn,
+  onPrivacyChange,
+  onNewsletterChange,
+}: ConsentCheckboxesProps): React.ReactElement {
   return (
     <div className="mt-6 space-y-3">
       <label className="flex items-start gap-3 cursor-pointer group py-1 touch-manipulation">
@@ -20,9 +33,9 @@ export function ConsentCheckboxes({ locale, t, privacyAccepted, newsletterOptIn,
           type="checkbox"
           checked={privacyAccepted}
           onChange={(e) => onPrivacyChange(e.target.checked)}
-          className="mt-0.5 w-5 h-5 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0"
+          className={CHECKBOX_CLASS}
         />
-        <span className="text-sm text-muted-foreground group-hover:text-foreground group-active:text-foreground transition-colors">
+        <span className={LABEL_CLASS}>
           {t.acceptPrivacy}{' '}
           <a
             href={`/${locale}/privacy`}
@@ -41,11 +54,9 @@ export function ConsentCheckboxes({ locale, t, privacyAccepted, newsletterOptIn,
           type="checkbox"
           checked={newsletterOptIn}
           onChange={(e) => onNewsletterChange(e.target.checked)}
-          className="mt-0.5 w-5 h-5 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0"
+          className={CHECKBOX_CLASS}
         />
-        <span className="text-sm text-muted-foreground group-hover:text-foreground group-active:text-foreground transition-colors">
-          {t.subscribeNewsletter}
-        </span>
+        <span className={LABEL_CLASS}>{t.subscribeNewsletter}</span>
       </label>
     </div>
   );

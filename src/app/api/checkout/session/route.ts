@@ -3,10 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 
-// Stripe session IDs follow specific patterns
 const STRIPE_SESSION_ID_PATTERN = /^cs_(test|live)_[a-zA-Z0-9]{20,}$/;
-
-// SEC-015: Rate limit per session ID to prevent enumeration attacks
 const SESSION_RATE_LIMIT_CONFIG = { maxRequests: 10, windowMs: 60 * 1000 };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -16,12 +13,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Missing session_id' }, { status: 400 });
   }
 
-  // Validate session_id format to prevent injection attacks
   if (!STRIPE_SESSION_ID_PATTERN.test(sessionId)) {
     return NextResponse.json({ error: 'Invalid session_id format' }, { status: 400 });
   }
 
-  // SEC-015: Rate limit by session ID and IP to prevent enumeration
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`checkout-session:${clientIp}:${sessionId}`, SESSION_RATE_LIMIT_CONFIG);
 
@@ -43,7 +38,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const supabase = createAdminClient();
 
-  // DB-003: Fetch order and items from order_items junction table
   const { data: order } = await supabase
     .from('orders')
     .select('id, order_number, customer_email, total')
@@ -51,7 +45,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     .single();
 
   if (order) {
-    // Fetch items from order_items table
     const { data: orderItems } = await supabase
       .from('order_items')
       .select('product_id, title, price, quantity, image_url')
@@ -79,7 +72,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   });
 }
 
-/** SEC-011: Mask email to prevent full PII exposure in API response */
 function maskEmail(email: string | null | undefined): string | null {
   if (!email) return null;
 

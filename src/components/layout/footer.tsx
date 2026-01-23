@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
-import { Mail, Shield, RotateCcw, CreditCard } from 'lucide-react';
+import { Mail, Shield, RotateCcw } from 'lucide-react';
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import type { Dictionary, Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
+import { VippsMarkLogo, StripeLogo } from '@/components/ui/payment-logos';
 import { resetCookieConsent } from '@/components/gdpr/cookie-consent';
 
 interface TrustBadgeProps {
@@ -49,7 +50,7 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
     <footer className="border-t border-border bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-12">
-          <NewsletterForm lang={lang} dictionary={dictionary} />
+          <NewsletterForm dictionary={dictionary} />
         </div>
 
         {collections.length > 0 && (
@@ -79,7 +80,13 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-8 pb-8 border-b border-border">
           <TrustBadge icon={RotateCcw} label={t.returns} />
           <TrustBadge icon={Shield} label={t.securePayment} />
-          <TrustBadge icon={CreditCard} label="Stripe" />
+          <div className="flex items-center gap-4">
+            <StripeLogo className="h-6 text-muted-foreground" />
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <VippsMarkLogo className="w-5 h-5 text-[#ff5b24]" />
+              <span className="text-sm font-medium text-[#ff5b24]">Vipps</span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-6">
@@ -87,7 +94,6 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             <Logo size="sm" className="h-8" />
           </Link>
 
-          {/* Social links */}
           <div className="flex items-center justify-center gap-2">
             <a
               href="mailto:hei@dotty.no"
@@ -116,7 +122,6 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             </a>
           </div>
 
-          {/* Legal links */}
           <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:gap-x-4">
             <Link
               href={`/${lang}/privacy`}
@@ -144,7 +149,6 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             </Link>
           </div>
 
-          {/* Legal business info */}
           <div className="text-center text-xs text-muted-foreground space-y-1">
             <p>
               &copy; {currentYear}{' '}
