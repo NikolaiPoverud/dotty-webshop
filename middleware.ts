@@ -43,6 +43,62 @@ const localeBypasses = [
   '/apple-touch-icon.png',
 ];
 
+// ============================================================================
+// SEO URL Normalization Rules
+// ============================================================================
+
+interface UrlRule {
+  pattern: RegExp;
+  action: 'redirect';
+  getUrl: (pathname: string, search: string) => string | null;
+}
+
+const SEO_URL_RULES: UrlRule[] = [
+  // Remove page=1 parameter
+  {
+    pattern: /[?&]page=1(&|$)/,
+    action: 'redirect',
+    getUrl: (pathname, search) => {
+      const params = new URLSearchParams(search);
+      params.delete('page');
+      const newSearch = params.toString();
+      return pathname + (newSearch ? `?${newSearch}` : '');
+    },
+  },
+  // Remove trailing slashes (except root)
+  {
+    pattern: /^(.+)\/$/,
+    action: 'redirect',
+    getUrl: (pathname, search) => {
+      if (pathname === '/') return null;
+      return pathname.slice(0, -1) + (search || '');
+    },
+  },
+  // Fix double slashes
+  {
+    pattern: /\/\//,
+    action: 'redirect',
+    getUrl: (pathname, search) => {
+      return pathname.replace(/\/+/g, '/') + (search || '');
+    },
+  },
+];
+
+function checkSeoRedirects(pathname: string, search: string): string | null {
+  const fullPath = pathname + search;
+
+  for (const rule of SEO_URL_RULES) {
+    if (rule.pattern.test(fullPath)) {
+      const newUrl = rule.getUrl(pathname, search);
+      if (newUrl && newUrl !== fullPath) {
+        return newUrl;
+      }
+    }
+  }
+
+  return null;
+}
+
 // Paths that bypass all middleware processing
 const staticPaths = [
   '/_next',
@@ -135,6 +191,18 @@ export async function middleware(request: NextRequest) {
   // Skip other locale bypasses
   if (localeBypasses.some(path => pathname.startsWith(path))) {
     return addSecurityHeaders(NextResponse.next());
+  }
+
+  // SEO: Check for URL redirects (page=1, trailing slashes, etc.)
+  const seoRedirect = checkSeoRedirects(pathname, request.nextUrl.search);
+  if (seoRedirect) {
+    const url = request.nextUrl.clone();
+    const [newPathname, newSearch] = seoRedirect.includes('?')
+      ? seoRedirect.split('?')
+      : [seoRedirect, ''];
+    url.pathname = newPathname;
+    url.search = newSearch ? `?${newSearch}` : '';
+    return addSecurityHeaders(NextResponse.redirect(url, 301));
   }
 
   // Determine locale based on domain

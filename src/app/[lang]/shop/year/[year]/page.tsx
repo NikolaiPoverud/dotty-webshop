@@ -4,11 +4,16 @@ import type { Locale } from '@/types';
 import { locales } from '@/lib/i18n/get-dictionary';
 import { generateMetadata as generateSeoMetadata } from '@/lib/seo/metadata';
 import { YEAR_FACET_LABELS, YEAR_FACET_DESCRIPTIONS, TYPE_FACET_LABELS } from '@/lib/seo/facets';
-import { getProductsByYear, getProductCountByYear, getAvailableYears } from '@/lib/seo/facets/queries';
+import {
+  getCachedProductsByYear,
+  getCachedFacetCounts,
+  getCachedAvailableYears,
+} from '@/lib/supabase/cached-public';
 import { getYearFacetPath, getTypeFacetPath } from '@/lib/seo/facets/url-builder';
 import { FacetedShopContent, type FacetBreadcrumb, type RelatedFacet } from '@/components/shop/faceted-shop-content';
 
 export const revalidate = 3600;
+export const dynamicParams = true; // Allow runtime generation for any valid year
 
 interface PageProps {
   params: Promise<{ lang: string; year: string }>;
@@ -18,9 +23,14 @@ function isValidYear(year: number): boolean {
   return !isNaN(year) && year >= 1900 && year <= 2100;
 }
 
-export async function generateStaticParams(): Promise<Array<{ lang: string; year: string }>> {
-  const years = await getAvailableYears();
-  return locales.flatMap((lang) => years.map((year) => ({ lang, year: String(year) })));
+/**
+ * Generate static params from cached available years
+ * Only generates locale variants, actual years are generated on-demand
+ */
+export function generateStaticParams(): Array<{ lang: string; year: string }> {
+  // Return empty array - years will be generated on-demand
+  // This avoids database calls at build time
+  return locales.map((lang) => ({ lang, year: '2024' })); // Pre-generate current year only
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -30,12 +40,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!isValidYear(year)) return {};
 
+  // Use cached facet counts
+  const facetCounts = await getCachedFacetCounts();
+  const productCount = facetCounts.years[year] ?? 0;
+
   return generateSeoMetadata({
     pageType: 'facet-year',
     locale,
     path: getYearFacetPath(year),
     year,
-    productCount: await getProductCountByYear(year),
+    productCount,
   });
 }
 
@@ -46,7 +60,11 @@ export default async function YearFacetPage({ params }: PageProps): Promise<Reac
 
   if (!isValidYear(year)) notFound();
 
-  const [products, availableYears] = await Promise.all([getProductsByYear(year), getAvailableYears()]);
+  // Use cached queries
+  const [products, availableYears] = await Promise.all([
+    getCachedProductsByYear(year),
+    getCachedAvailableYears(),
+  ]);
 
   if (products.length === 0) notFound();
 

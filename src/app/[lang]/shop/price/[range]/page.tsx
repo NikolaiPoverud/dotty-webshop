@@ -11,16 +11,23 @@ import {
   getAllPriceFacetParams,
   TYPE_FACET_LABELS,
 } from '@/lib/seo/facets';
-import { getProductsByPriceRange, getProductCountByPriceRange } from '@/lib/seo/facets/queries';
+import {
+  getCachedProductsByPriceRange,
+  getCachedFacetCounts,
+} from '@/lib/supabase/cached-public';
 import { getPriceFacetPath, getTypeFacetPath } from '@/lib/seo/facets/url-builder';
 import { FacetedShopContent, type FacetBreadcrumb, type RelatedFacet } from '@/components/shop/faceted-shop-content';
 
 export const revalidate = 3600;
+export const dynamicParams = true;
 
 interface PageProps {
   params: Promise<{ lang: string; range: string }>;
 }
 
+/**
+ * Generate static params from known price ranges (no database calls)
+ */
 export function generateStaticParams(): Array<{ lang: string; range: string }> {
   const priceParams = getAllPriceFacetParams();
   return locales.flatMap((lang) => priceParams.map((param) => ({ lang, range: param.range })));
@@ -33,13 +40,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!range) return {};
 
+  // Use cached facet counts
+  const facetCounts = await getCachedFacetCounts();
+  const productCount = facetCounts.priceRanges[rangeSlug] ?? 0;
+
   return generateSeoMetadata({
     pageType: 'facet-price',
     locale,
     path: getPriceFacetPath(rangeSlug),
     rangeLabel: PRICE_RANGE_LABELS[locale][rangeSlug],
     rangeDescription: PRICE_RANGE_DESCRIPTIONS[locale][rangeSlug],
-    productCount: await getProductCountByPriceRange(range),
+    productCount,
   });
 }
 
@@ -50,7 +61,8 @@ export default async function PriceFacetPage({ params }: PageProps): Promise<Rea
 
   if (!range) notFound();
 
-  const products = await getProductsByPriceRange(rangeSlug);
+  // Use cached query
+  const products = await getCachedProductsByPriceRange(range.minPrice, range.maxPrice);
   const rangeLabel = PRICE_RANGE_LABELS[locale][rangeSlug];
   const homeName = locale === 'no' ? 'Hjem' : 'Home';
   const title = locale === 'no' ? `Kunst ${rangeLabel}` : `Art ${rangeLabel}`;

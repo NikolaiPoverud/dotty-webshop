@@ -19,7 +19,7 @@ const supabase = createPublicClient();
 async function getFeaturedProducts(): Promise<ProductListItem[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry')
+    .select('id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size')
     .is('deleted_at', null)
     .eq('is_public', true)
     .order('display_order', { ascending: true })

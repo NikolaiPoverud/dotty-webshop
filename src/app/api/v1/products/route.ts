@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { ProductListItem } from '@/types';
 
 const PRODUCT_FIELDS =
-  'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry';
+  'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = await createClient();

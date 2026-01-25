@@ -1,5 +1,6 @@
 export * from './breadcrumbs';
 export * from './related-facets';
+export * from './link-budget';
 
 import type { Locale, Product, Collection } from '@/types';
 import {

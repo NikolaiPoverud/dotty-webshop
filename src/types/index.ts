@@ -48,6 +48,7 @@ export interface Product {
 export type ProductListItem = Pick<Product,
   | 'id' | 'title' | 'slug' | 'price' | 'image_url' | 'product_type'
   | 'is_available' | 'is_featured' | 'is_public' | 'stock_quantity' | 'collection_id' | 'requires_inquiry'
+  | 'year' | 'shipping_size'
 > & { sizes?: ProductSize[] };
 
 export type ProductCard = ProductListItem;

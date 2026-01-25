@@ -6,15 +6,19 @@ import { generateMetadata as generateSeoMetadata } from '@/lib/seo/metadata';
 import {
   SIZE_FACET_LABELS,
   SIZE_FACET_DESCRIPTIONS,
+  SIZE_FACET_SLUGS,
   getSizeValueFromSlug,
-  getAllSizeFacetParams,
   TYPE_FACET_LABELS,
 } from '@/lib/seo/facets';
-import { getProductsBySize, getProductCountBySize } from '@/lib/seo/facets/queries';
+import {
+  getCachedProductsBySize,
+  getCachedFacetCounts,
+} from '@/lib/supabase/cached-public';
 import { getSizeFacetPath, getTypeFacetPath } from '@/lib/seo/facets/url-builder';
 import { FacetedShopContent, type FacetBreadcrumb, type RelatedFacet } from '@/components/shop/faceted-shop-content';
 
 export const revalidate = 3600;
+export const dynamicParams = true;
 
 interface PageProps {
   params: Promise<{ lang: string; size: string }>;
@@ -22,9 +26,20 @@ interface PageProps {
 
 const ALL_SIZES: ShippingSize[] = ['small', 'medium', 'large', 'oversized'];
 
+/**
+ * Generate static params from known size slugs (no database calls)
+ */
 export function generateStaticParams(): Array<{ lang: string; size: string }> {
-  const sizeParams = getAllSizeFacetParams();
-  return locales.flatMap((lang) => sizeParams.map((param) => ({ lang, size: param.size })));
+  const params: Array<{ lang: string; size: string }> = [];
+
+  for (const lang of locales) {
+    for (const slug of Object.values(SIZE_FACET_SLUGS[lang])) {
+      params.push({ lang, size: slug });
+    }
+  }
+
+  // Deduplicate by size slug
+  return [...new Map(params.map((p) => [`${p.lang}-${p.size}`, p])).values()];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -34,13 +49,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!sizeValue) return {};
 
+  // Use cached facet counts
+  const facetCounts = await getCachedFacetCounts();
+  const productCount = facetCounts.sizes[sizeValue] ?? 0;
+
   return generateSeoMetadata({
     pageType: 'facet-size',
     locale,
     path: getSizeFacetPath(sizeValue, locale),
     sizeLabel: SIZE_FACET_LABELS[locale][sizeValue],
     sizeDescription: SIZE_FACET_DESCRIPTIONS[locale][sizeValue],
-    productCount: await getProductCountBySize(sizeValue),
+    productCount,
   });
 }
 
@@ -51,7 +70,8 @@ export default async function SizeFacetPage({ params }: PageProps): Promise<Reac
 
   if (!sizeValue) notFound();
 
-  const products = await getProductsBySize(sizeSlug, locale);
+  // Use cached query
+  const products = await getCachedProductsBySize(sizeValue);
   const sizeLabel = SIZE_FACET_LABELS[locale][sizeValue];
   const homeName = locale === 'no' ? 'Hjem' : 'Home';
   const title = locale === 'no' ? `${sizeLabel} Kunstverk` : `${sizeLabel} Artworks`;

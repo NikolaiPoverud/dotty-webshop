@@ -2,7 +2,16 @@ import 'server-only';
 
 import type { MetadataRoute } from 'next';
 import type { Locale } from '@/types';
-import { createPublicClient } from '@/lib/supabase/public';
+import {
+  getCachedProductsForSitemap,
+  getCachedCollectionsForSitemap,
+  getCachedFacetCounts,
+  getCachedAvailableYears,
+} from '@/lib/supabase/cached-public';
+import {
+  kvGet,
+  cacheKeys,
+} from '@/lib/cache/kv-cache';
 import {
   STATIC_PAGES,
   MAX_URLS_PER_SEGMENT,
@@ -15,10 +24,7 @@ import {
   PRICE_RANGES,
   type TypeFacetValue,
 } from '../facets';
-import {
-  getAvailableYears,
-  getAvailableYearsForType,
-} from '../facets/queries';
+import { MIN_PRODUCTS_FOR_INDEX } from '../facets';
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
@@ -74,26 +80,18 @@ export async function generateStaticSitemap(): Promise<MetadataRoute.Sitemap> {
 export async function generateProductsSitemap(
   chunk: number = 1
 ): Promise<MetadataRoute.Sitemap> {
-  const supabase = createPublicClient();
+  // Use cached products for sitemap
+  const allProducts = await getCachedProductsForSitemap();
+
+  // Sort by slug for consistent ordering and slice for pagination
+  const sortedProducts = [...allProducts].sort((a, b) => a.slug.localeCompare(b.slug));
   const offset = (chunk - 1) * MAX_URLS_PER_SEGMENT;
-
-  const { data: products, error } = await supabase
-    .from('products')
-    .select('slug, updated_at')
-    .eq('is_public', true)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-    .range(offset, offset + MAX_URLS_PER_SEGMENT - 1);
-
-  if (error) {
-    console.error('Failed to fetch products for sitemap:', error);
-    return [];
-  }
+  const products = sortedProducts.slice(offset, offset + MAX_URLS_PER_SEGMENT);
 
   const config = getPageTypeConfig('product');
   const entries: SitemapEntry[] = [];
 
-  for (const product of products || []) {
+  for (const product of products) {
     const lastModified = product.updated_at ? new Date(product.updated_at) : new Date();
     entries.push(...createBothLocaleEntries(
       `/shop/${product.slug}`,
@@ -107,39 +105,25 @@ export async function generateProductsSitemap(
 }
 
 export async function getProductCount(): Promise<number> {
-  const supabase = createPublicClient();
-  const { count, error } = await supabase
-    .from('products')
-    .select('*', { count: 'exact', head: true })
-    .eq('is_public', true)
-    .is('deleted_at', null);
-
-  if (error) {
-    console.error('Failed to count products:', error);
-    return 0;
+  // Try to get cached count first (from precompute cron)
+  const cachedCount = await kvGet<number>(cacheKeys.sitemapSlugs('product-count'));
+  if (cachedCount !== null) {
+    return cachedCount;
   }
 
-  return count ?? 0;
+  // Fallback to counting from cached products
+  const products = await getCachedProductsForSitemap();
+  return products.length;
 }
 
 export async function generateCollectionsSitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createPublicClient();
-
-  const { data: collections, error } = await supabase
-    .from('collections')
-    .select('slug, updated_at')
-    .eq('is_public', true)
-    .is('deleted_at', null);
-
-  if (error) {
-    console.error('Failed to fetch collections for sitemap:', error);
-    return [];
-  }
+  // Use cached collections for sitemap
+  const collections = await getCachedCollectionsForSitemap();
 
   const config = getPageTypeConfig('collection');
   const entries: SitemapEntry[] = [];
 
-  for (const collection of collections || []) {
+  for (const collection of collections) {
     const lastModified = collection.updated_at ? new Date(collection.updated_at) : new Date();
     entries.push(...createBothLocaleEntries(
       `/shop/${collection.slug}`,
@@ -156,68 +140,101 @@ export async function generateFacetsSitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries: SitemapEntry[] = [];
 
+  // Get cached data
+  const [facetCounts, allYears, allProducts] = await Promise.all([
+    getCachedFacetCounts(),
+    getCachedAvailableYears(),
+    getCachedProductsForSitemap(),
+  ]);
+
+  // Type facets - only include if they have products
   const typeConfig = getPageTypeConfig('facet-type');
   for (const type of ['original', 'print'] as TypeFacetValue[]) {
-    for (const locale of ['no', 'en'] as Locale[]) {
-      const slug = TYPE_FACET_SLUGS[locale][type];
-      entries.push(createLocalizedEntry(
-        `/shop/type/${slug}`,
-        locale,
-        now,
-        typeConfig.changeFrequency,
-        typeConfig.priority
-      ));
-    }
-  }
-
-  const years = await getAvailableYears();
-  const yearConfig = getPageTypeConfig('facet-year');
-  for (const year of years) {
-    entries.push(...createBothLocaleEntries(
-      `/shop/year/${year}`,
-      now,
-      yearConfig.changeFrequency,
-      yearConfig.priority
-    ));
-  }
-
-  const priceConfig = getPageTypeConfig('facet-price');
-  for (const range of PRICE_RANGES) {
-    entries.push(...createBothLocaleEntries(
-      `/shop/price/${range.slug}`,
-      now,
-      priceConfig.changeFrequency,
-      priceConfig.priority
-    ));
-  }
-
-  const sizeConfig = getPageTypeConfig('facet-size');
-  for (const size of ['small', 'medium', 'large', 'oversized'] as const) {
-    for (const locale of ['no', 'en'] as Locale[]) {
-      const slug = SIZE_FACET_SLUGS[locale][size];
-      entries.push(createLocalizedEntry(
-        `/shop/size/${slug}`,
-        locale,
-        now,
-        sizeConfig.changeFrequency,
-        sizeConfig.priority
-      ));
-    }
-  }
-
-  const typeYearConfig = getPageTypeConfig('facet-type-year');
-  for (const type of ['original', 'print'] as TypeFacetValue[]) {
-    const typeYears = await getAvailableYearsForType(type);
-    for (const year of typeYears) {
+    const count = facetCounts.types[type] || 0;
+    if (count >= MIN_PRODUCTS_FOR_INDEX) {
       for (const locale of ['no', 'en'] as Locale[]) {
-        const typeSlug = TYPE_FACET_SLUGS[locale][type];
+        const slug = TYPE_FACET_SLUGS[locale][type];
         entries.push(createLocalizedEntry(
-          `/shop/type/${typeSlug}/year/${year}`,
+          `/shop/type/${slug}`,
           locale,
           now,
-          typeYearConfig.changeFrequency,
-          typeYearConfig.priority
+          typeConfig.changeFrequency,
+          typeConfig.priority
         ));
+      }
+    }
+  }
+
+  // Year facets - only include years with enough products
+  const yearConfig = getPageTypeConfig('facet-year');
+  for (const year of allYears) {
+    const count = facetCounts.years[year] || 0;
+    if (count >= MIN_PRODUCTS_FOR_INDEX) {
+      entries.push(...createBothLocaleEntries(
+        `/shop/year/${year}`,
+        now,
+        yearConfig.changeFrequency,
+        yearConfig.priority
+      ));
+    }
+  }
+
+  // Price facets - only include ranges with enough products
+  const priceConfig = getPageTypeConfig('facet-price');
+  for (const range of PRICE_RANGES) {
+    const count = facetCounts.priceRanges[range.slug] || 0;
+    if (count >= MIN_PRODUCTS_FOR_INDEX) {
+      entries.push(...createBothLocaleEntries(
+        `/shop/price/${range.slug}`,
+        now,
+        priceConfig.changeFrequency,
+        priceConfig.priority
+      ));
+    }
+  }
+
+  // Size facets - only include sizes with enough products
+  const sizeConfig = getPageTypeConfig('facet-size');
+  for (const size of ['small', 'medium', 'large', 'oversized'] as const) {
+    const count = facetCounts.sizes[size] || 0;
+    if (count >= MIN_PRODUCTS_FOR_INDEX) {
+      for (const locale of ['no', 'en'] as Locale[]) {
+        const slug = SIZE_FACET_SLUGS[locale][size];
+        entries.push(createLocalizedEntry(
+          `/shop/size/${slug}`,
+          locale,
+          now,
+          sizeConfig.changeFrequency,
+          sizeConfig.priority
+        ));
+      }
+    }
+  }
+
+  // Type + Year combo facets - compute from product data
+  const typeYearConfig = getPageTypeConfig('facet-type-year');
+  const typeYearCounts = new Map<string, number>();
+  for (const product of allProducts) {
+    if (product.product_type && product.year) {
+      const key = `${product.product_type}:${product.year}`;
+      typeYearCounts.set(key, (typeYearCounts.get(key) || 0) + 1);
+    }
+  }
+
+  for (const type of ['original', 'print'] as TypeFacetValue[]) {
+    for (const year of allYears) {
+      const count = typeYearCounts.get(`${type}:${year}`) || 0;
+      if (count >= MIN_PRODUCTS_FOR_INDEX) {
+        for (const locale of ['no', 'en'] as Locale[]) {
+          const typeSlug = TYPE_FACET_SLUGS[locale][type];
+          entries.push(createLocalizedEntry(
+            `/shop/type/${typeSlug}/year/${year}`,
+            locale,
+            now,
+            typeYearConfig.changeFrequency,
+            typeYearConfig.priority
+          ));
+        }
       }
     }
   }
