@@ -15,7 +15,7 @@ export function Hero(): React.ReactElement {
           fill
           priority
           quality={100}
-          className="object-contain object-center"
+          className="object-cover object-center"
           sizes="100vw"
         />
         {/* Soft gradient fade at bottom */}
