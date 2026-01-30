@@ -12,30 +12,26 @@ import type { Locale } from '@/types';
 const content = {
   no: {
     title: 'Om Dotty.',
-    subtitle: 'Kunstneren bak kunsten',
     intro: 'Velkommen til mitt lille kunstunivers! Her deler jeg malerier og prints som er til salgs.',
-    quote: '"Kunst skal ikke være stille. Den skal rope, danse, og få deg til å smile."',
-    storyTitle: 'Min historie',
-    storyText: 'Dotty. startet som et ønske om å skape og dele kunst med omverdenen. Jeg startet prosjektet i 2022, og siden har kunsten min funnet veien inn i mange hjem.',
-    processTitle: 'Mer enn overflaten',
-    processText: 'Her finner du også bilder med en dypere mening. Gjennom Dotty. uttrykker jeg som oftest det overfladiske og positive i livet, men jeg finner likevel mye inspirasjon i å formidle sårbarhet og virkelighet.',
-    philosophyTitle: 'For hvem?',
-    philosophyText: 'Kunsten er for deg som ser etter et blikkfang, noe gøy på veggen og gjerne et bilde med litt personlighet.',
+    paragraphs: [
+      'Illustrasjonene er lekende og tar for seg både realistiske og urealistiske motiver. Jeg foretrekker å skape bilder med sterke farger og en tydelig strek som gjør seg synlig i rommet.',
+      'Her finner du også bilder med en dypere mening. Gjennom Dotty. uttrykker jeg som oftest det overfladiske og positive i livet, men jeg finner likevel mye inspirasjon i å formidle sårbarhet og virkelighet.',
+      'Dotty. startet som et ønske om å skape og dele kunst med omverdenen. Jeg startet prosjektet i 2022, og siden har kunsten min funnet veien inn i mange hjem.',
+      'Kunsten er for deg som ser etter et blikkfang, noe gøy på veggen og gjerne et bilde med litt personlighet.',
+    ],
     ctaTitle: 'Se kunsten',
     ctaText: 'Utforsk samlingen og finn ditt nye favorittkunstverk.',
     ctaButton: 'Gå til shop',
   },
   en: {
     title: 'About Dotty.',
-    subtitle: 'The artist behind the art',
     intro: 'Welcome to my little art universe! Here I share paintings and prints that are for sale.',
-    quote: '"Art should not be quiet. It should shout, dance, and make you smile."',
-    storyTitle: 'My story',
-    storyText: 'Dotty. started as a desire to create and share art with the world. I started the project in 2022, and since then my art has found its way into many homes.',
-    processTitle: 'Beyond the surface',
-    processText: 'Here you will also find images with a deeper meaning. Through Dotty. I mostly express the superficial and positive aspects of life, but I also find much inspiration in conveying vulnerability and reality.',
-    philosophyTitle: 'For whom?',
-    philosophyText: 'The art is for you who are looking for an eye-catcher, something fun on the wall, and preferably a picture with a bit of personality.',
+    paragraphs: [
+      'The illustrations are playful and cover both realistic and unrealistic subjects. I prefer to create images with bold colors and a distinct line that makes a statement in the room.',
+      'Here you will also find images with a deeper meaning. Through Dotty. I mostly express the superficial and positive aspects of life, but I also find much inspiration in conveying vulnerability and reality.',
+      'Dotty. started as a desire to create and share art with the world. I started the project in 2022, and since then my art has found its way into many homes.',
+      'The art is for you who are looking for an eye-catcher, something fun on the wall, and preferably a picture with a bit of personality.',
+    ],
     ctaTitle: 'See the art',
     ctaText: 'Explore the collection and find your new favorite piece.',
     ctaButton: 'Go to shop',
@@ -46,26 +42,6 @@ const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
 };
-
-type ContentSectionProps = {
-  title: string;
-  text: string;
-  delay: number;
-};
-
-function ContentSection({ title, text, delay }: ContentSectionProps): React.ReactElement {
-  return (
-    <motion.section
-      initial={fadeInUp.initial}
-      animate={fadeInUp.animate}
-      transition={{ delay }}
-      className="mb-16"
-    >
-      <h2 className="text-3xl font-bold mb-4">{title}</h2>
-      <p className="text-lg text-muted-foreground leading-relaxed">{text}</p>
-    </motion.section>
-  );
-}
 
 const SOCIAL_LINKS = [
   { href: 'https://instagram.com/dottyartwork', icon: SiInstagram, label: '@dottyartwork' },
@@ -134,10 +110,9 @@ export default function AboutPage({
           animate={fadeInUp.animate}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl sm:text-6xl font-bold mb-4">
+          <h1 className="text-5xl sm:text-6xl font-bold">
             <span className="gradient-text">{t.title}</span>
           </h1>
-          <p className="text-xl text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
         <motion.div
@@ -159,26 +134,18 @@ export default function AboutPage({
               <div className="absolute inset-0 bg-primary/10" />
             </div>
             <div>
-              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-lg text-muted-foreground leading-relaxed">
                 {t.intro}
               </p>
-              <blockquote className="pl-6 border-l-4 border-primary">
-                <p className="text-xl font-medium italic">{t.quote}</p>
-                <footer className="mt-3 text-primary font-semibold">— Dotty</footer>
-              </blockquote>
             </div>
           </div>
 
           {/* Desktop: text left, image centered between text and edge */}
           <div className="hidden md:grid md:grid-cols-2 gap-12 items-center">
             <div className="flex flex-col justify-center">
-              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-lg text-muted-foreground leading-relaxed">
                 {t.intro}
               </p>
-              <blockquote className="pl-6 border-l-4 border-primary">
-                <p className="text-xl font-medium italic">{t.quote}</p>
-                <footer className="mt-3 text-primary font-semibold">— Dotty</footer>
-              </blockquote>
             </div>
             <div className="flex justify-center">
               <div className="relative aspect-square w-full max-w-md rounded-lg overflow-hidden bg-muted">
@@ -195,9 +162,18 @@ export default function AboutPage({
           </div>
         </motion.div>
 
-        <ContentSection title={t.storyTitle} text={t.storyText} delay={0.2} />
-        <ContentSection title={t.processTitle} text={t.processText} delay={0.3} />
-        <ContentSection title={t.philosophyTitle} text={t.philosophyText} delay={0.4} />
+        <motion.div
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
+          transition={{ delay: 0.2 }}
+          className="space-y-6 mb-16"
+        >
+          {t.paragraphs.map((paragraph, index) => (
+            <p key={index} className="text-lg text-muted-foreground leading-relaxed">
+              {paragraph}
+            </p>
+          ))}
+        </motion.div>
 
         <DecorativeDots />
 
