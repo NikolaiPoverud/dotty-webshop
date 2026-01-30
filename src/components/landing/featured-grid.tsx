@@ -222,6 +222,31 @@ export function FeaturedGrid({
                   />
                 </motion.div>
               ))}
+              {isLastPage && (
+                <motion.div
+                  key="see-all-cta"
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    scale: { duration: 0.3 },
+                    layout: { type: 'spring', stiffness: 300, damping: 30 },
+                  }}
+                  className="flex items-center justify-center"
+                >
+                  <Link
+                    href={getLocalizedPath(lang, 'shop')}
+                    className="group flex flex-col items-center justify-center gap-4 w-full h-full min-h-[300px] border-2 border-dashed border-muted-foreground/30 hover:border-primary transition-colors"
+                  >
+                    <span className="text-xl font-bold text-muted-foreground group-hover:text-primary transition-colors">
+                      {t.viewAll}
+                    </span>
+                    <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  </Link>
+                </motion.div>
+              )}
             </AnimatePresence>
           </motion.div>
 
@@ -268,7 +293,7 @@ export function FeaturedGrid({
             </div>
           )}
 
-          {/* "See more" CTA when on last page */}
+          {/* "See more" CTA when on last page - mobile only */}
           <AnimatePresence>
             {isLastPage && (
               <motion.div
@@ -276,7 +301,7 @@ export function FeaturedGrid({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-10 sm:mt-12 text-center"
+                className="mt-10 text-center sm:hidden"
               >
                 <Link
                   href={getLocalizedPath(lang, 'shop')}
