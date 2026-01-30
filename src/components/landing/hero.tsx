@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 
 import { Logo } from '@/components/ui/logo';
 
@@ -9,15 +8,24 @@ export function Hero(): React.ReactElement {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
       <div className="absolute inset-0">
-        <Image
-          src="/hero.png"
-          alt=""
-          fill
-          priority
-          unoptimized
-          className="object-cover object-center"
-          sizes="100vw"
-        />
+        <picture>
+          {/* Desktop 4K */}
+          <source
+            media="(min-width: 1024px)"
+            srcSet="/hero-desktop.png"
+          />
+          {/* Tablet */}
+          <source
+            media="(min-width: 640px)"
+            srcSet="/hero-tablet.png"
+          />
+          {/* Mobile (default) */}
+          <img
+            src="/hero-mobile.png"
+            alt=""
+            className="w-full h-full object-cover object-center"
+          />
+        </picture>
         {/* Soft gradient fade at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent" />
       </div>
