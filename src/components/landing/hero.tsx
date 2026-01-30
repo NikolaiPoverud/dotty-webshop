@@ -12,16 +12,16 @@ export function Hero(): React.ReactElement {
           {/* Desktop 4K */}
           <source
             media="(min-width: 1024px)"
-            srcSet="/hero-desktop.png"
+            srcSet="/hero-desktop.webp"
           />
           {/* Tablet */}
           <source
             media="(min-width: 640px)"
-            srcSet="/hero-tablet.png"
+            srcSet="/hero-tablet.webp"
           />
           {/* Mobile (default) */}
           <img
-            src="/hero-mobile.png"
+            src="/hero-mobile.webp"
             alt=""
             className="w-full h-full object-cover object-center"
           />
