@@ -131,7 +131,7 @@ export const ProductCard = memo(function ProductCard({
             {product.title}
           </h3>
           <p className={cn('mt-1 text-base sm:text-lg font-medium', isSold ? 'text-muted-foreground' : 'text-foreground')}>
-            {isFromPrice && <span className="text-muted-foreground/60 text-sm font-normal">{fromLabel}</span>}
+            {isFromPrice && <span className="text-muted-foreground/50 text-xs font-normal lowercase">{fromLabel}</span>}
             {formatPrice(displayPrice)}
           </p>
           {product.sizes && product.sizes.length > 0 && (
