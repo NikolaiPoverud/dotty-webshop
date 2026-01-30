@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Loader2, Shield, HelpCircle } from 'lucide-react';
 
-import { VippsLogo } from '@/components/ui/payment-logos';
 import type { ShippingOption } from '@/types';
 import type { CheckoutText } from '@/lib/i18n/cart-checkout-text';
 import { useCart } from '@/components/cart/cart-provider';
@@ -149,16 +148,12 @@ export function OrderSummary({
         <motion.button
           onClick={() => onCheckout('vipps')}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#ff5b24] text-white font-semibold text-lg transition-all duration-300 hover:bg-[#ff5b24]/90 active:bg-[#ff5b24]/90 disabled:opacity-50 touch-manipulation"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#ff5b24] text-white font-semibold text-lg uppercase tracking-widest transition-all duration-300 hover:bg-[#ff5b24]/90 active:bg-[#ff5b24]/90 disabled:opacity-50 touch-manipulation"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <VippsLogo className="h-6" />
-          )}
-          {isLoading && <span className="uppercase tracking-widest">{t.processing}</span>}
+          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+          {isLoading ? t.processing : 'Vipps'}
         </motion.button>
       </div>
 

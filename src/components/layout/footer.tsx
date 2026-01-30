@@ -7,7 +7,6 @@ import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import type { Dictionary, Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
-import { VippsLogo, StripeLogo } from '@/components/ui/payment-logos';
 import { resetCookieConsent } from '@/components/gdpr/cookie-consent';
 
 interface TrustBadgeProps {
@@ -80,10 +79,6 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-8 pb-8 border-b border-border">
           <TrustBadge icon={RotateCcw} label={t.returns} />
           <TrustBadge icon={Shield} label={t.securePayment} />
-          <div className="flex items-center gap-5">
-            <StripeLogo className="h-8 text-[#635bff]" />
-            <VippsLogo className="h-5 text-[#ff5b24]" />
-          </div>
         </div>
 
         <div className="flex flex-col items-center gap-6">
