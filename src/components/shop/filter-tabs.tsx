@@ -29,7 +29,7 @@ export function FilterTabs({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="inline-flex border-2 sm:border-[3px] border-primary"
+        className="inline-flex border border-primary sm:border-2 md:border-[3px]"
       >
         {options.map((option) => {
           const isActive = activeId === option.id;
@@ -39,7 +39,7 @@ export function FilterTabs({
               key={option.id}
               onClick={() => onChange(option.id)}
               className={cn(
-                'relative px-4 sm:px-6 py-3 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap touch-manipulation transition-colors',
+                'relative px-2.5 py-2 text-[10px] sm:px-4 sm:py-2.5 sm:text-xs md:px-6 md:py-3 md:text-sm font-bold uppercase tracking-wider whitespace-nowrap touch-manipulation transition-colors',
                 isActive
                   ? 'bg-primary text-background'
                   : 'bg-transparent text-primary hover:bg-primary/10 active:bg-primary/20'

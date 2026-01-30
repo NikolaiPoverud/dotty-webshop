@@ -1,11 +1,13 @@
 'use client';
 
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Facebook, MessageCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { TestimonialCard } from '@/types';
+
+const SWIPE_THRESHOLD = 50;
 
 interface TestimonialsProps {
   testimonials: TestimonialCard[];
@@ -85,6 +87,15 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
     return () => clearInterval(timer);
   }, [goToNext, testimonials.length]);
 
+  const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (testimonials.length <= 1) return;
+    if (info.offset.x < -SWIPE_THRESHOLD) {
+      goToNext();
+    } else if (info.offset.x > SWIPE_THRESHOLD) {
+      goToPrev();
+    }
+  }, [goToNext, goToPrev, testimonials.length]);
+
   if (testimonials.length === 0) return null;
 
   const current = testimonials[currentIndex];
@@ -94,9 +105,14 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
     <section className="py-16 sm:py-24 bg-muted/30">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center">
-          {showNavigation && <NavButton direction="prev" onClick={goToPrev} />}
+          {/* Desktop-only nav buttons */}
+          {showNavigation && (
+            <div className="hidden sm:block">
+              <NavButton direction="prev" onClick={goToPrev} />
+            </div>
+          )}
 
-          <div className="flex-1 text-center px-8 sm:px-14 lg:px-16 min-h-[180px] sm:min-h-[200px] flex flex-col items-center justify-center">
+          <div className="flex-1 text-center px-2 sm:px-14 lg:px-16 min-h-[180px] sm:min-h-[200px] flex flex-col items-center justify-center overflow-hidden">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={currentIndex}
@@ -106,13 +122,17 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="flex flex-col items-center"
+                className="flex flex-col items-center w-full"
+                drag={showNavigation ? 'x' : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={handleDragEnd}
               >
-                <div className="text-primary mb-6">
+                <div className="text-primary mb-4 sm:mb-6">
                   {getSourceIcon(current.source)}
                 </div>
 
-                <p className="text-base sm:text-xl lg:text-2xl text-foreground font-medium mb-4 sm:mb-6 leading-relaxed">
+                <p className="text-base sm:text-xl lg:text-2xl text-foreground font-medium mb-4 sm:mb-6 leading-relaxed px-2">
                   "{current.feedback}"
                 </p>
 
@@ -124,7 +144,12 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
             </AnimatePresence>
           </div>
 
-          {showNavigation && <NavButton direction="next" onClick={goToNext} />}
+          {/* Desktop-only nav buttons */}
+          {showNavigation && (
+            <div className="hidden sm:block">
+              <NavButton direction="next" onClick={goToNext} />
+            </div>
+          )}
         </div>
 
         {showNavigation && (

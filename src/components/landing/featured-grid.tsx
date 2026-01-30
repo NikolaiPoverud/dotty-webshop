@@ -1,9 +1,9 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 import { ProductCard } from '@/components/shop/product-card';
@@ -11,7 +11,9 @@ import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { cn } from '@/lib/utils';
 import type { CollectionCard, Dictionary, Locale, ProductListItem } from '@/types';
 
-const PRODUCTS_PER_PAGE = 3;
+const PRODUCTS_PER_PAGE_DESKTOP = 3;
+const PRODUCTS_PER_PAGE_MOBILE = 1;
+const SWIPE_THRESHOLD = 50;
 
 interface CarouselArrowProps {
   direction: 'left' | 'right';
@@ -70,7 +72,15 @@ export function FeaturedGrid({
   const t = dictionary.shop;
   const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const isNavigating = useRef(false);
+
+  useEffect(() => {
+    const checkMobile = (): void => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const filterOptions: FilterOption[] = useMemo(() => {
     const collectionOptions = collections.map((c) => ({ id: c.id, label: c.name }));
@@ -87,12 +97,13 @@ export function FeaturedGrid({
     setCurrentPage(0);
   }
 
-  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const productsPerPage = isMobile ? PRODUCTS_PER_PAGE_MOBILE : PRODUCTS_PER_PAGE_DESKTOP;
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const maxPage = Math.max(0, totalPages - 1);
   const hasNextPage = currentPage < maxPage;
   const hasPrevPage = currentPage > 0;
-  const startIndex = currentPage * PRODUCTS_PER_PAGE;
-  const visibleProducts = filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+  const startIndex = currentPage * productsPerPage;
+  const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
 
   const goToPage = useCallback((direction: 'next' | 'prev') => {
     if (isNavigating.current) return;
@@ -107,6 +118,14 @@ export function FeaturedGrid({
       isNavigating.current = false;
     }, 300);
   }, [maxPage]);
+
+  const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x < -SWIPE_THRESHOLD && hasNextPage) {
+      goToPage('next');
+    } else if (info.offset.x > SWIPE_THRESHOLD && hasPrevPage) {
+      goToPage('prev');
+    }
+  }, [goToPage, hasNextPage, hasPrevPage]);
 
   if (products.length === 0) {
     return (
@@ -154,26 +173,30 @@ export function FeaturedGrid({
         )}
 
         <div className="relative">
-          <AnimatePresence>
-            {hasPrevPage && (
-              <CarouselArrow
-                direction="left"
-                onClick={() => goToPage('prev')}
-              />
-            )}
-          </AnimatePresence>
+          {/* Desktop navigation arrows */}
+          <div className="hidden sm:block">
+            <AnimatePresence>
+              {hasPrevPage && (
+                <CarouselArrow
+                  direction="left"
+                  onClick={() => goToPage('prev')}
+                />
+              )}
+            </AnimatePresence>
 
-          <AnimatePresence>
-            {hasNextPage && (
-              <CarouselArrow
-                direction="right"
-                onClick={() => goToPage('next')}
-              />
-            )}
-          </AnimatePresence>
+            <AnimatePresence>
+              {hasNextPage && (
+                <CarouselArrow
+                  direction="right"
+                  onClick={() => goToPage('next')}
+                />
+              )}
+            </AnimatePresence>
+          </div>
 
+          {/* Desktop grid */}
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+            className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
             layout
           >
             <AnimatePresence mode="popLayout">
@@ -200,6 +223,33 @@ export function FeaturedGrid({
               ))}
             </AnimatePresence>
           </motion.div>
+
+          {/* Mobile swipe carousel */}
+          <div className="sm:hidden overflow-hidden">
+            <AnimatePresence mode="wait">
+              {visibleProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={handleDragEnd}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.3 }}
+                  className="touch-pan-y cursor-grab active:cursor-grabbing"
+                >
+                  <ProductCard
+                    product={product}
+                    lang={lang}
+                    index={index}
+                    priority={index < 2}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
 
           {totalPages > 1 && (
             <div className="flex justify-center gap-3 mt-8 sm:hidden">
