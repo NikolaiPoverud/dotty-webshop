@@ -10,12 +10,12 @@ export function Hero(): React.ReactElement {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
       <div className="absolute inset-0">
         <Image
-          src="/hero.webp"
+          src="/hero.png"
           alt=""
           fill
           priority
           quality={100}
-          className="object-contain object-top"
+          className="object-contain object-center"
           sizes="100vw"
         />
         {/* Soft gradient fade at bottom */}
