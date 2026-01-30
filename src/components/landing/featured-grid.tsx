@@ -116,7 +116,7 @@ export function FeaturedGrid({
 
     setTimeout(() => {
       isNavigating.current = false;
-    }, 300);
+    }, 150);
   }, [maxPage]);
 
   const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -232,12 +232,12 @@ export function FeaturedGrid({
                   key={product.id}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
+                  dragElastic={0.1}
                   onDragEnd={handleDragEnd}
-                  initial={{ opacity: 0, x: 100 }}
+                  initial={{ opacity: 0, x: 60 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3 }}
+                  exit={{ opacity: 0, x: -60 }}
+                  transition={{ duration: 0.15 }}
                   className="touch-pan-y cursor-grab active:cursor-grabbing"
                 >
                   <ProductCard
