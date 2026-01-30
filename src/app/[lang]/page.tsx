@@ -1,12 +1,74 @@
 import type { Metadata } from 'next';
-import type { Locale } from '@/types';
+import type { Locale, ProductListItem, CollectionCard, TestimonialCard } from '@/types';
 
+import { ArtistStatement } from '@/components/landing/artist-statement';
+import { ContactSection } from '@/components/landing/contact-section';
+import { FeaturedGrid } from '@/components/landing/featured-grid';
 import { Hero } from '@/components/landing/hero';
+import { Testimonials } from '@/components/landing/testimonials';
 import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/seo';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
+import { createPublicClient } from '@/lib/supabase/public';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
+const PRODUCT_LIST_COLUMNS =
+  'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size';
+
 export const revalidate = 60;
+
+async function getFeaturedProducts(): Promise<ProductListItem[]> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_LIST_COLUMNS)
+    .is('deleted_at', null)
+    .eq('is_public', true)
+    .eq('is_featured', true)
+    .order('display_order', { ascending: true })
+    .limit(12);
+
+  if (error) {
+    console.error('Failed to fetch featured products:', error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+async function getCollections(): Promise<CollectionCard[]> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('collections')
+    .select('id, name, slug, description')
+    .is('deleted_at', null)
+    .eq('is_public', true)
+    .order('display_order', { ascending: true });
+
+  if (error) {
+    console.error('Failed to fetch collections:', error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+async function getTestimonials(): Promise<TestimonialCard[]> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('id, name, feedback, source')
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('display_order', { ascending: true });
+
+  if (error) {
+    console.error('Failed to fetch testimonials:', error);
+    return [];
+  }
+
+  return data ?? [];
+}
 
 export async function generateMetadata({
   params,
@@ -66,11 +128,28 @@ export default async function HomePage({
   const { lang } = await params;
   const locale = lang as Locale;
 
+  const [products, collections, testimonials, dictionary] = await Promise.all([
+    getFeaturedProducts(),
+    getCollections(),
+    getTestimonials(),
+    getDictionary(locale),
+  ]);
+
   return (
     <>
       <OrganizationJsonLd />
       <WebsiteJsonLd lang={locale} />
       <Hero />
+      <FeaturedGrid
+        lang={locale}
+        products={products}
+        collections={collections}
+        dictionary={dictionary}
+        showFilters={collections.length > 0}
+      />
+      <ArtistStatement lang={locale} />
+      <Testimonials testimonials={testimonials} />
+      <ContactSection lang={locale} dictionary={dictionary} />
     </>
   );
 }
