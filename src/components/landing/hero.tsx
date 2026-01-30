@@ -8,7 +8,7 @@ import { Logo } from '@/components/ui/logo';
 export function Hero(): React.ReactElement {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 top-20">
         <Image
           src="/hero1.png"
           alt=""
