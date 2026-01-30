@@ -8,19 +8,18 @@ import { Logo } from '@/components/ui/logo';
 export function Hero(): React.ReactElement {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      <div className="absolute inset-0 top-20">
+      <div className="absolute inset-0">
         <Image
-          src="/hero1.png"
+          src="/hero.webp"
           alt=""
           fill
           priority
           quality={100}
-          unoptimized
-          className="object-cover object-center"
+          className="object-cover object-[center_20%]"
           sizes="100vw"
         />
-        {/* Smooth gradient fade at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/70 to-transparent" />
+        {/* Soft gradient fade at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent" />
       </div>
 
       <motion.div
