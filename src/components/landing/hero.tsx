@@ -14,7 +14,8 @@ export function Hero(): React.ReactElement {
           alt=""
           fill
           priority
-          quality={95}
+          quality={100}
+          unoptimized
           className="object-cover object-top scale-105"
           sizes="100vw"
         />
