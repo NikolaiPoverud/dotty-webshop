@@ -205,10 +205,6 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
   return (
     <div className="min-h-screen pt-20 sm:pt-24 pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 sm:mb-8">
-          <span className="gradient-text">{t.title}</span>
-        </h1>
-
         {error && (
           <ErrorBanner
             error={error}
@@ -222,7 +218,9 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 uppercase tracking-wide">{t.shipping}</h2>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">
+              <span className="gradient-text">{t.title}</span>
+            </h1>
 
             <form className="space-y-3 sm:space-y-4">
               <FormInput
