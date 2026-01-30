@@ -12,6 +12,7 @@ import type { Locale } from '@/types';
 const content = {
   no: {
     title: 'Om Dotty.',
+    subtitle: 'Kunstneren bak kunsten',
     intro: 'Velkommen til mitt lille kunstunivers! Her deler jeg malerier og prints som er til salgs.',
     paragraphs: [
       'Illustrasjonene er lekende og tar for seg både realistiske og urealistiske motiver. Jeg foretrekker å skape bilder med sterke farger og en tydelig strek som gjør seg synlig i rommet.',
@@ -25,6 +26,7 @@ const content = {
   },
   en: {
     title: 'About Dotty.',
+    subtitle: 'The artist behind the art',
     intro: 'Welcome to my little art universe! Here I share paintings and prints that are for sale.',
     paragraphs: [
       'The illustrations are playful and cover both realistic and unrealistic subjects. I prefer to create images with bold colors and a distinct line that makes a statement in the room.',
@@ -110,9 +112,10 @@ export default function AboutPage({
           animate={fadeInUp.animate}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl sm:text-6xl font-bold">
+          <h1 className="text-5xl sm:text-6xl font-bold mb-4">
             <span className="gradient-text">{t.title}</span>
           </h1>
+          <p className="text-xl text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
         <motion.div
