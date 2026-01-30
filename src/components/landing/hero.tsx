@@ -18,7 +18,9 @@ export function Hero(): React.ReactElement {
           className="object-cover object-center"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background" />
+        {/* Blur transition at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 backdrop-blur-xl bg-gradient-to-t from-background to-transparent" />
       </div>
 
       <motion.div
