@@ -10,7 +10,7 @@ export function Hero(): React.ReactElement {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
       <div className="absolute inset-0">
         <Image
-          src="/hero.png"
+          src="/hero1.png"
           alt=""
           fill
           priority
