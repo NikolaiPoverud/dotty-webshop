@@ -147,7 +147,7 @@ export function FeaturedGrid({
             viewport={{ once: true }}
           >
             <Link
-              href={getLocalizedPath(lang, 'shop')}
+              href={getLocalizedPath(lang, 'about')}
               className="text-sm uppercase tracking-widest text-primary hover:text-primary-light transition-colors"
             >
               {t.viewAll} →
