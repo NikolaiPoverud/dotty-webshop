@@ -129,11 +129,24 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
     }
   }
 
-  function handleNavClick(hash: string): void {
+  function handleNavClick(e: React.MouseEvent, hash: string): void {
+    // If not on homepage, navigate explicitly to ensure it works
+    if (!isHomePage) {
+      e.preventDefault();
+      window.location.href = `/${lang}${hash}`;
+      return;
+    }
     setActiveHash(hash);
   }
 
-  function handleMobileNavClick(hash: string): void {
+  function handleMobileNavClick(e: React.MouseEvent, hash: string): void {
+    // If not on homepage, navigate explicitly to ensure it works
+    if (!isHomePage) {
+      e.preventDefault();
+      setIsMenuOpen(false);
+      window.location.href = `/${lang}${hash}`;
+      return;
+    }
     setActiveHash(hash);
     setIsMenuOpen(false);
   }
@@ -182,7 +195,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
                 <Link
                   key={section}
                   href={`/${lang}${hash}`}
-                  onClick={() => handleNavClick(hash)}
+                  onClick={(e) => handleNavClick(e, hash)}
                   className={cn(
                     'text-sm uppercase tracking-widest transition-colors',
                     isActive ? 'text-primary font-medium' : 'text-foreground/80 hover:text-primary'
@@ -281,7 +294,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
                 >
                   <Link
                     href={`/${lang}${hash}`}
-                    onClick={() => handleMobileNavClick(hash)}
+                    onClick={(e) => handleMobileNavClick(e, hash)}
                     className={cn(
                       'text-xl font-bold uppercase tracking-widest transition-colors py-4 block touch-manipulation',
                       isActive ? 'text-primary' : 'hover:text-primary active:text-primary'

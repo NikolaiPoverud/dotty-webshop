@@ -19,7 +19,7 @@ const artistText: Record<Locale, { title: string; paragraphs: string[]; cta: str
       'Kunsten er ment å gi energi og karakter til rommet, enten det får deg til å trekke på smilebåndet eller stoppe opp og reflektere over livets oppturer og nedturer. Selv om uttrykket ofte er lekent og fargerikt, tar kunsten ofte utgangspunkt i seriøse temaer.',
       'Ambisjonen er å utfordre uten å støte, være direkte uten å belære, og formidle erfaringer og perspektiver på en ærlig måte.',
     ],
-    cta: 'Se alle verk',
+    cta: 'Les mer om Dotty',
   },
   en: {
     title: 'About Dotty.',
@@ -28,7 +28,7 @@ const artistText: Record<Locale, { title: string; paragraphs: string[]; cta: str
       'The art is meant to give energy and character to a space, whether it makes you smile or pause to reflect on life\'s ups and downs. Although the expression is often playful and colorful, the art often stems from serious themes.',
       'The ambition is to challenge without offending, be direct without lecturing, and convey experiences and perspectives in an honest way.',
     ],
-    cta: 'View all works',
+    cta: 'Read more about Dotty',
   },
 };
 
@@ -89,7 +89,7 @@ export function ArtistStatement({ lang }: ArtistStatementProps): React.ReactElem
                 ))}
               </div>
               <Link
-                href={getLocalizedPath(lang, 'shop')}
+                href={getLocalizedPath(lang, 'about')}
                 className="text-primary font-medium hover:underline active:underline transition-colors py-2 touch-manipulation"
               >
                 {t.cta} →

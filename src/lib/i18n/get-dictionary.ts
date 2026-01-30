@@ -19,6 +19,7 @@ export const routes = {
     checkout: 'kasse',
     sold: 'solgt',
     success: 'bekreftelse',
+    about: 'about',
   },
   en: {
     shop: 'shop',
@@ -26,6 +27,7 @@ export const routes = {
     checkout: 'checkout',
     sold: 'sold',
     success: 'success',
+    about: 'about',
   },
 } as const;
 

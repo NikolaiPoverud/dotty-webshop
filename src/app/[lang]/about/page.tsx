@@ -144,26 +144,54 @@ export default function AboutPage({
           initial={fadeInUp.initial}
           animate={fadeInUp.animate}
           transition={{ delay: 0.1 }}
-          className="grid md:grid-cols-2 gap-8 mb-16"
+          className="mb-16"
         >
-          <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-            <Image
-              src="/artist.jpg"
-              alt="Dotty - Artist"
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-            <div className="absolute inset-0 bg-primary/10" />
+          {/* Mobile: stacked layout */}
+          <div className="md:hidden space-y-8">
+            <div className="relative aspect-square rounded-lg overflow-hidden bg-muted max-w-sm mx-auto">
+              <Image
+                src="/artist.jpg"
+                alt="Dotty - Artist"
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+              <div className="absolute inset-0 bg-primary/10" />
+            </div>
+            <div>
+              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                {t.intro}
+              </p>
+              <blockquote className="pl-6 border-l-4 border-primary">
+                <p className="text-xl font-medium italic">{t.quote}</p>
+                <footer className="mt-3 text-primary font-semibold">— Dotty</footer>
+              </blockquote>
+            </div>
           </div>
-          <div className="flex flex-col justify-center">
-            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-              {t.intro}
-            </p>
-            <blockquote className="pl-6 border-l-4 border-primary">
-              <p className="text-xl font-medium italic">{t.quote}</p>
-              <footer className="mt-3 text-primary font-semibold">— Dotty</footer>
-            </blockquote>
+
+          {/* Desktop: text left, image centered between text and edge */}
+          <div className="hidden md:grid md:grid-cols-2 gap-12 items-center">
+            <div className="flex flex-col justify-center">
+              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                {t.intro}
+              </p>
+              <blockquote className="pl-6 border-l-4 border-primary">
+                <p className="text-xl font-medium italic">{t.quote}</p>
+                <footer className="mt-3 text-primary font-semibold">— Dotty</footer>
+              </blockquote>
+            </div>
+            <div className="flex justify-center">
+              <div className="relative aspect-square w-full max-w-md rounded-lg overflow-hidden bg-muted">
+                <Image
+                  src="/artist.jpg"
+                  alt="Dotty - Artist"
+                  fill
+                  className="object-cover"
+                  sizes="50vw"
+                />
+                <div className="absolute inset-0 bg-primary/10" />
+              </div>
+            </div>
           </div>
         </motion.div>
 
