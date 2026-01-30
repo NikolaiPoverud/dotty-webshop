@@ -130,7 +130,7 @@ export default function AboutPage({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-center gap-5 mb-16"
+            className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-16"
           >
             <p className="text-muted-foreground">{t.ctaText}</p>
             <Link
