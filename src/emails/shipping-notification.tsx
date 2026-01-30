@@ -77,7 +77,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
         {(order.tracking_carrier || order.tracking_number) && (
           <Section style={{
             margin: '0 20px 24px 20px',
-            padding: '24px',
+            padding: '24px 24px 32px 24px',
             backgroundColor: '#1a1a1f',
             border: '2px solid #FE206A',
           }}>
@@ -122,7 +122,7 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
             </table>
 
             {trackingUrl && (
-              <Section style={{ marginTop: '20px', textAlign: 'center' }}>
+              <Section style={{ marginTop: '20px', paddingBottom: '8px', textAlign: 'center' }}>
                 <Button href={trackingUrl}>
                   Spor pakken
                 </Button>
@@ -132,40 +132,42 @@ export function ShippingNotificationEmail({ order }: ShippingNotificationEmailPr
         )}
 
         {/* Package Contents */}
-        <Section style={{ padding: '0 20px 24px 20px' }}>
-          <Text style={{
-            margin: '0 0 16px 0',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: '#ffffff',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
-          }}>
-            I pakken
-          </Text>
+        {order.items && order.items.length > 0 && (
+          <Section style={{ padding: '0 20px 24px 20px' }}>
+            <Text style={{
+              margin: '0 0 16px 0',
+              fontSize: '14px',
+              fontWeight: 700,
+              color: '#ffffff',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+            }}>
+              I pakken
+            </Text>
 
-          <Section style={{
-            padding: '20px',
-            backgroundColor: '#1a1a1f',
-            borderLeft: '4px solid #FE206A',
-          }}>
-            {order.items.map((item) => (
-              <Text key={item.product_id} style={{
-                margin: 0,
-                padding: '6px 0',
-                fontSize: '14px',
-                color: '#ffffff',
-                borderBottom: '1px solid #2a2a2f',
-              }}>
-                <span style={{ color: '#FE206A', marginRight: '8px' }}>●</span>
-                {item.title}
-                {item.quantity > 1 && (
-                  <span style={{ color: '#9ca3af', marginLeft: '8px' }}>×{item.quantity}</span>
-                )}
-              </Text>
-            ))}
+            <Section style={{
+              padding: '20px',
+              backgroundColor: '#1a1a1f',
+              borderLeft: '4px solid #FE206A',
+            }}>
+              {order.items.map((item, index) => (
+                <Text key={item.product_id || index} style={{
+                  margin: 0,
+                  padding: '6px 0',
+                  fontSize: '14px',
+                  color: '#ffffff',
+                  borderBottom: index < order.items.length - 1 ? '1px solid #2a2a2f' : 'none',
+                }}>
+                  <span style={{ color: '#FE206A', marginRight: '8px' }}>●</span>
+                  {item.title || 'Kunstverk'}
+                  {item.quantity > 1 && (
+                    <span style={{ color: '#9ca3af', marginLeft: '8px' }}>×{item.quantity}</span>
+                  )}
+                </Text>
+              ))}
+            </Section>
           </Section>
-        </Section>
+        )}
 
         {/* Delivery Address */}
         <Section style={{ padding: '0 20px 24px 20px' }}>

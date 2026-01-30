@@ -3,6 +3,7 @@ import { createPayment } from '@/lib/vipps';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import { validateCheckoutToken } from '@/lib/checkout-token';
+import { validateCartServerSide, calculateArtistLevy } from '@/lib/checkout-validation';
 import type { ShippingAddress, OrderItem, Locale } from '@/types';
 
 interface VippsCheckoutRequest {
@@ -51,9 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       customer_phone,
       shipping_address,
       discount_code,
-      discount_amount = 0,
       shipping_cost = 0,
-      artist_levy = 0,
       locale = 'no',
       privacy_accepted = false,
       newsletter_opt_in = false,
@@ -68,15 +67,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Missing customer information' }, { status: 400 });
     }
 
-    // Calculate totals
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const total = subtotal + shipping_cost + artist_levy - discount_amount;
+    // Server-side validation - prevents price manipulation attacks
+    const cartValidation = await validateCartServerSide(items, discount_code);
+    if (!cartValidation.valid) {
+      return NextResponse.json({ error: cartValidation.error }, { status: 400 });
+    }
+
+    // Use server-validated prices and discount
+    const validatedItems = cartValidation.items!;
+    const validatedDiscountAmount = cartValidation.discountAmount ?? 0;
+
+    // Calculate totals with server-validated values
+    const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const calculatedArtistLevy = calculateArtistLevy(subtotal);
+    const total = subtotal + shipping_cost + calculatedArtistLevy - validatedDiscountAmount;
 
     // Generate short unique order reference (DOT-XXXXXX)
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
     const reference = `DOT-${randomPart}`;
 
-    // Store pending order in database
+    // Store pending order in database with validated values
     const supabase = createAdminClient();
     const { data: order, error: dbError } = await supabase.from('orders').insert({
       order_number: reference,
@@ -84,12 +94,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       customer_name,
       customer_phone,
       shipping_address,
-      items,
+      items: validatedItems,
       subtotal,
       discount_code,
-      discount_amount,
+      discount_amount: validatedDiscountAmount,
       shipping_cost,
-      artist_levy,
+      artist_levy: calculatedArtistLevy,
       total,
       payment_provider: 'vipps',
       payment_status: 'pending',
