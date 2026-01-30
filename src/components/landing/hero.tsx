@@ -16,7 +16,7 @@ export function Hero(): React.ReactElement {
           priority
           quality={100}
           unoptimized
-          className="object-cover object-top scale-105"
+          className="object-cover object-center"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-transparent" />
