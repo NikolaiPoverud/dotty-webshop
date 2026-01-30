@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Loader2, Shield, HelpCircle } from 'lucide-react';
 
@@ -40,13 +41,25 @@ export function OrderSummary({
     <div className="bg-muted rounded-lg p-6">
       <h2 className="text-xl font-bold mb-6">{t.orderSummary}</h2>
 
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 mb-6">
         {cart.items.map((item) => (
-          <div key={item.product.id} className="flex justify-between">
-            <span className="text-muted-foreground">
-              {item.product.title} x{item.quantity}
-            </span>
-            <span>{formatPrice(item.product.price * item.quantity)}</span>
+          <div key={item.product.id} className="flex items-center gap-3">
+            {item.product.image_url && (
+              <div className="relative w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-background">
+                <Image
+                  src={item.product.image_url}
+                  alt={item.product.title}
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{item.product.title}</p>
+              <p className="text-xs text-muted-foreground">x{item.quantity}</p>
+            </div>
+            <span className="text-sm flex-shrink-0">{formatPrice(item.product.price * item.quantity)}</span>
           </div>
         ))}
       </div>
