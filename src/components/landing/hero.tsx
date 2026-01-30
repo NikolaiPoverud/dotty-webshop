@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
+import { Logo } from '@/components/ui/logo';
+
 export function Hero(): React.ReactElement {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
@@ -24,26 +26,7 @@ export function Hero(): React.ReactElement {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       >
-        <h1
-          className="font-black text-[5rem] sm:text-[8rem] md:text-[12rem] lg:text-[16rem] leading-[0.85] tracking-tighter"
-        >
-          <span
-            className="relative inline-block text-foreground"
-            style={{
-              textShadow: '4px 4px 0 var(--primary)',
-            }}
-          >
-            Dotty
-          </span>
-          <span
-            className="text-primary inline-block"
-            style={{
-              textShadow: '3px 3px 0 var(--foreground)',
-            }}
-          >
-            .
-          </span>
-        </h1>
+        <Logo size="hero" />
       </motion.div>
     </section>
   );
