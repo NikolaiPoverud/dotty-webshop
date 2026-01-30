@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -102,6 +102,7 @@ export function FeaturedGrid({
   const maxPage = Math.max(0, totalPages - 1);
   const hasNextPage = currentPage < maxPage;
   const hasPrevPage = currentPage > 0;
+  const isLastPage = currentPage === maxPage && totalPages > 1;
   const startIndex = currentPage * productsPerPage;
   const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
 
@@ -266,6 +267,27 @@ export function FeaturedGrid({
               ))}
             </div>
           )}
+
+          {/* "See more" CTA when on last page */}
+          <AnimatePresence>
+            {isLastPage && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-10 sm:mt-12 text-center"
+              >
+                <Link
+                  href={getLocalizedPath(lang, 'shop')}
+                  className="group inline-flex items-center gap-3 px-8 py-4 bg-primary text-background font-bold text-lg hover:bg-primary-light transition-all duration-300"
+                >
+                  {t.viewAll}
+                  <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {filteredProducts.length === 0 && (
