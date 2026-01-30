@@ -124,14 +124,6 @@ export const ProductCard = memo(function ProductCard({
               </span>
             </div>
           )}
-
-          {!isSold && (
-            <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4">
-              <span className="text-white/40 text-sm sm:text-base font-medium drop-shadow-lg">
-                {fromLabel}{formatPrice(displayPrice)}
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="p-3 sm:p-4">
