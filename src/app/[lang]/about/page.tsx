@@ -51,115 +51,120 @@ export default function AboutPage({
   const t = content[locale];
 
   return (
-    <div className="min-h-screen">
-      {/* Hero section with image */}
-      <section className="relative h-[60vh] sm:h-[70vh] flex items-end">
-        <div className="absolute inset-0">
-          <Image
-            src="/artist.jpg"
-            alt="Dotty - Artist"
-            fill
-            className="object-cover object-top"
-            sizes="100vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-3xl mx-auto px-6 pb-12 sm:pb-16">
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight"
-          >
-            {t.greeting}
-          </motion.p>
-          <motion.p
+    <div className="min-h-screen pt-24 pb-16">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Hero with image */}
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center mb-16 md:mb-24">
+          {/* Text */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-4 text-xl sm:text-2xl text-muted-foreground"
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="order-2 md:order-1"
           >
-            {t.intro}
-          </motion.p>
-        </div>
-      </section>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-4">
+              {t.greeting}
+            </h1>
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+              {t.intro}
+            </p>
+          </motion.div>
 
-      {/* Main content */}
-      <section className="max-w-2xl mx-auto px-6 py-16 sm:py-24">
-        <div className="space-y-8">
-          {t.paragraphs.map((paragraph, index) => (
-            <motion.p
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{
-                duration: 0.7,
-                delay: index * 0.1,
-                ease: [0.22, 1, 0.36, 1]
-              }}
-              className="text-lg sm:text-xl text-muted-foreground leading-relaxed"
-            >
-              {paragraph}
-            </motion.p>
-          ))}
-        </div>
-
-        {/* Highlight quote */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="my-16 sm:my-20 py-8 border-l-4 border-primary pl-6 sm:pl-8"
-        >
-          <p className="text-xl sm:text-2xl font-medium text-foreground leading-relaxed italic">
-            {t.highlight}
-          </p>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8"
-        >
-          <p className="text-muted-foreground text-lg">{t.ctaText}</p>
-          <Link
-            href={`/${locale}/shop`}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-primary text-background font-semibold text-lg hover:bg-primary-light transition-all duration-300"
+          {/* Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="order-1 md:order-2"
           >
-            {t.ctaButton}
-            <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-        </motion.div>
+            <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-muted">
+              <Image
+                src="/artist.jpg"
+                alt="Dotty - Artist"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            </div>
+          </motion.div>
+        </div>
 
-        {/* Social links */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="mt-16 pt-8 border-t border-muted flex justify-center gap-6"
-        >
-          {SOCIAL_LINKS.map(({ href, icon: Icon, label }) => (
-            <a
-              key={href}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-300"
+        {/* Main content */}
+        <div className="max-w-2xl mx-auto">
+          <div className="space-y-6 mb-12">
+            {t.paragraphs.map((paragraph, index) => (
+              <motion.p
+                key={index}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-30px' }}
+                transition={{
+                  duration: 0.6,
+                  delay: index * 0.08,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+                className="text-lg text-muted-foreground leading-relaxed"
+              >
+                {paragraph}
+              </motion.p>
+            ))}
+          </div>
+
+          {/* Highlight */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="border-l-4 border-primary pl-6 py-2 mb-16"
+          >
+            <p className="text-lg sm:text-xl font-medium text-foreground leading-relaxed italic">
+              {t.highlight}
+            </p>
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col sm:flex-row items-center gap-5 mb-16"
+          >
+            <p className="text-muted-foreground">{t.ctaText}</p>
+            <Link
+              href={`/${locale}/shop`}
+              className="group inline-flex items-center gap-2 px-6 py-3 bg-primary text-background font-semibold hover:bg-primary-light transition-colors"
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-sm">{label}</span>
-            </a>
-          ))}
-        </motion.div>
-      </section>
+              {t.ctaButton}
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+
+          {/* Social */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="pt-8 border-t border-muted/50 flex justify-center gap-6"
+          >
+            {SOCIAL_LINKS.map(({ href, icon: Icon, label }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-sm">{label}</span>
+              </a>
+            ))}
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
