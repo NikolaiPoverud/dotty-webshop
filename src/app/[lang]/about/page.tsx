@@ -13,7 +13,7 @@ const content = {
   no: {
     title: 'Om Dotty.',
     subtitle: 'Kunstneren bak kunsten',
-    intro: 'Velkommen til mitt lille kunstunivers! Her deler jeg malerier og prints som er til salgs. Min lidenskap ligger i å skape uttrykksfulle kunstverk. Illustrasjonene er lekende og tar for seg både realistiske og urealistiske motiver. Jeg foretrekker å skape bilder med sterke farger og en tydelig strek som gjør seg synlig i rommet.',
+    intro: 'Velkommen til mitt lille kunstunivers! Her deler jeg malerier og prints som er til salgs.',
     quote: '"Kunst skal ikke være stille. Den skal rope, danse, og få deg til å smile."',
     storyTitle: 'Min historie',
     storyText: 'Dotty. startet som et ønske om å skape og dele kunst med omverdenen. Jeg startet prosjektet i 2022, og siden har kunsten min funnet veien inn i mange hjem.',
@@ -28,7 +28,7 @@ const content = {
   en: {
     title: 'About Dotty.',
     subtitle: 'The artist behind the art',
-    intro: 'Welcome to my little art universe! Here I share paintings and prints that are for sale. My passion lies in creating expressive artworks. The illustrations are playful and cover both realistic and unrealistic subjects. I prefer to create images with bold colors and a distinct line that makes a statement in the room.',
+    intro: 'Welcome to my little art universe! Here I share paintings and prints that are for sale.',
     quote: '"Art should not be quiet. It should shout, dance, and make you smile."',
     storyTitle: 'My story',
     storyText: 'Dotty. started as a desire to create and share art with the world. I started the project in 2022, and since then my art has found its way into many homes.',
