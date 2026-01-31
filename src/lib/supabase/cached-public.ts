@@ -33,7 +33,7 @@ function createCachedPublicClient() {
 }
 
 // Common columns for product list queries - must match ProductListItem type
-export const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size';
+export const PRODUCT_LIST_COLUMNS = 'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size, sizes';
 
 // Full product columns including description
 const PRODUCT_FULL_COLUMNS = '*, collection:collections(id, name, slug)';

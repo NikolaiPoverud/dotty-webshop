@@ -13,7 +13,7 @@ import { createPublicClient } from '@/lib/supabase/public';
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
 const PRODUCT_LIST_COLUMNS =
-  'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size';
+  'id, title, slug, price, image_url, product_type, is_available, is_featured, is_public, stock_quantity, collection_id, requires_inquiry, year, shipping_size, sizes';
 
 export const revalidate = 60;
 
