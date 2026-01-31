@@ -8,6 +8,7 @@ import { Ruler } from 'lucide-react';
 import type { Locale, ProductListItem } from '@/types';
 import { cn, formatPrice } from '@/lib/utils';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
+import { spring, tap, hover } from '@/lib/animations';
 
 interface ProductCardProps {
   product: ProductListItem;
@@ -48,8 +49,6 @@ const highlightAnimation = {
   },
 };
 
-const springTransition = { type: 'spring', stiffness: 300, damping: 20 } as const;
-
 export const ProductCard = memo(function ProductCard({
   product,
   lang,
@@ -73,9 +72,9 @@ export const ProductCard = memo(function ProductCard({
         )}
         initial={isHighlighted ? highlightAnimation.initial : undefined}
         animate={isHighlighted ? highlightAnimation.animate : undefined}
-        whileHover={{ y: -6, boxShadow: '6px 6px 0 0 var(--color-primary)' }}
-        whileTap={{ scale: 0.98, y: 2 }}
-        transition={springTransition}
+        whileHover={{ ...hover, boxShadow: '6px 6px 0 0 var(--color-primary)' }}
+        whileTap={tap}
+        transition={spring}
       >
         <div className="relative aspect-[4/5] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 animate-shimmer" />

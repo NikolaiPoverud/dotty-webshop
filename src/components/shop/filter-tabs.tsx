@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { fadeUp, spring } from '@/lib/animations';
 
 export interface FilterOption {
   id: string;
@@ -26,9 +27,9 @@ export function FilterTabs({
   return (
     <div className={cn('relative -mx-4 px-4 overflow-x-auto scrollbar-hide', centered && 'flex justify-center')}>
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
         className="inline-flex border border-primary sm:border-2 md:border-[3px]"
       >
         {options.map((option) => {
@@ -50,11 +51,7 @@ export function FilterTabs({
                 <motion.div
                   layoutId={`filter-tab-indicator-${groupId}`}
                   className="absolute inset-0 bg-primary"
-                  transition={{
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 30,
-                  }}
+                  transition={spring}
                 />
               )}
               <span className="relative z-10">{option.label}</span>

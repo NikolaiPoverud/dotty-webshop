@@ -11,6 +11,7 @@ import type { CartItem, Locale } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { formatPrice } from '@/lib/utils';
+import { overlay, slideIn, fadeUp, tap } from '@/lib/animations';
 
 interface CartDictionary {
   title: string;
@@ -47,26 +48,6 @@ const fallbackText: Record<Locale, CartDictionary> = {
   },
 };
 
-const backdropAnimation = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.2 },
-} as const;
-
-const panelAnimation = {
-  initial: { x: '100%' },
-  animate: { x: 0 },
-  exit: { x: '100%' },
-  transition: { type: 'spring' as const, damping: 30, stiffness: 300 },
-};
-
-const itemAnimation = {
-  layout: true,
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, x: 100 },
-} as const;
 
 function getItemKey(item: CartItem): string {
   return item.selectedSize
@@ -90,13 +71,19 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
       {isOpen && (
         <>
           <motion.div
-            {...backdropAnimation}
+            variants={overlay}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]"
             onClick={onClose}
           />
 
           <motion.div
-            {...panelAnimation}
+            variants={slideIn}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="fixed right-0 top-0 w-full sm:max-w-md bg-[#0a0a0a] border-l border-border z-[80] flex flex-col shadow-2xl"
             style={{ height: '100vh' }}
           >
@@ -139,7 +126,11 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
                     return (
                       <motion.div
                         key={getItemKey(item)}
-                        {...itemAnimation}
+                        layout
+                        variants={fadeUp}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
                         className="flex gap-4 p-3 bg-muted rounded-lg"
                       >
                         <div className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0">
@@ -215,7 +206,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
                 <Link href={getLocalizedPath(lang, 'checkout')} onClick={onClose} className="block w-full">
                   <motion.button
                     className="w-full py-4 sm:py-3 bg-background border-[3px] border-primary text-primary font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5 touch-manipulation"
-                    whileTap={{ scale: 0.98, y: 2 }}
+                    whileTap={tap}
                   >
                     {t.checkout}
                   </motion.button>

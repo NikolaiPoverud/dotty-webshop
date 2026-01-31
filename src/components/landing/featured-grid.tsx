@@ -9,6 +9,7 @@ import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
 import { ProductCard } from '@/components/shop/product-card';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { cn } from '@/lib/utils';
+import { gridItem, transition, tap, spring, fadeUp } from '@/lib/animations';
 import type { CollectionCard, Dictionary, Locale, ProductListItem } from '@/types';
 
 const PRODUCTS_PER_PAGE_DESKTOP = 3;
@@ -32,7 +33,8 @@ function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactE
       initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: isLeft ? -20 : 20 }}
-      whileTap={{ scale: 0.9 }}
+      transition={transition.normal}
+      whileTap={tap}
       onClick={onClick}
       aria-label={isLeft ? 'Previous products' : 'Next products'}
       className={cn(
@@ -143,8 +145,9 @@ export function FeaturedGrid({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-4">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true }}
           >
             <Link
@@ -159,10 +162,10 @@ export function FeaturedGrid({
         {showFilters && filterOptions.length > 1 && (
           <motion.div
             className="mb-8"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
           >
             <FilterTabs
               options={filterOptions}
@@ -205,14 +208,11 @@ export function FeaturedGrid({
                 <motion.div
                   key={product.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{
-                    opacity: { duration: 0.3 },
-                    scale: { duration: 0.3 },
-                    layout: { type: 'spring', stiffness: 300, damping: 30 },
-                  }}
+                  variants={gridItem}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={{ ...spring, layout: spring }}
                 >
                   <ProductCard
                     product={product}
@@ -226,14 +226,11 @@ export function FeaturedGrid({
                 <motion.div
                   key="see-all-cta"
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{
-                    opacity: { duration: 0.3 },
-                    scale: { duration: 0.3 },
-                    layout: { type: 'spring', stiffness: 300, damping: 30 },
-                  }}
+                  variants={gridItem}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={{ ...spring, layout: spring }}
                   className="flex items-center justify-center"
                 >
                   <Link
@@ -258,12 +255,12 @@ export function FeaturedGrid({
                   key={product.id}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.1}
+                  dragElastic={0.15}
                   onDragEnd={handleDragEnd}
                   initial={{ opacity: 0, x: 60 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -60 }}
-                  transition={{ duration: 0.15 }}
+                  transition={transition.fast}
                   className="touch-pan-y cursor-grab active:cursor-grabbing"
                 >
                   <ProductCard
@@ -297,10 +294,10 @@ export function FeaturedGrid({
           <AnimatePresence>
             {isLastPage && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 className="mt-10 text-center sm:hidden"
               >
                 <Link

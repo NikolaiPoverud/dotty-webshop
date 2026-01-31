@@ -4,17 +4,12 @@ import type { ReactElement } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Locale, ProductListItem } from '@/types';
 import { ProductCard } from './product-card';
+import { gridItem, spring } from '@/lib/animations';
 
 interface ProductGridProps {
   products: ProductListItem[];
   lang: Locale;
 }
-
-const itemTransition = {
-  opacity: { duration: 0.2 },
-  scale: { duration: 0.2 },
-  layout: { type: 'spring', stiffness: 300, damping: 30 },
-} as const;
 
 export function ProductGrid({ products, lang }: ProductGridProps): ReactElement {
   return (
@@ -27,10 +22,11 @@ export function ProductGrid({ products, lang }: ProductGridProps): ReactElement 
           <motion.div
             key={product.id}
             layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={itemTransition}
+            variants={gridItem}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ ...spring, layout: spring }}
           >
             <ProductCard product={product} lang={lang} index={index} />
           </motion.div>
