@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { trackProductView, trackAddToCart } from '@/lib/analytics';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -113,6 +114,11 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Track product view
+  useEffect(() => {
+    trackProductView(product.id);
+  }, [product.id]);
+
   useEffect(() => {
     if (!isSizeDropdownOpen) return;
 
@@ -149,6 +155,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
     const sizeToAdd = isPrint && selectedSize ? selectedSize : sizes[0];
     addItem(product, 1, undefined, undefined, sizeToAdd);
+    trackAddToCart(product.id);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 3000);
   }

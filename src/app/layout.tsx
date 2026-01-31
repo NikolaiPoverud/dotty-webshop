@@ -3,6 +3,7 @@ import { Geologica } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -95,6 +96,7 @@ export default function RootLayout({
         className={`${geologica.variable} antialiased bg-background text-foreground`}
       >
         <CartProvider>
+          <PageViewTracker />
           {children}
         </CartProvider>
         <Analytics />

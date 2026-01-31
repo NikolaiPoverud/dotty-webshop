@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
+import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import type { Order, OrderStatus } from '@/types';
 
 interface DashboardStats {
@@ -279,6 +280,8 @@ export default function AdminDashboardPage(): React.ReactElement {
           );
         })}
       </div>
+
+      <AnalyticsDashboard />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
