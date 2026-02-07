@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -59,6 +59,7 @@ export const ProductCard = memo(function ProductCard({
   const t = FALLBACK_TEXT[lang];
   const isSold = !product.is_available || product.stock_quantity === 0;
   const isLowStock = product.product_type === 'print' && product.stock_quantity != null && product.stock_quantity <= 3 && product.is_available;
+  const [imageLoaded, setImageLoaded] = useState(false);
   const productTypeLabel = product.product_type === 'original' ? t.original : t.print;
   const { price: displayPrice, isFromPrice } = getDisplayPrice(product);
   const fromLabel = lang === 'no' ? 'fra ' : 'from ';
@@ -77,17 +78,20 @@ export const ProductCard = memo(function ProductCard({
         transition={spring}
       >
         <div className="relative aspect-[4/5] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 animate-shimmer" />
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 animate-shimmer" />
+          )}
 
           {product.image_url ? (
             <Image
               src={product.image_url}
               alt={product.title}
               fill
-              priority={priority || index < 3}
+              priority={priority}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               quality={85}
+              onLoad={() => setImageLoaded(true)}
             />
           ) : (
             <div className="absolute inset-0 bg-primary" />

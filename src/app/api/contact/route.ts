@@ -8,6 +8,15 @@ const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60 * 1000 };
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function getSubjectPrefix(type: string): string {
   switch (type) {
     case 'sold_out_inquiry':
@@ -26,15 +35,20 @@ function buildEmailHtml(
   email: string,
   message: string
 ): string {
-  const productSection = productTitle
+  const safeProductTitle = productTitle ? escapeHtml(productTitle) : null;
+  const safeName = name ? escapeHtml(name) : null;
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message);
+
+  const productSection = safeProductTitle
     ? `<div style="background: #FE206A; color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px;">
         <p style="margin: 0; font-size: 14px; opacity: 0.9;">Gjelder kunstverket:</p>
-        <p style="margin: 8px 0 0 0; font-size: 18px; font-weight: bold;">${productTitle}</p>
+        <p style="margin: 8px 0 0 0; font-size: 18px; font-weight: bold;">${safeProductTitle}</p>
       </div>`
     : '';
 
-  const nameRow = name
-    ? `<p style="margin: 0 0 8px 0;"><strong>Fra:</strong> ${name}</p>`
+  const nameRow = safeName
+    ? `<p style="margin: 0 0 8px 0;"><strong>Fra:</strong> ${safeName}</p>`
     : '';
 
   const timestamp = new Date().toLocaleString('nb-NO', {
@@ -44,16 +58,16 @@ function buildEmailHtml(
 
   return `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #FE206A; margin-bottom: 24px;">${subjectPrefix}</h2>
+      <h2 style="color: #FE206A; margin-bottom: 24px;">${escapeHtml(subjectPrefix)}</h2>
       ${productSection}
       <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
         ${nameRow}
-        <p style="margin: 0 0 8px 0;"><strong>E-post:</strong> <a href="mailto:${email}">${email}</a></p>
+        <p style="margin: 0 0 8px 0;"><strong>E-post:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
         <p style="margin: 0;"><strong>Mottatt:</strong> ${timestamp}</p>
       </div>
       <div style="background: #fff; border: 1px solid #e5e5e5; padding: 20px; border-radius: 8px;">
         <p style="margin: 0 0 8px 0;"><strong>Melding:</strong></p>
-        <p style="margin: 0; white-space: pre-wrap;">${message}</p>
+        <p style="margin: 0; white-space: pre-wrap;">${safeMessage}</p>
       </div>
       <p style="margin-top: 24px; color: #666; font-size: 14px;">
         Du kan svare direkte til denne e-posten, eller gå til <a href="${emailConfig.baseUrl}/admin/contact">admin-panelet</a> for å se alle meldinger.

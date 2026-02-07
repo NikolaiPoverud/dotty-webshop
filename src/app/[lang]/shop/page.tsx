@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import type { Locale, ProductListItem, CollectionCard } from '@/types';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { createPublicClient } from '@/lib/supabase/public';
 import { BreadcrumbJsonLd } from '@/components/seo';
 import { ShopContent } from '@/components/shop/shop-content';
+import { ProductGridSkeleton } from '@/components/ui/skeleton';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no';
 
@@ -147,12 +149,14 @@ export default async function ShopPage({ params }: Props): Promise<React.JSX.Ele
             <span className="gradient-text">{dictionary.shop.title}</span>
           </h1>
 
-          <ShopContent
-            products={products}
-            collections={collections}
-            lang={locale}
-            dictionary={dictionary}
-          />
+          <Suspense fallback={<ProductGridSkeleton />}>
+            <ShopContent
+              products={products}
+              collections={collections}
+              lang={locale}
+              dictionary={dictionary}
+            />
+          </Suspense>
         </div>
       </div>
     </>

@@ -11,7 +11,7 @@ import { formatPrice } from '@/lib/utils';
 type EmailResult = { success: boolean; error?: string };
 
 interface EmailOptions {
-  to: string;
+  to: string | string[];
   subject: string;
   react: ReactElement;
   logMessage: string;
@@ -50,11 +50,12 @@ export function sendOrderConfirmation(order: OrderWithItems): Promise<EmailResul
 }
 
 export function sendNewOrderAlert(order: OrderWithItems): Promise<EmailResult> {
+  const recipients = [...new Set([emailConfig.artistEmail, emailConfig.internalEmail])];
   return sendEmail({
-    to: emailConfig.artistEmail,
+    to: recipients,
     subject: `Ny ordre ${order.order_number} – ${formatPrice(order.total)}`,
     react: NewOrderAlertEmail({ order }),
-    logMessage: `New order alert sent to ${emailConfig.artistEmail}`,
+    logMessage: `New order alert sent to ${recipients.join(', ')}`,
   });
 }
 

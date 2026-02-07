@@ -21,7 +21,7 @@ const fadeInUp = {
 };
 
 const inputClassName =
-  'w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-all';
+  'w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-all';
 
 function getButtonContent(state: FormState, t: Dictionary['contact']): React.ReactNode {
   switch (state) {
@@ -57,16 +57,20 @@ export function ContactSection({ lang, dictionary }: ContactSectionProps): React
     e.preventDefault();
     setFormState('loading');
 
-    const response = await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-    if (response.ok) {
-      setFormState('success');
-      setFormData(emptyFormData);
-    } else {
+      if (response.ok) {
+        setFormState('success');
+        setFormData(emptyFormData);
+      } else {
+        setFormState('error');
+      }
+    } catch {
       setFormState('error');
     }
 

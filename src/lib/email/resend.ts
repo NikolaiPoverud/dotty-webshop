@@ -18,6 +18,7 @@ export function getResend(): Resend {
 export const emailConfig = {
   from: 'Dotty <hei@dotty.no>',
   artistEmail: process.env.ARTIST_EMAIL || 'hei@dotty.no',
+  internalEmail: 'dotty@dotty.no',
   baseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://dotty.no',
   domains: {
     no: process.env.NEXT_PUBLIC_DOMAIN_NO || 'https://dotty.no',

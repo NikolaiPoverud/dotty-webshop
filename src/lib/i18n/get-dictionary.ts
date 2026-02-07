@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { Dictionary, Locale } from '@/types';
 
 const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
@@ -5,9 +6,9 @@ const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
   en: () => import('./dictionaries/en.json').then((m) => m.default),
 };
 
-export async function getDictionary(locale: Locale): Promise<Dictionary> {
+export const getDictionary = cache(async (locale: Locale): Promise<Dictionary> => {
   return dictionaries[locale]();
-}
+});
 
 export const locales = Object.keys(dictionaries) as Locale[];
 export const defaultLocale: Locale = 'no';

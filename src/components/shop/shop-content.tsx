@@ -96,8 +96,6 @@ export function ShopContent({
                   key={product.id}
                   id={`product-${product.id}`}
                   variants={fadeUpItem}
-                  layout
-                  className="will-change-transform"
                 >
                   <ProductCard
                     product={product}

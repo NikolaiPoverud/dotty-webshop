@@ -15,13 +15,11 @@ export function ProductGrid({ products, lang }: ProductGridProps): ReactElement 
   return (
     <motion.div
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-      layout
     >
       <AnimatePresence mode="popLayout">
         {products.map((product, index) => (
           <motion.div
             key={product.id}
-            layout
             variants={gridItem}
             initial="hidden"
             animate="visible"

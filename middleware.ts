@@ -183,7 +183,12 @@ export async function middleware(request: NextRequest) {
     return handleAdminAuth(request);
   }
 
-  // For API routes, skip locale handling but add security headers
+  // Defense-in-depth: check auth for admin API routes at middleware level
+  if (pathname.startsWith('/api/admin')) {
+    return handleAdminApiAuth(request);
+  }
+
+  // For other API routes, skip locale handling but add security headers
   if (pathname.startsWith('/api')) {
     return addSecurityHeaders(NextResponse.next());
   }
@@ -305,9 +310,47 @@ async function handleAdminAuth(request: NextRequest) {
   return addSecurityHeaders(response);
 }
 
+// Defense-in-depth auth check for /api/admin/* routes
+async function handleAdminApiAuth(request: NextRequest) {
+  let response = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next();
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || user.user_metadata?.role !== 'admin') {
+    return addSecurityHeaders(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    );
+  }
+
+  return addSecurityHeaders(response);
+}
+
 export const config = {
   matcher: [
     // Exclude api routes, static files, and other non-page routes
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)).*)',
+    // Include admin API routes for defense-in-depth auth
+    '/api/admin/:path*',
   ],
 };

@@ -78,10 +78,13 @@ export function FeaturedGrid({
   const isNavigating = useRef(false);
 
   useEffect(() => {
-    const checkMobile = (): void => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const mql = window.matchMedia('(max-width: 639px)');
+    setIsMobile(mql.matches);
+    function handleChange(e: MediaQueryListEvent): void {
+      setIsMobile(e.matches);
+    }
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
   }, []);
 
   const filterOptions: FilterOption[] = useMemo(() => {
@@ -218,7 +221,7 @@ export function FeaturedGrid({
                     product={product}
                     lang={lang}
                     index={index}
-                    priority={index < 2}
+                    priority={currentPage === 0 && index < 2}
                   />
                 </motion.div>
               ))}

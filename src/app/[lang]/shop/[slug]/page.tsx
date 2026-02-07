@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
-import { createPublicClient } from '@/lib/supabase/public';
+import { createCachedPublicClient, createPublicClient } from '@/lib/supabase/public';
 import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo';
 import { CollectionJsonLd } from '@/components/seo/collection-jsonld';
 import { ProductDetail } from '@/components/shop/product-detail';
@@ -37,8 +37,10 @@ export async function generateStaticParams(): Promise<Array<{ lang: string; slug
   return locales.flatMap((lang) => slugs.map((slug) => ({ lang, slug })));
 }
 
+const PRODUCT_DETAIL_COLUMNS = 'id, title, slug, description, price, image_url, image_path, product_type, stock_quantity, sizes, is_available, is_featured, is_public, collection_id, requires_inquiry, year, shipping_size, shipping_cost, gallery_images, display_order';
+
 async function getCollection(slug: string): Promise<CollectionCard | null> {
-  const supabase = createPublicClient();
+  const supabase = createCachedPublicClient();
   const { data } = await supabase
     .from('collections')
     .select('id, name, slug, description')
@@ -51,10 +53,10 @@ async function getCollection(slug: string): Promise<CollectionCard | null> {
 }
 
 async function getProduct(slug: string): Promise<Product | null> {
-  const supabase = createPublicClient();
+  const supabase = createCachedPublicClient();
   const { data } = await supabase
     .from('products')
-    .select('*')
+    .select(PRODUCT_DETAIL_COLUMNS)
     .eq('slug', slug)
     .is('deleted_at', null)
     .single();

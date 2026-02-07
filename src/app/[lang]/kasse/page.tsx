@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
+import Link from 'next/link';
 import { useCart } from '@/components/cart/cart-provider';
 import {
   ConsentCheckboxes,
@@ -101,8 +102,14 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
 
   if (itemCount === 0) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen pt-24 pb-16 flex flex-col items-center justify-center gap-6">
         <p className="text-muted-foreground">{t.emptyCart}</p>
+        <Link
+          href={`/${locale}/shop`}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-background font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          {t.continueShopping}
+        </Link>
       </div>
     );
   }
@@ -118,6 +125,23 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
 
     if (requiredFieldsMissing) {
       setError(t.fillAllFields);
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError(t.invalidEmail);
+      return false;
+    }
+
+    const phoneRegex = /^[+\d][\d\s-]{6,}$/;
+    if (!phoneRegex.test(phone)) {
+      setError(t.invalidPhone);
+      return false;
+    }
+
+    if (country === 'Norge' && !/^\d{4}$/.test(postalCode)) {
+      setError(t.invalidPostalCode);
       return false;
     }
 
@@ -156,7 +180,7 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
           items: cart.items.map((item) => ({
             product_id: item.product.id,
             title: item.product.title,
-            price: item.product.price,
+            price: item.selectedSize?.price ?? item.product.price,
             quantity: item.quantity,
             image_url: item.product.image_url ?? '',
           })),

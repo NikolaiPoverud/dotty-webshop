@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyAdminAuth } from '@/lib/auth/admin-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,9 @@ interface AnalyticsSummary {
 }
 
 export async function GET(): Promise<NextResponse> {
+  const auth = await verifyAdminAuth();
+  if (!auth.authorized) return auth.response;
+
   try {
     const supabase = createAdminClient();
 

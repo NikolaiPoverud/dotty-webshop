@@ -53,16 +53,21 @@ export function CookieConsent({ lang, dictionary }: CookieConsentProps): React.R
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
         >
-          <div className="max-w-4xl mx-auto bg-muted border border-border rounded-xl shadow-2xl overflow-hidden">
+          <div
+            role="alertdialog"
+            aria-labelledby="cookie-consent-title"
+            aria-describedby="cookie-consent-description"
+            className="max-w-4xl mx-auto bg-muted border border-border shadow-2xl overflow-hidden"
+          >
             <div className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-start gap-3 flex-1">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Cookie className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{t.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h3 id="cookie-consent-title" className="font-semibold text-foreground">{t.title}</h3>
+                    <p id="cookie-consent-description" className="text-sm text-muted-foreground mt-1">
                       {t.description}{' '}
                       <Link
                         href={`/${lang}/privacy`}
@@ -77,13 +82,13 @@ export function CookieConsent({ lang, dictionary }: CookieConsentProps): React.R
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => saveConsent(false)}
-                    className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-muted-foreground hover:text-foreground active:text-foreground border border-border rounded-lg hover:bg-background active:bg-background transition-colors touch-manipulation"
+                    className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-muted-foreground hover:text-foreground active:text-foreground border border-border hover:bg-background active:bg-background transition-colors touch-manipulation"
                   >
                     {t.decline}
                   </button>
                   <button
                     onClick={() => saveConsent(true)}
-                    className="flex-1 sm:flex-none px-6 py-3 sm:py-2 text-sm font-medium bg-primary text-background rounded-lg hover:bg-primary-light active:bg-primary-light transition-colors touch-manipulation"
+                    className="flex-1 sm:flex-none px-6 py-3 sm:py-2 text-sm font-medium bg-primary text-background hover:bg-primary-light active:bg-primary-light transition-colors touch-manipulation"
                   >
                     {t.accept}
                   </button>

@@ -42,7 +42,7 @@ export function OrderSummary({
 
       <div className="space-y-3 mb-6">
         {cart.items.map((item) => (
-          <div key={item.product.id} className="flex items-center gap-3">
+          <div key={item.product.id + (item.selectedSize ? `-${item.selectedSize.width}x${item.selectedSize.height}` : '')} className="flex items-center gap-3">
             {item.product.image_url && (
               <div className="relative w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-background">
                 <Image
@@ -58,7 +58,7 @@ export function OrderSummary({
               <p className="text-sm font-medium truncate">{item.product.title}</p>
               <p className="text-xs text-muted-foreground">x{item.quantity}</p>
             </div>
-            <span className="text-sm flex-shrink-0">{formatPrice(item.product.price * item.quantity)}</span>
+            <span className="text-sm flex-shrink-0">{formatPrice((item.selectedSize?.price ?? item.product.price) * item.quantity)}</span>
           </div>
         ))}
       </div>

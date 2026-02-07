@@ -24,6 +24,10 @@ export function Hero(): React.ReactElement {
             src="/hero-mobile.webp"
             alt=""
             className="w-full h-full object-cover object-center"
+            fetchPriority="high"
+            loading="eager"
+            width={1920}
+            height={1080}
           />
         </picture>
         {/* Soft gradient fade at bottom */}

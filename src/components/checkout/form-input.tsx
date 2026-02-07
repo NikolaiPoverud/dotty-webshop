@@ -1,7 +1,7 @@
 'use client';
 
 const INPUT_CLASS =
-  'w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-colors';
+  'w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-colors';
 
 export interface FormInputProps {
   label: string;
@@ -33,14 +33,16 @@ export function FormInput({
   className,
 }: FormInputProps): React.ReactElement {
   const autoComplete = AUTOCOMPLETE_MAP[type] ?? AUTOCOMPLETE_MAP[name];
+  const inputId = `field-${name}`;
 
   return (
     <div className={className}>
-      <label className="block text-sm font-bold uppercase tracking-wide mb-2 text-muted-foreground">
+      <label htmlFor={inputId} className="block text-sm font-bold uppercase tracking-wide mb-2 text-muted-foreground">
         {label}
         {required && <span className="text-primary"> *</span>}
       </label>
       <input
+        id={inputId}
         type={type}
         name={name}
         required={required}

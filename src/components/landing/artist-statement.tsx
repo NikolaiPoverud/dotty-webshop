@@ -50,7 +50,6 @@ export function ArtistStatement({ lang }: ArtistStatementProps): React.ReactElem
               src="/artist.jpg"
               alt="Dotty - Artist"
               fill
-              priority
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
