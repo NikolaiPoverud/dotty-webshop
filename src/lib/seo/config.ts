@@ -32,6 +32,8 @@ export type PageType =
   | 'contact'
   | 'privacy'
   | 'terms'
+  | 'guide-index'
+  | 'guide'
   // Faceted pages
   | 'facet-type'
   | 'facet-year'
@@ -87,8 +89,8 @@ export const SEO_TEMPLATES: Record<PageType, {
       en: '{title} | {type} | Dotty.',
     },
     descriptionTemplate: {
-      no: 'Kjøp {title} - {type} fra Dotty. {description}',
-      en: 'Buy {title} - {type} from Dotty. {description}',
+      no: 'Kjøp {title} - {type} pop-art fra Dotty. {description} Fri frakt over 2000 kr.',
+      en: 'Buy {title} - {type} pop-art from Dotty. {description} Free shipping over 2000 kr.',
     },
     priority: 0.8,
     changeFrequency: 'weekly',
@@ -189,6 +191,30 @@ export const SEO_TEMPLATES: Record<PageType, {
     priority: 0.3,
     changeFrequency: 'yearly',
   },
+  'guide-index': {
+    titleTemplate: {
+      no: 'Kunstguider | Dotty.',
+      en: 'Art Guides | Dotty.',
+    },
+    descriptionTemplate: {
+      no: 'Utforsk våre guider om pop-art, kunstpleie og tips for å velge kunst til hjemmet.',
+      en: 'Explore our guides about pop-art, art care, and tips for choosing art for your home.',
+    },
+    priority: 0.7,
+    changeFrequency: 'monthly',
+  },
+  guide: {
+    titleTemplate: {
+      no: '{title} | Kunstguide | Dotty.',
+      en: '{title} | Art Guide | Dotty.',
+    },
+    descriptionTemplate: {
+      no: '{description}',
+      en: '{description}',
+    },
+    priority: 0.7,
+    changeFrequency: 'monthly',
+  },
   'facet-type': {
     titleTemplate: {
       no: 'Kjøp {type} | Pop-Art | Dotty.',
@@ -263,6 +289,8 @@ export const SCHEMA_TYPES: Record<PageType, string[]> = {
   contact: ['ContactPage', 'BreadcrumbList'],
   privacy: ['WebPage', 'BreadcrumbList'],
   terms: ['WebPage', 'BreadcrumbList'],
+  'guide-index': ['CollectionPage', 'BreadcrumbList'],
+  guide: ['Article', 'FAQPage', 'BreadcrumbList'],
   'facet-type': ['CollectionPage', 'ItemList', 'BreadcrumbList'],
   'facet-year': ['CollectionPage', 'ItemList', 'BreadcrumbList'],
   'facet-price': ['CollectionPage', 'ItemList', 'BreadcrumbList'],

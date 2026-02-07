@@ -509,6 +509,32 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 </div>
               </Link>
             </div>
+
+            {/* Guide Links */}
+            <div className="mt-4 flex flex-wrap gap-3">
+              {isPrint && (
+                <Link
+                  href={`/${lang}/guide/ta-vare-pa-kunsttrykk`}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+                >
+                  {lang === 'no' ? 'Slik tar du vare på kunsttrykk' : 'How to care for art prints'}
+                </Link>
+              )}
+              {!isPrint && (
+                <Link
+                  href={`/${lang}/guide/hva-er-pop-art`}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+                >
+                  {lang === 'no' ? 'Hva er pop-art?' : 'What is pop art?'}
+                </Link>
+              )}
+              <Link
+                href={`/${lang}/guide/velg-kunst-til-hjemmet`}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+              >
+                {lang === 'no' ? 'Velg kunst til hjemmet' : 'Choose art for your home'}
+              </Link>
+            </div>
           </motion.div>
         </div>
       </div>

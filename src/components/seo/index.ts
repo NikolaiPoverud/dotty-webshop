@@ -1,3 +1,4 @@
+export { ArticleJsonLd } from './article-jsonld';
 export { BreadcrumbJsonLd } from './breadcrumb-jsonld';
 export { CollectionJsonLd } from './collection-jsonld';
 export { FAQJsonLd } from './faq-jsonld';

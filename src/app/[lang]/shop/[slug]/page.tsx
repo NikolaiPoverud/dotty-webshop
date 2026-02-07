@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { Locale, Product, ProductListItem, CollectionCard } from '@/types';
+import type { Locale, Product, ProductListItem, CollectionCard, TestimonialCard } from '@/types';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -123,6 +123,17 @@ async function getRelatedProducts(
   return data ?? [];
 }
 
+async function getTestimonials(): Promise<TestimonialCard[]> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from('testimonials')
+    .select('id, name, feedback, source')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true })
+    .limit(5);
+  return data ?? [];
+}
+
 async function getCollectionInfo(collectionId: string | null): Promise<CollectionInfo> {
   if (!collectionId) return { name: null, slug: null, shippingCost: 0 };
 
@@ -176,9 +187,10 @@ function getProductTypeLabel(productType: Product['product_type'], isNorwegian: 
 function buildProductMetadata(product: Product, lang: string, isNorwegian: boolean): Metadata {
   const productTypeLabel = getProductTypeLabel(product.product_type, isNorwegian);
   const title = isNorwegian ? `${product.title} | Kjop ${productTypeLabel}` : `${product.title} | Buy ${productTypeLabel}`;
-  const description = product.description ?? (isNorwegian
-    ? `Kjop ${product.title} - unik pop-art fra Dotty. ${productTypeLabel} som bringer farge og energi til ditt hjem.`
-    : `Buy ${product.title} - unique pop-art from Dotty. ${productTypeLabel} that brings color and energy to your home.`);
+  const description = (isNorwegian
+    ? `Kjøp ${product.title} - ${productTypeLabel} pop-art fra Dotty. ${product.description || ''} Fri frakt over 2000 kr.`
+    : `Buy ${product.title} - ${productTypeLabel} pop-art from Dotty. ${product.description || ''} Free shipping over 2000 kr.`
+  ).replace(/\s{2,}/g, ' ').trim();
 
   const images = product.image_url ? [{ url: product.image_url, width: 1200, height: 630, alt: product.title }] : [];
 
@@ -196,7 +208,13 @@ function buildProductMetadata(product: Product, lang: string, isNorwegian: boole
     },
     twitter: { card: 'summary_large_image', title, description, images: product.image_url ? [product.image_url] : [] },
     alternates: buildAlternates(lang, product.slug),
-    other: { 'product:price:amount': (product.price / 100).toFixed(0), 'product:price:currency': 'NOK' },
+    other: {
+      'product:price:amount': (product.price / 100).toFixed(0),
+      'product:price:currency': 'NOK',
+      'product:availability': product.is_available ? 'in stock' : 'out of stock',
+      'product:condition': 'new',
+      'product:brand': 'Dotty.',
+    },
   };
 }
 
@@ -266,9 +284,10 @@ export default async function ShopSlugPage({ params }: Props): Promise<React.JSX
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const [collectionInfo, relatedProducts] = await Promise.all([
+  const [collectionInfo, relatedProducts, testimonials] = await Promise.all([
     getCollectionInfo(product.collection_id),
     getRelatedProducts(product.id, product.collection_id),
+    getTestimonials(),
   ]);
 
   const breadcrumbItems = [
@@ -283,7 +302,7 @@ export default async function ShopSlugPage({ params }: Props): Promise<React.JSX
 
   return (
     <>
-      <ProductJsonLd product={product} lang={locale} />
+      <ProductJsonLd product={product} lang={locale} testimonials={testimonials} />
       <BreadcrumbJsonLd items={breadcrumbItems} />
       <ProductDetail
         product={product}

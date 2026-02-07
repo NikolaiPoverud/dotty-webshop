@@ -66,6 +66,11 @@ export const STATIC_PAGES: StaticPage[] = [
   { path: '/contact', priority: 0.5, changeFrequency: 'monthly' },  // Contact
   { path: '/privacy', priority: 0.3, changeFrequency: 'yearly' },   // Privacy
   { path: '/terms', priority: 0.3, changeFrequency: 'yearly' },
+  { path: '/guide', priority: 0.7, changeFrequency: 'monthly' },
+  { path: '/guide/hva-er-pop-art', priority: 0.7, changeFrequency: 'monthly' },
+  { path: '/guide/velg-kunst-til-hjemmet', priority: 0.7, changeFrequency: 'monthly' },
+  { path: '/guide/ta-vare-pa-kunsttrykk', priority: 0.7, changeFrequency: 'monthly' },
+  { path: '/guide/pop-art-historie', priority: 0.7, changeFrequency: 'monthly' },
 ];
 
 export interface FacetSegmentDef {

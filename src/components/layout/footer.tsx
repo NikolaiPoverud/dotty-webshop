@@ -139,6 +139,12 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             >
               {t.myData}
             </Link>
+            <Link
+              href={`/${lang}/guide`}
+              className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"
+            >
+              {lang === 'no' ? 'Kunstguider' : 'Guides'}
+            </Link>
           </div>
 
           <div className="text-center text-xs text-muted-foreground space-y-1">
