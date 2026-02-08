@@ -103,10 +103,9 @@ interface ProductDetailProps {
   collectionSlug?: string | null;
   lang: Locale;
   dictionary: Dictionary;
-  testimonials?: TestimonialCard[];
 }
 
-export function ProductDetail({ product, collectionName, collectionSlug, lang, dictionary, testimonials }: ProductDetailProps): React.ReactElement {
+export function ProductDetail({ product, collectionName, collectionSlug, lang, dictionary }: ProductDetailProps): React.ReactElement {
   const t = dictionary.productDetail;
   const { addItem, cart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
