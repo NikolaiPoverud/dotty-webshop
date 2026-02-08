@@ -11,7 +11,6 @@ import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { ProductGallery } from './product-gallery';
-import { VisaLogo, MastercardLogo, VippsMarkLogo } from '@/components/ui/payment-logos';
 
 type InquiryStatus = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -566,11 +565,6 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 </motion.p>
               )}
 
-              <div className="flex items-center gap-3 text-muted-foreground/50 pt-1">
-                <VisaLogo className="h-4 w-auto" />
-                <MastercardLogo className="h-4 w-auto" />
-                <VippsMarkLogo className="h-4 w-auto" />
-              </div>
             </div>
 
             {/* Purchase / Inquiry Section */}
