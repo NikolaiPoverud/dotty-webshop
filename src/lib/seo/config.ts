@@ -49,24 +49,24 @@ export const SEO_TEMPLATES: Record<PageType, {
 }> = {
   home: {
     titleTemplate: {
-      no: 'Dotty. | Pop-Art fra Norge',
-      en: 'Dotty. | Pop-Art from Norway',
+      no: 'Dotty. | Kjøp Pop-Art fra Norsk Kunstner',
+      en: 'Dotty. | Buy Pop-Art from Norwegian Artist',
     },
     descriptionTemplate: {
-      no: 'Oppdag unik pop-art med personlighet. Originale kunstverk og limiterte trykk fra Oslo.',
-      en: 'Discover unique pop-art with personality. Original artworks and limited prints from Oslo.',
+      no: 'Kjøp unik pop-art veggkunst. Håndmalte originaler og signerte limited edition trykk fra norsk kunstner i Oslo. Kunstgaver og interiørkunst med personlighet.',
+      en: 'Buy unique pop-art wall art. Hand-painted originals and signed limited edition prints from Norwegian artist in Oslo. Art gifts and interior art with personality.',
     },
     priority: 1.0,
     changeFrequency: 'daily',
   },
   shop: {
     titleTemplate: {
-      no: 'Shop | Alle Kunstverk | Dotty.',
-      en: 'Shop | All Artworks | Dotty.',
+      no: 'Kunstbutikk | Kjøp Veggkunst & Pop-Art | Dotty.',
+      en: 'Art Shop | Buy Wall Art & Pop-Art | Dotty.',
     },
     descriptionTemplate: {
-      no: 'Utforsk vår samling av pop-art. Originaler og trykk med fri frakt i Norge.',
-      en: 'Explore our pop-art collection. Originals and prints with free shipping in Norway.',
+      no: 'Kjøp signert pop-art veggkunst. Håndmalte originaler og limited edition kunsttrykk fra norsk kunstner. Frakt 99 kr.',
+      en: 'Buy signed pop-art wall art. Hand-painted originals and limited edition art prints from Norwegian artist. Shipping 99 kr.',
     },
     priority: 0.9,
     changeFrequency: 'daily',
@@ -85,12 +85,12 @@ export const SEO_TEMPLATES: Record<PageType, {
   },
   product: {
     titleTemplate: {
-      no: '{title} | {type} | Dotty.',
-      en: '{title} | {type} | Dotty.',
+      no: '{title} | Kjøp {type} | Dotty.',
+      en: '{title} | Buy {type} | Dotty.',
     },
     descriptionTemplate: {
-      no: 'Kjøp {title} - {type} pop-art fra Dotty. {description} Fri frakt over 2000 kr.',
-      en: 'Buy {title} - {type} pop-art from Dotty. {description} Free shipping over 2000 kr.',
+      no: 'Kjøp {title} – signert {type} pop-art fra norsk kunstner. {description} Frakt 99 kr.',
+      en: 'Buy {title} – signed {type} pop-art from Norwegian artist. {description} Shipping 99 kr.',
     },
     priority: 0.8,
     changeFrequency: 'weekly',
@@ -121,24 +121,24 @@ export const SEO_TEMPLATES: Record<PageType, {
   },
   sold: {
     titleTemplate: {
-      no: 'Solgte Verk | Dotty.',
-      en: 'Sold Works | Dotty.',
+      no: 'Solgte Kunstverk | Tidligere Pop-Art Verk | Dotty.',
+      en: 'Sold Artworks | Previous Pop-Art Works | Dotty.',
     },
     descriptionTemplate: {
-      no: 'Se solgte kunstverk fra Dotty. Interessert i lignende verk? Ta kontakt.',
-      en: 'View sold artworks from Dotty. Interested in similar pieces? Get in touch.',
+      no: 'Se solgte pop-art kunstverk fra norsk kunstner Dotty. Håndmalte originaler og signerte trykk. Interessert i lignende verk? Ta kontakt.',
+      en: 'View sold pop-art artworks from Norwegian artist Dotty. Hand-painted originals and signed prints. Interested in similar pieces? Get in touch.',
     },
     priority: 0.5,
     changeFrequency: 'weekly',
   },
   about: {
     titleTemplate: {
-      no: 'Om Dotty | Oslo-basert Pop-Art Kunstner',
-      en: 'About Dotty | Oslo-based Pop-Art Artist',
+      no: 'Om Kunstneren | Norsk Pop-Art Kunstner fra Oslo | Dotty.',
+      en: 'About the Artist | Norwegian Pop-Art Artist from Oslo | Dotty.',
     },
     descriptionTemplate: {
-      no: 'Lær mer om Dotty, en Oslo-basert kunstner som skaper fargerik pop-art.',
-      en: 'Learn about Dotty, an Oslo-based artist creating colorful pop-art.',
+      no: 'Møt Dotty – norsk kunstner fra Oslo som skaper fargerik, håndmalt pop-art. Originale kunstverk og signerte limited edition trykk.',
+      en: 'Meet Dotty – Norwegian artist from Oslo creating colorful, hand-painted pop-art. Original artworks and signed limited edition prints.',
     },
     priority: 0.6,
     changeFrequency: 'monthly',

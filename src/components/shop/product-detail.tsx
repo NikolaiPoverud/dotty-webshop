@@ -5,7 +5,7 @@ import { trackProductView, trackAddToCart } from '@/lib/analytics';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw, ChevronDown } from 'lucide-react';
+import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw } from 'lucide-react';
 import type { Dictionary, Locale, Product, GalleryImage, ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
@@ -113,7 +113,6 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(null);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
-  const [expandedBadge, setExpandedBadge] = useState<string | null>(null);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
   const purchaseSectionRef = useRef<HTMLDivElement>(null);
 
@@ -521,50 +520,17 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
               </p>
             )}
 
-            {/* Trust Badges - Shipping & Returns */}
-            <div className="space-y-2 mb-6 text-sm">
-              <button
-                type="button"
-                onClick={() => setExpandedBadge(expandedBadge === 'shipping' ? null : 'shipping')}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-full text-left touch-manipulation"
-              >
-                <Truck className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="flex-1">{t.shippingEstimate}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${expandedBadge === 'shipping' ? 'rotate-180' : ''}`} />
-              </button>
-              {expandedBadge === 'shipping' && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="text-xs text-muted-foreground pl-6 leading-relaxed"
-                >
-                  {lang === 'no'
-                    ? 'Vi sender med Bring innen 1-3 virkedager. Fri frakt over 2000 kr.'
-                    : 'We ship via Bring within 1-3 business days. Free shipping over 2000 kr.'}
-                </motion.p>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setExpandedBadge(expandedBadge === 'returns' ? null : 'returns')}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-full text-left touch-manipulation"
-              >
-                <RotateCcw className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="flex-1">{t.returnPolicy}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${expandedBadge === 'returns' ? 'rotate-180' : ''}`} />
-              </button>
-              {expandedBadge === 'returns' && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="text-xs text-muted-foreground pl-6 leading-relaxed"
-                >
-                  {lang === 'no'
-                    ? '14 dagers angrerett. Varen må returneres i original emballasje og ubrukt stand.'
-                    : '14-day return policy. Items must be returned in original packaging and unused condition.'}
-                </motion.p>
-              )}
-
+            {/* Shipping & Trust */}
+            <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-primary" />
+                <span>{lang === 'no' ? 'Frakt' : 'Shipping'} <span className="font-semibold text-foreground">99 kr</span></span>
+              </span>
+              <span className="text-border">|</span>
+              <span className="flex items-center gap-1.5">
+                <RotateCcw className="w-3.5 h-3.5 text-primary" />
+                {t.returnPolicy}
+              </span>
             </div>
 
             {/* Purchase / Inquiry Section */}

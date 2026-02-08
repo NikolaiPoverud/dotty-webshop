@@ -79,16 +79,21 @@ export async function generateMetadata({
   const isNorwegian = lang === 'no';
 
   const title = isNorwegian
-    ? 'Dotty. | Pop-Art fra Norge – Originaler & Trykk'
-    : 'Dotty. | Pop-Art from Norway – Originals & Prints';
+    ? 'Dotty. | Kjøp Pop-Art Veggkunst fra Norsk Kunstner'
+    : 'Dotty. | Buy Pop-Art Wall Art from Norwegian Artist';
 
   const description = isNorwegian
-    ? 'Oppdag unik pop-art med personlighet. Kjøp originale kunstverk og limiterte trykk som bringer energi og farge til ditt hjem. Gratis frakt i Norge.'
-    : 'Discover unique pop-art with personality. Buy original artworks and limited prints that bring energy and color to your home. Free shipping in Norway.';
+    ? 'Kjøp unik pop-art veggkunst med personlighet. Håndmalte originaler og signerte limited edition kunsttrykk fra norsk kunstner i Oslo. Perfekt kunstgave og interiørkunst.'
+    : 'Buy unique pop-art wall art with personality. Hand-painted originals and signed limited edition art prints from Norwegian artist in Oslo. Perfect art gift and interior art.';
+
+  const keywords = isNorwegian
+    ? ['pop-art', 'kjøp kunst', 'veggkunst', 'norsk kunstner', 'kunsttrykk', 'originale kunstverk', 'kunstgave', 'interiørkunst', 'signert kunst', 'limited edition', 'håndmalt kunst', 'moderne kunst', 'skandinavisk kunst', 'oslo']
+    : ['pop-art', 'buy art', 'wall art', 'norwegian artist', 'art prints', 'original artwork', 'art gift', 'interior art', 'signed art', 'limited edition', 'hand-painted art', 'modern art', 'scandinavian art', 'oslo'];
 
   return {
     title,
     description,
+    keywords,
     openGraph: {
       title,
       description,
@@ -100,7 +105,7 @@ export async function generateMetadata({
         url: `${BASE_URL}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: 'Dotty. Pop-Art',
+        alt: isNorwegian ? 'Dotty. – Pop-Art Veggkunst fra Norsk Kunstner' : 'Dotty. – Pop-Art Wall Art from Norwegian Artist',
       }],
     },
     twitter: {

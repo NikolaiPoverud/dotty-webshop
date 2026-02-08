@@ -135,16 +135,16 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = template.titleTemplate[locale];
       description = template.descriptionTemplate[locale];
       keywords = locale === 'no'
-        ? ['pop-art', 'kunst', 'norge', 'oslo', 'originaler', 'trykk']
-        : ['pop-art', 'art', 'norway', 'oslo', 'originals', 'prints'];
+        ? ['pop-art', 'kunst', 'kjøp kunst', 'norsk kunst', 'oslo', 'originale kunstverk', 'kunsttrykk', 'veggkunst', 'moderne kunst', 'kunstgave', 'signert kunst', 'limited edition', 'håndmalt', 'interiørkunst', 'skandinavisk kunst']
+        : ['pop-art', 'art', 'buy art online', 'norwegian art', 'oslo', 'original artwork', 'art prints', 'wall art', 'modern art', 'art gift', 'signed art', 'limited edition', 'hand-painted', 'interior art', 'scandinavian art'];
       break;
 
     case 'shop':
       title = template.titleTemplate[locale];
       description = template.descriptionTemplate[locale];
       keywords = locale === 'no'
-        ? ['kjøp kunst', 'pop-art butikk', 'kunsttrykk', 'originale malerier']
-        : ['buy art', 'pop-art shop', 'art prints', 'original paintings'];
+        ? ['kjøp kunst', 'pop-art butikk', 'kunsttrykk', 'originale malerier', 'veggkunst', 'kunstbutikk online', 'signert kunst', 'limited edition trykk', 'norsk kunstner', 'kunst til salgs']
+        : ['buy art', 'pop-art shop', 'art prints', 'original paintings', 'wall art', 'online art shop', 'signed art', 'limited edition prints', 'norwegian artist', 'art for sale'];
       break;
 
     case 'shop-paginated': {
@@ -171,8 +171,10 @@ export function generateMetadata(options: MetadataOptions): Metadata {
 
       // Product-specific keywords
       keywords = locale === 'no'
-        ? [product.title, typeLabel.toLowerCase(), 'pop-art', 'dotty', 'kunst']
-        : [product.title, typeLabel.toLowerCase(), 'pop-art', 'dotty', 'art'];
+        ? [product.title, typeLabel.toLowerCase(), 'pop-art', 'dotty', 'kjøp kunst', 'norsk kunst', 'signert kunst', 'veggkunst',
+           ...(product.product_type === 'original' ? ['håndmalt', 'originalt kunstverk', 'kunstinvestering'] : ['limited edition', 'kunsttrykk', 'kunstgave'])]
+        : [product.title, typeLabel.toLowerCase(), 'pop-art', 'dotty', 'buy art', 'norwegian art', 'signed art', 'wall art',
+           ...(product.product_type === 'original' ? ['hand-painted', 'original artwork', 'art investment'] : ['limited edition', 'art print', 'art gift'])];
       break;
     }
 
@@ -192,8 +194,8 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       description = truncateDescription(interpolate(template.descriptionTemplate[locale], vars));
 
       keywords = locale === 'no'
-        ? [collection.name, 'samling', 'pop-art', 'dotty']
-        : [collection.name, 'collection', 'pop-art', 'dotty'];
+        ? [collection.name, 'samling', 'pop-art', 'dotty', 'kjøp kunst', 'kuratert kunst', 'norsk kunstner', 'veggkunst']
+        : [collection.name, 'collection', 'pop-art', 'dotty', 'buy art', 'curated art', 'norwegian artist', 'wall art'];
       break;
     }
 
@@ -211,8 +213,8 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = interpolate(template.titleTemplate[locale], vars);
       description = truncateDescription(interpolate(template.descriptionTemplate[locale], vars));
       keywords = locale === 'no'
-        ? [typeLabel.toLowerCase(), 'pop-art', 'kunst', 'dotty']
-        : [typeLabel.toLowerCase(), 'pop-art', 'art', 'dotty'];
+        ? [typeLabel.toLowerCase(), 'pop-art', 'kjøp kunst', 'norsk kunst', 'signert kunst', 'veggkunst', 'dotty']
+        : [typeLabel.toLowerCase(), 'pop-art', 'buy art', 'norwegian art', 'signed art', 'wall art', 'dotty'];
       break;
     }
 
@@ -222,8 +224,8 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = interpolate(template.titleTemplate[locale], vars);
       description = truncateDescription(interpolate(template.descriptionTemplate[locale], vars));
       keywords = locale === 'no'
-        ? [`pop-art ${year}`, `kunstverk ${year}`, 'dotty']
-        : [`pop-art ${year}`, `artworks ${year}`, 'dotty'];
+        ? [`pop-art ${year}`, `kunstverk ${year}`, 'norsk kunstner', 'moderne kunst', 'dotty']
+        : [`pop-art ${year}`, `artworks ${year}`, 'norwegian artist', 'modern art', 'dotty'];
       break;
     }
 
@@ -233,8 +235,8 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = interpolate(template.titleTemplate[locale], vars);
       description = truncateDescription(interpolate(template.descriptionTemplate[locale], vars));
       keywords = locale === 'no'
-        ? ['billig kunst', 'pop-art pris', rangeLabel.toLowerCase(), 'dotty']
-        : ['affordable art', 'pop-art price', rangeLabel.toLowerCase(), 'dotty'];
+        ? ['kjøp kunst', 'pop-art pris', rangeLabel.toLowerCase(), 'kunstgave', 'kunstinvestering', 'dotty']
+        : ['buy art', 'pop-art price', rangeLabel.toLowerCase(), 'art gift', 'art investment', 'dotty'];
       break;
     }
 
@@ -244,8 +246,8 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = interpolate(template.titleTemplate[locale], vars);
       description = truncateDescription(interpolate(template.descriptionTemplate[locale], vars));
       keywords = locale === 'no'
-        ? [sizeLabel.toLowerCase(), 'pop-art størrelse', 'kunst', 'dotty']
-        : [sizeLabel.toLowerCase(), 'pop-art size', 'art', 'dotty'];
+        ? [sizeLabel.toLowerCase(), 'veggkunst', 'pop-art størrelse', 'interiørkunst', 'kunst til hjemmet', 'dotty']
+        : [sizeLabel.toLowerCase(), 'wall art', 'pop-art size', 'interior art', 'art for home', 'dotty'];
       break;
     }
 
@@ -255,8 +257,8 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = interpolate(template.titleTemplate[locale], vars);
       description = truncateDescription(interpolate(template.descriptionTemplate[locale], vars));
       keywords = locale === 'no'
-        ? [`${typeLabel.toLowerCase()} ${year}`, 'pop-art', 'kunst', 'dotty']
-        : [`${typeLabel.toLowerCase()} ${year}`, 'pop-art', 'art', 'dotty'];
+        ? [`${typeLabel.toLowerCase()} ${year}`, 'pop-art', 'norsk kunst', 'signert kunst', 'dotty']
+        : [`${typeLabel.toLowerCase()} ${year}`, 'pop-art', 'norwegian art', 'signed art', 'dotty'];
       break;
     }
 

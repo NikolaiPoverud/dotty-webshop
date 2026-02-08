@@ -1,60 +1,13 @@
 'use client';
 
-import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { FilterTabs, type FilterOption } from '@/components/shop/filter-tabs';
-import { ProductCard } from '@/components/shop/product-card';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
-import { cn } from '@/lib/utils';
-import { gridItem, transition, tap, spring, fadeUp } from '@/lib/animations';
+import { fadeUp, staggerContainer } from '@/lib/animations';
 import type { CollectionCard, Dictionary, Locale, ProductListItem } from '@/types';
-
-const PRODUCTS_PER_PAGE_DESKTOP = 3;
-const PRODUCTS_PER_PAGE_MOBILE = 1;
-const SWIPE_THRESHOLD = 50;
-
-interface CarouselArrowProps {
-  direction: 'left' | 'right';
-  onClick: () => void;
-}
-
-function CarouselArrow({ direction, onClick }: CarouselArrowProps): React.ReactElement {
-  const isLeft = direction === 'left';
-  const Icon = isLeft ? ChevronLeft : ChevronRight;
-  const positionStyles = isLeft
-    ? 'left-0 -translate-x-1 sm:-translate-x-3 shadow-[3px_3px_0_0_theme(colors.primary)] sm:shadow-[4px_4px_0_0_theme(colors.primary)]'
-    : 'right-0 translate-x-1 sm:translate-x-3 shadow-[-3px_3px_0_0_theme(colors.primary)] sm:shadow-[-4px_4px_0_0_theme(colors.primary)]';
-
-  return (
-    <motion.button
-      initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: isLeft ? -20 : 20 }}
-      transition={transition.normal}
-      whileTap={tap}
-      onClick={onClick}
-      aria-label={isLeft ? 'Previous products' : 'Next products'}
-      className={cn(
-        'group absolute top-1/2 -translate-y-1/2 z-20',
-        'w-12 h-12 sm:w-14 sm:h-14',
-        'bg-background border-[3px] border-primary',
-        'flex items-center justify-center',
-        'transition-all duration-200',
-        'hover:bg-primary active:bg-primary',
-        'touch-manipulation',
-        positionStyles
-      )}
-    >
-      <Icon
-        className="w-6 h-6 sm:w-8 sm:h-8 text-primary group-hover:text-background group-active:text-background transition-colors"
-        strokeWidth={3}
-      />
-    </motion.button>
-  );
-}
 
 interface FeaturedGridProps {
   lang: Locale;
@@ -64,76 +17,31 @@ interface FeaturedGridProps {
   showFilters?: boolean;
 }
 
+function getCollectionHref(lang: Locale, collection: CollectionCard): string {
+  return `/${lang}/shop/${collection.slug}`;
+}
+
 export function FeaturedGrid({
   lang,
   products,
   collections,
   dictionary,
-  showFilters = true,
 }: FeaturedGridProps): React.ReactElement {
   const t = dictionary.shop;
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-  const isNavigating = useRef(false);
 
-  useEffect(() => {
-    const mql = window.matchMedia('(max-width: 639px)');
-    setIsMobile(mql.matches);
-    function handleChange(e: MediaQueryListEvent): void {
-      setIsMobile(e.matches);
-    }
-    mql.addEventListener('change', handleChange);
-    return () => mql.removeEventListener('change', handleChange);
-  }, []);
+  // Pick one representative image per collection
+  const collectionCards = collections
+    .map((collection) => {
+      const collectionProduct = products.find((p) => p.collection_id === collection.id);
+      return {
+        collection,
+        imageUrl: collectionProduct?.image_url ?? null,
+        productCount: products.filter((p) => p.collection_id === collection.id).length,
+      };
+    })
+    .filter((c) => c.imageUrl);
 
-  const filterOptions: FilterOption[] = useMemo(() => {
-    const collectionOptions = collections.map((c) => ({ id: c.id, label: c.name }));
-    return [{ id: 'all', label: t.all }, ...collectionOptions];
-  }, [collections, t.all]);
-
-  const filteredProducts = useMemo(() => {
-    if (activeFilter === 'all') return products;
-    return products.filter((p) => p.collection_id === activeFilter);
-  }, [products, activeFilter]);
-
-  function handleFilterChange(filter: string): void {
-    setActiveFilter(filter);
-    setCurrentPage(0);
-  }
-
-  const productsPerPage = isMobile ? PRODUCTS_PER_PAGE_MOBILE : PRODUCTS_PER_PAGE_DESKTOP;
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const maxPage = Math.max(0, totalPages - 1);
-  const hasNextPage = currentPage < maxPage;
-  const hasPrevPage = currentPage > 0;
-  const isLastPage = currentPage === maxPage && totalPages > 1;
-  const startIndex = currentPage * productsPerPage;
-  const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
-
-  const goToPage = useCallback((direction: 'next' | 'prev') => {
-    if (isNavigating.current) return;
-    isNavigating.current = true;
-
-    setCurrentPage((prev) => {
-      if (direction === 'next') return Math.min(prev + 1, maxPage);
-      return Math.max(prev - 1, 0);
-    });
-
-    setTimeout(() => {
-      isNavigating.current = false;
-    }, 150);
-  }, [maxPage]);
-
-  const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (info.offset.x < -SWIPE_THRESHOLD && hasNextPage) {
-      goToPage('next');
-    } else if (info.offset.x > SWIPE_THRESHOLD && hasPrevPage) {
-      goToPage('prev');
-    }
-  }, [goToPage, hasNextPage, hasPrevPage]);
-
-  if (products.length === 0) {
+  if (collectionCards.length === 0) {
     return (
       <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -146,184 +54,59 @@ export function FeaturedGrid({
   return (
     <section id="art" className="py-20 sm:py-32 relative scroll-mt-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-center mb-4">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <Link
-              href={getLocalizedPath(lang, 'shop')}
-              className="text-sm uppercase tracking-widest text-primary hover:text-primary-light transition-colors"
-            >
-              {t.viewAll} →
-            </Link>
-          </motion.div>
-        </div>
-
-        {showFilters && filterOptions.length > 1 && (
-          <motion.div
-            className="mb-8"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <FilterTabs
-              options={filterOptions}
-              activeId={activeFilter}
-              onChange={handleFilterChange}
-              centered
-            />
-          </motion.div>
-        )}
-
-        <div className="relative">
-          {/* Desktop navigation arrows */}
-          <div className="hidden sm:block">
-            <AnimatePresence>
-              {hasPrevPage && (
-                <CarouselArrow
-                  direction="left"
-                  onClick={() => goToPage('prev')}
-                />
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {hasNextPage && (
-                <CarouselArrow
-                  direction="right"
-                  onClick={() => goToPage('next')}
-                />
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Desktop grid */}
-          <motion.div
-            className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-            layout
-          >
-            <AnimatePresence mode="popLayout">
-              {visibleProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  layout
-                  variants={gridItem}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{ ...spring, layout: spring }}
-                >
-                  <ProductCard
-                    product={product}
-                    lang={lang}
-                    index={index}
-                    priority={currentPage === 0 && index < 2}
-                  />
-                </motion.div>
-              ))}
-              {isLastPage && (
-                <motion.div
-                  key="see-all-cta"
-                  layout
-                  variants={gridItem}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{ ...spring, layout: spring }}
-                  className="flex items-center justify-center"
-                >
-                  <Link
-                    href={getLocalizedPath(lang, 'shop')}
-                    className="group flex flex-col items-center justify-center gap-4 w-full h-full min-h-[300px] border-2 border-dashed border-muted-foreground/30 hover:border-primary transition-colors"
-                  >
-                    <span className="text-xl font-bold text-muted-foreground group-hover:text-primary transition-colors">
-                      {t.viewAll}
-                    </span>
-                    <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </Link>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Mobile swipe carousel */}
-          <div className="sm:hidden overflow-hidden">
-            <AnimatePresence mode="wait">
-              {visibleProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.15}
-                  onDragEnd={handleDragEnd}
-                  initial={{ opacity: 0, x: 60 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -60 }}
-                  transition={transition.fast}
-                  className="touch-pan-y cursor-grab active:cursor-grabbing"
-                >
-                  <ProductCard
-                    product={product}
-                    lang={lang}
-                    index={index}
-                    priority={currentPage === 0 && index < 1}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-3 mt-8 sm:hidden">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i)}
-                  aria-label={`Go to page ${i + 1}`}
-                  className={cn(
-                    'w-3 h-3 rounded-full transition-all touch-manipulation',
-                    i === currentPage ? 'bg-primary scale-125' : 'bg-muted-foreground/30'
-                  )}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* "See more" CTA when on last page - mobile only */}
-          <AnimatePresence>
-            {isLastPage && (
-              <motion.div
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="mt-10 text-center sm:hidden"
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+        >
+          {collectionCards.map(({ collection, imageUrl }) => (
+            <motion.div key={collection.id} variants={fadeUp}>
+              <Link
+                href={getCollectionHref(lang, collection)}
+                className="group block"
               >
-                <Link
-                  href={getLocalizedPath(lang, 'shop')}
-                  className="group inline-flex items-center gap-3 px-8 py-4 bg-primary text-background font-bold text-lg hover:bg-primary-light transition-all duration-300"
-                >
-                  {t.viewAll}
-                  <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                <div className="relative aspect-[3/4] overflow-hidden bg-muted border-[3px] border-transparent group-hover:border-primary transition-all duration-300">
+                  {imageUrl && (
+                    <Image
+                      src={imageUrl}
+                      alt={collection.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                      {collection.name}
+                    </h3>
+                    <span className="inline-flex items-center gap-1.5 text-sm text-white/80 font-medium group-hover:text-primary transition-colors">
+                      {t.viewAll}
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
 
-        {filteredProducts.length === 0 && (
-          <motion.p
-            className="text-muted-foreground text-center py-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="flex justify-center mt-10"
+        >
+          <Link
+            href={getLocalizedPath(lang, 'shop')}
+            className="text-sm uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
           >
-            {t.empty}
-          </motion.p>
-        )}
+            {t.viewAll} →
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
