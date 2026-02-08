@@ -59,10 +59,45 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
   const { cart, itemCount, updateQuantity, removeItem } = useCart();
   const t = dictionary ?? fallbackText[lang];
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Escape key handler
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent): void {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Focus trap
+  const handleFocusTrap = useCallback((e: KeyboardEvent) => {
+    if (e.key !== 'Tab' || !panelRef.current) return;
+    const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener('keydown', handleFocusTrap);
+    return () => document.removeEventListener('keydown', handleFocusTrap);
+  }, [isOpen, handleFocusTrap]);
 
   if (!mounted) return null;
 
@@ -80,11 +115,15 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
           />
 
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.title}
             variants={slideIn}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed right-0 top-0 w-full sm:max-w-md bg-[#0a0a0a] border-l border-border z-[80] flex flex-col shadow-2xl"
+            className="fixed right-0 top-0 w-full sm:max-w-md bg-background border-l border-border z-[80] flex flex-col shadow-2xl"
             style={{ height: '100vh' }}
           >
             <div className="flex items-center justify-between p-4 border-b-[3px] border-primary">
@@ -131,14 +170,15 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="flex gap-4 p-3 bg-muted rounded-lg"
+                        className="flex gap-4 p-3 bg-muted"
                       >
-                        <div className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0">
+                        <div className="relative w-20 h-20 overflow-hidden flex-shrink-0">
                           {item.product.image_url ? (
                             <Image
                               src={item.product.image_url}
                               alt={item.product.title}
                               fill
+                              sizes="80px"
                               className="object-cover"
                             />
                           ) : (
@@ -162,7 +202,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
                               onClick={() =>
                                 updateQuantity(item.product.id, item.quantity - 1, item.selectedSize)
                               }
-                              className="p-2.5 hover:bg-background active:bg-background rounded-lg transition-colors touch-manipulation disabled:opacity-40"
+                              className="p-2.5 hover:bg-background active:bg-background transition-colors touch-manipulation disabled:opacity-40"
                               disabled={item.quantity <= 1}
                               aria-label="Decrease quantity"
                             >
@@ -173,7 +213,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
                               onClick={() =>
                                 updateQuantity(item.product.id, item.quantity + 1, item.selectedSize)
                               }
-                              className="p-2.5 hover:bg-background active:bg-background rounded-lg transition-colors touch-manipulation"
+                              className="p-2.5 hover:bg-background active:bg-background transition-colors touch-manipulation"
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-4 h-4" />
@@ -197,7 +237,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
             </div>
 
             {itemCount > 0 && (
-              <div className="shrink-0 p-4 border-t-[3px] border-primary space-y-3 bg-[#0a0a0a]">
+              <div className="shrink-0 p-4 border-t-[3px] border-primary space-y-3 bg-background">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">{t.subtotal}</span>
                   <span className="text-lg font-bold">{formatPrice(cart.subtotal)}</span>

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { GalleryImage } from '@/types';
+import type { GalleryImage, Locale } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface ProductGalleryProps {
@@ -13,6 +13,7 @@ interface ProductGalleryProps {
   galleryImages?: GalleryImage[];
   title: string;
   isSold?: boolean;
+  lang?: Locale;
 }
 
 const SWIPE_THRESHOLD = 50;
@@ -40,6 +41,7 @@ export function ProductGallery({
   galleryImages,
   title,
   isSold = false,
+  lang = 'no',
 }: ProductGalleryProps): React.ReactElement {
   const allImages = [mainImage, ...(galleryImages?.map((img) => img.url) ?? [])].filter(Boolean);
   const hasMultipleImages = allImages.length > 1;
@@ -113,7 +115,7 @@ export function ProductGallery({
         {isSold && (
           <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20 pointer-events-none">
             <span className="px-8 py-3 bg-foreground text-background text-xl font-bold uppercase tracking-widest">
-              Solgt
+              {lang === 'en' ? 'Sold' : 'Solgt'}
             </span>
           </div>
         )}
@@ -174,6 +176,7 @@ export function ProductGallery({
                 alt={`${title} thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
+                sizes="64px"
               />
             </button>
           ))}

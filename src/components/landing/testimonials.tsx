@@ -3,9 +3,10 @@
 import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Facebook, MessageCircle } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { TestimonialCard } from '@/types';
+import { slideItem } from '@/lib/animations';
 
 const SWIPE_THRESHOLD = 50;
 
@@ -24,20 +25,6 @@ const SOURCE_ICONS: Record<string, React.ReactNode> = {
   Facebook: <Facebook className="w-8 h-8" />,
 };
 
-const SLIDE_VARIANTS = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 100 : -100,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 100 : -100,
-    opacity: 0,
-  }),
-};
 
 function NavButton({ direction, onClick }: NavButtonProps): React.ReactElement {
   const isPrev = direction === 'prev';
@@ -64,6 +51,8 @@ function getSourceIcon(source: string): React.ReactNode {
 export function Testimonials({ testimonials }: TestimonialsProps): React.ReactElement | null {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const goToNext = useCallback((): void => {
     setDirection(1);
@@ -81,11 +70,11 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
   }, [currentIndex]);
 
   useEffect(() => {
-    if (testimonials.length <= 1) return;
+    if (testimonials.length <= 1 || isPaused) return;
 
     const timer = setInterval(goToNext, 6000);
     return () => clearInterval(timer);
-  }, [goToNext, testimonials.length]);
+  }, [goToNext, testimonials.length, isPaused]);
 
   const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (testimonials.length <= 1) return;
@@ -102,7 +91,14 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
   const showNavigation = testimonials.length > 1;
 
   return (
-    <section className="py-16 sm:py-24 bg-muted/30">
+    <section
+      ref={sectionRef}
+      className="py-16 sm:py-24 bg-muted/30"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={() => setIsPaused(false)}
+    >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center">
           {/* Desktop-only nav buttons */}
@@ -117,11 +113,10 @@ export function Testimonials({ testimonials }: TestimonialsProps): React.ReactEl
               <motion.div
                 key={currentIndex}
                 custom={direction}
-                variants={SLIDE_VARIANTS}
+                variants={slideItem}
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className="flex flex-col items-center w-full"
                 drag={showNavigation ? 'x' : false}
                 dragConstraints={{ left: 0, right: 0 }}

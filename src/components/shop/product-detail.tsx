@@ -261,6 +261,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
         <motion.button
           onClick={handleAddToCart}
           disabled={sizeNotSelected}
+          aria-label={sizeNotSelected ? (lang === 'no' ? 'Velg størrelse' : 'Select size') : t.addToCart}
           className={`group w-full py-4 font-semibold uppercase tracking-wider transition-all duration-200 touch-manipulation ${
             sizeNotSelected
               ? 'bg-muted border-[3px] border-muted-foreground/30 text-muted-foreground cursor-not-allowed shadow-[0_4px_0_0_theme(colors.border)]'
@@ -312,6 +313,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
               galleryImages={galleryImages}
               title={product.title}
               isSold={isSold}
+              lang={lang}
             />
           </motion.div>
 
@@ -364,7 +366,19 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 <div className="relative" ref={sizeDropdownRef}>
                   <button
                     type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isSizeDropdownOpen}
+                    aria-label={lang === 'no' ? 'Velg størrelse' : 'Select size'}
                     onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape' && isSizeDropdownOpen) {
+                        e.preventDefault();
+                        setIsSizeDropdownOpen(false);
+                      } else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !isSizeDropdownOpen) {
+                        e.preventDefault();
+                        setIsSizeDropdownOpen(true);
+                      }
+                    }}
                     className={`w-full px-4 py-4 sm:py-3 bg-background border-[3px] text-left font-semibold flex items-center justify-between transition-all touch-manipulation ${
                       selectedSizeIndex === null
                         ? 'border-warning shadow-[3px_3px_0_0_theme(colors.warning)] hover:shadow-[4px_4px_0_0_theme(colors.warning)] active:shadow-[4px_4px_0_0_theme(colors.warning)]'
@@ -396,6 +410,8 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
                   {isSizeDropdownOpen && (
                     <motion.div
+                      role="listbox"
+                      aria-label={lang === 'no' ? 'Størrelse' : 'Size'}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -408,9 +424,25 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                           <button
                             key={`${size.width}x${size.height}`}
                             type="button"
+                            role="option"
+                            aria-selected={isSelected}
                             onClick={() => {
                               setSelectedSizeIndex(index);
                               setIsSizeDropdownOpen(false);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                const next = (e.currentTarget.nextElementSibling as HTMLElement | null);
+                                next?.focus();
+                              } else if (e.key === 'ArrowUp') {
+                                e.preventDefault();
+                                const prev = (e.currentTarget.previousElementSibling as HTMLElement | null);
+                                prev?.focus();
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                setIsSizeDropdownOpen(false);
+                              }
                             }}
                             className={`w-full px-4 py-4 sm:py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center touch-manipulation ${
                               isSelected
@@ -466,7 +498,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Description */}
             {product.description && (
-              <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-wrap text-sm">
+              <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-wrap text-base">
                 {product.description}
               </p>
             )}

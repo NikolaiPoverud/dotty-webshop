@@ -52,7 +52,7 @@ export default function AboutPage({
 
   return (
     <div className="min-h-screen pt-24 pb-16">
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero with image */}
         <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center mb-16 md:mb-24">
           {/* Text */}

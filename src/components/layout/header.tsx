@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -67,7 +67,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
   const [isVisible, setIsVisible] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [activeHash, setActiveHash] = useState('');
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
 
   const { itemCount } = useCart();
   const pathname = usePathname();
@@ -88,7 +88,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
   useEffect(() => {
     setHostname(window.location.hostname);
     setActiveHash(window.location.hash);
-    setLastScrollY(window.scrollY);
+    lastScrollY.current = window.scrollY;
 
     function handleHashChange(): void {
       setActiveHash(window.location.hash);
@@ -99,7 +99,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
       setIsVisible(currentScrollY > 100);
 
       if (isProductPage) {
-        const scrollDelta = currentScrollY - lastScrollY;
+        const scrollDelta = currentScrollY - lastScrollY.current;
 
         if (Math.abs(scrollDelta) > 10) {
           if (scrollDelta > 0 && currentScrollY > 100) {
@@ -107,7 +107,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
           } else if (scrollDelta < 0) {
             setIsHidden(false);
           }
-          setLastScrollY(currentScrollY);
+          lastScrollY.current = currentScrollY;
         }
       }
     }
@@ -119,7 +119,7 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isProductPage, lastScrollY]);
+  }, [isProductPage]);
 
   function handleLogoClick(): void {
     if (isHomePage) {

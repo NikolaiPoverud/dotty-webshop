@@ -13,7 +13,7 @@ interface ConsentCheckboxesProps {
 }
 
 const CHECKBOX_CLASS =
-  'mt-0.5 w-5 h-5 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0';
+  'mt-0.5 w-6 h-6 rounded border-border bg-muted text-primary focus:ring-primary focus:ring-offset-0';
 
 const LABEL_CLASS =
   'text-sm text-muted-foreground group-hover:text-foreground group-active:text-foreground transition-colors';

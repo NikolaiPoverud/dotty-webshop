@@ -91,7 +91,7 @@ export function FacetedShopContent({
               <Link
                 key={facet.href}
                 href={facet.href}
-                className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm"
+                className="px-4 py-2 bg-muted text-foreground hover:bg-muted/80 transition-colors text-sm"
               >
                 {facet.label}
                 {facet.count !== undefined && (

@@ -77,13 +77,6 @@ html {
               0 0 90px rgba(254, 32, 106, 0.2);
 }
 
-/* Halftone Pattern Background */
-.halftone-pattern {
-  background-image: radial-gradient(circle, var(--primary) 1px, transparent 1px);
-  background-size: 20px 20px;
-  opacity: 0.1;
-}
-
 /* Bold Outline Style */
 .pop-outline {
   border: 3px solid var(--foreground);
@@ -95,9 +88,12 @@ html {
   box-shadow: 6px 6px 0 var(--foreground);
 }
 
-/* Dotty Pink Text */
+/* Dotty Pink Gradient Text */
 .gradient-text {
-  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Focus styles */

@@ -270,7 +270,7 @@ export function FeaturedGrid({
                     product={product}
                     lang={lang}
                     index={index}
-                    priority={index < 2}
+                    priority={currentPage === 0 && index < 1}
                   />
                 </motion.div>
               ))}

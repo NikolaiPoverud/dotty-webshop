@@ -145,7 +145,7 @@ export function ShippingSelector({
   // If postal code is not complete, show placeholder
   if (!postalCode || postalCode.length < 4) {
     return (
-      <div className="bg-muted/50 rounded-lg p-4 border border-border">
+      <div className="bg-muted/50 p-4 border border-border">
         <p className="text-muted-foreground text-sm text-center">
           {t.enterPostalCode}
         </p>
@@ -156,7 +156,7 @@ export function ShippingSelector({
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-muted/50 rounded-lg p-6 border border-border">
+      <div className="bg-muted/50 p-6 border border-border">
         <div className="flex items-center justify-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
           <span className="text-muted-foreground">{t.loading}</span>
@@ -168,7 +168,7 @@ export function ShippingSelector({
   // Error state
   if (error) {
     return (
-      <div className="bg-error/10 rounded-lg p-4 border border-error/20">
+      <div className="bg-error/10 p-4 border border-error/20">
         <p className="text-error text-sm text-center">{error}</p>
       </div>
     );
@@ -177,7 +177,7 @@ export function ShippingSelector({
   // No options
   if (options.length === 0) {
     return (
-      <div className="bg-muted/50 rounded-lg p-4 border border-border">
+      <div className="bg-muted/50 p-4 border border-border">
         <p className="text-muted-foreground text-sm text-center">
           {t.noOptions}
         </p>
@@ -198,7 +198,7 @@ export function ShippingSelector({
               type="button"
               onClick={() => !disabled && onSelect(option)}
               disabled={disabled}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all touch-manipulation ${
+              className={`w-full text-left p-4 border-2 transition-all touch-manipulation ${
                 isSelected
                   ? 'border-primary bg-primary/5'
                   : 'border-border hover:border-primary/50 active:border-primary/50 bg-muted/30'
@@ -230,7 +230,7 @@ export function ShippingSelector({
                 <div className="text-right">
                   <div className={`font-semibold ${isSelected ? 'text-primary' : ''}`}>
                     {freeShipping ? (
-                      <span className="text-success">Gratis</span>
+                      <span className="text-success">{locale === 'en' ? 'Free' : 'Gratis'}</span>
                     ) : (
                       formatPrice(option.priceWithVat)
                     )}

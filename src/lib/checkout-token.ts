@@ -1,5 +1,8 @@
 import { createHmac, timingSafeEqual as cryptoTimingSafeEqual } from 'crypto';
 
+// CHECKOUT_TOKEN_SECRET is required in production.
+// Generate a secure random string (32+ chars) and set it as an env var.
+// In development, a hardcoded fallback is used if not set.
 const TOKEN_SECRET = process.env.CHECKOUT_TOKEN_SECRET;
 const TOKEN_EXPIRY_MS = 30 * 60 * 1000;
 

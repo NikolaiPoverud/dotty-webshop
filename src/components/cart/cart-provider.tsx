@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useReducer, useEffect, useRef, type ReactNode } from 'react';
 
 import type { Product, CartProduct, CartItem, Cart, ProductSize } from '@/types';
 import { calculateCartTotalsSimple, type CartItemInput } from '@/lib/services/cart-service';
@@ -194,13 +194,18 @@ export function CartProvider({ children }: { children: ReactNode }): React.React
     }
   }, []);
 
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
-    const storedCart: StoredCart = {
-      version: CART_STORAGE_VERSION,
-      timestamp: Date.now(),
-      cart,
-    };
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(storedCart));
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      const storedCart: StoredCart = {
+        version: CART_STORAGE_VERSION,
+        timestamp: Date.now(),
+        cart,
+      };
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(storedCart));
+    }, 500);
+    return () => clearTimeout(saveTimer.current);
   }, [cart]);
 
   useEffect(() => {
@@ -208,45 +213,45 @@ export function CartProvider({ children }: { children: ReactNode }): React.React
     return () => clearInterval(interval);
   }, []);
 
-  function addItem(product: Product, quantity = 1, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize): void {
+  const addItem = useCallback((product: Product, quantity = 1, reservationId?: string, expiresAt?: string, selectedSize?: ProductSize): void => {
     dispatch({ type: 'ADD_ITEM', payload: { product, quantity, reservationId, expiresAt, selectedSize } });
-  }
+  }, []);
 
-  function removeItem(productId: string, selectedSize?: ProductSize): void {
+  const removeItem = useCallback((productId: string, selectedSize?: ProductSize): void => {
     dispatch({ type: 'REMOVE_ITEM', payload: { productId, selectedSize } });
-  }
+  }, []);
 
-  function updateQuantity(productId: string, quantity: number, selectedSize?: ProductSize): void {
+  const updateQuantity = useCallback((productId: string, quantity: number, selectedSize?: ProductSize): void => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity, selectedSize } });
-  }
+  }, []);
 
-  function applyDiscount(code: string, amount: number, freeShipping?: boolean): void {
+  const applyDiscount = useCallback((code: string, amount: number, freeShipping?: boolean): void => {
     dispatch({ type: 'APPLY_DISCOUNT', payload: { code, amount, freeShipping } });
-  }
+  }, []);
 
-  function clearDiscount(): void {
+  const clearDiscount = useCallback((): void => {
     dispatch({ type: 'CLEAR_DISCOUNT' });
-  }
+  }, []);
 
-  function clearCart(): void {
+  const clearCart = useCallback((): void => {
     dispatch({ type: 'CLEAR_CART' });
-  }
+  }, []);
 
-  const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const itemCount = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
+
+  const contextValue = useMemo(() => ({
+    cart,
+    addItem,
+    removeItem,
+    updateQuantity,
+    applyDiscount,
+    clearDiscount,
+    clearCart,
+    itemCount,
+  }), [cart, addItem, removeItem, updateQuantity, applyDiscount, clearDiscount, clearCart, itemCount]);
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addItem,
-        removeItem,
-        updateQuantity,
-        applyDiscount,
-        clearDiscount,
-        clearCart,
-        itemCount,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

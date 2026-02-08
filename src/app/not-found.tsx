@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
@@ -13,7 +14,30 @@ const DECORATIVE_DOTS = [
   { x: '90%', y: '60%' },
 ];
 
+const notFoundText = {
+  no: {
+    heading: 'Dette kunstverket finnes ikke',
+    description: 'Kanskje det allerede er solgt, eller så har du funnet en side som ikke eksisterer.',
+    backToGallery: 'Tilbake til galleriet',
+  },
+  en: {
+    heading: 'This artwork does not exist',
+    description: 'Perhaps it has already been sold, or you have found a page that does not exist.',
+    backToGallery: 'Back to gallery',
+  },
+};
+
 export default function NotFound() {
+  const [lang, setLang] = useState<'no' | 'en'>('no');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setLang(window.location.pathname.split('/')[1] === 'en' ? 'en' : 'no');
+    }
+  }, []);
+
+  const t = notFoundText[lang];
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center">
@@ -42,10 +66,10 @@ export default function NotFound() {
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Dette kunstverket finnes ikke
+            {t.heading}
           </h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Kanskje det allerede er solgt, eller så har du funnet en side som ikke eksisterer.
+            {t.description}
           </p>
         </motion.div>
 
@@ -55,11 +79,11 @@ export default function NotFound() {
           transition={{ delay: 0.4 }}
         >
           <Link
-            href="/no"
+            href={`/${lang}`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-background font-medium rounded-lg hover:bg-primary-light transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            Tilbake til galleriet
+            {t.backToGallery}
           </Link>
         </motion.div>
 

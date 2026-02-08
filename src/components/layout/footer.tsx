@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { Mail, Shield, RotateCcw } from 'lucide-react';
@@ -7,7 +5,7 @@ import { SiInstagram, SiTiktok } from '@icons-pack/react-simple-icons';
 import type { Dictionary, Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
-import { resetCookieConsent } from '@/components/gdpr/cookie-consent';
+import { CookieResetButton } from '@/components/layout/cookie-reset-button';
 
 interface TrustBadgeProps {
   icon: LucideIcon;
@@ -38,11 +36,6 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
       return `/${lang}/shop`;
     }
     return `/${lang}/shop/${collection.slug}`;
-  }
-
-  function handleCookieReset(): void {
-    resetCookieConsent();
-    window.location.reload();
   }
 
   return (
@@ -127,12 +120,7 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
             >
               {t.terms}
             </Link>
-            <button
-              onClick={handleCookieReset}
-              className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"
-            >
-              {t.cookies}
-            </button>
+            <CookieResetButton label={t.cookies} />
             <Link
               href={`/${lang}/my-data`}
               className="text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors py-2 px-3 touch-manipulation"

@@ -37,7 +37,7 @@ export async function generateStaticParams(): Promise<Array<{ lang: string; slug
   return locales.flatMap((lang) => slugs.map((slug) => ({ lang, slug })));
 }
 
-const PRODUCT_DETAIL_COLUMNS = 'id, title, slug, description, price, image_url, image_path, product_type, stock_quantity, sizes, is_available, is_featured, is_public, collection_id, requires_inquiry, year, shipping_size, shipping_cost, gallery_images, display_order';
+const PRODUCT_DETAIL_COLUMNS = 'id, title, slug, description, sku, price, image_url, image_path, product_type, stock_quantity, sizes, is_available, is_featured, is_public, collection_id, requires_inquiry, year, shipping_size, shipping_cost, gallery_images, display_order, created_at, updated_at';
 
 async function getCollection(slug: string): Promise<CollectionCard | null> {
   const supabase = createCachedPublicClient();

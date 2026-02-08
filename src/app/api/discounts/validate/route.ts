@@ -33,19 +33,19 @@ export async function POST(request: Request): Promise<NextResponse> {
       .single();
 
     if (error || !discount) {
-      return NextResponse.json({ error: 'Invalid discount code', valid: false }, { status: 404 });
+      return NextResponse.json({ error: 'Invalid discount code', valid: false }, { status: 400 });
     }
 
     if (!discount.is_active) {
-      return NextResponse.json({ error: 'This discount code is no longer active', valid: false }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid discount code', valid: false }, { status: 400 });
     }
 
     if (discount.expires_at && new Date(discount.expires_at) < new Date()) {
-      return NextResponse.json({ error: 'This discount code has expired', valid: false }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid discount code', valid: false }, { status: 400 });
     }
 
     if (discount.uses_remaining !== null && discount.uses_remaining <= 0) {
-      return NextResponse.json({ error: 'This discount code has been fully redeemed', valid: false }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid discount code', valid: false }, { status: 400 });
     }
 
     const effectiveSubtotal = subtotal || 0;

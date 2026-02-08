@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import type { Locale, ProductListItem } from '@/types';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { ProductCard } from '@/components/shop/product-card';
+import { fadeUp } from '@/lib/animations';
 
 const MAX_RELATED_PRODUCTS = 4;
 
@@ -49,8 +50,9 @@ export function RelatedProducts({ products, lang }: RelatedProductsProps): React
           {displayProducts.map((product, index) => (
             <motion.div
               key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >

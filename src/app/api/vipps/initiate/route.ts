@@ -6,6 +6,8 @@ import { validateCheckoutToken } from '@/lib/checkout-token';
 import { validateCartServerSide, calculateArtistLevy } from '@/lib/checkout-validation';
 import type { ShippingAddress, OrderItem, Locale } from '@/types';
 
+const VALID_SHIPPING_COST = 9900; // 99 NOK in ore - flat shipping fee
+
 interface VippsCheckoutRequest {
   items: OrderItem[];
   customer_email: string;
@@ -76,6 +78,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Use server-validated prices and discount
     const validatedItems = cartValidation.items!;
     const validatedDiscountAmount = cartValidation.discountAmount ?? 0;
+
+    // Server-validate shipping cost against known rates
+    let hasFreeShipping = false;
+    if (discount_code) {
+      const supabaseCheck = createAdminClient();
+      const { data: discountData } = await supabaseCheck
+        .from('discount_codes')
+        .select('free_shipping')
+        .eq('code', discount_code.toUpperCase())
+        .eq('is_active', true)
+        .single();
+      hasFreeShipping = discountData?.free_shipping === true;
+    }
+    const expectedShippingCost = hasFreeShipping ? 0 : VALID_SHIPPING_COST;
+    if (shipping_cost !== expectedShippingCost) {
+      return NextResponse.json(
+        { error: 'Invalid shipping cost. Please refresh the page and try again.' },
+        { status: 400 },
+      );
+    }
 
     // Calculate totals with server-validated values
     const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);

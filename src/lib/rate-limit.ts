@@ -112,8 +112,14 @@ export async function checkRateLimit(
     }
   }
 
+  // In production, fail closed when KV is not configured - deny the request
   if (isProduction && !isKvConfigured()) {
-    console.warn('KV not configured in production - rate limiting disabled for this request');
+    console.warn('KV not configured in production - denying request (fail closed)');
+    return {
+      success: false,
+      remaining: 0,
+      resetTime: now + config.windowMs,
+    };
   }
 
   return checkRateLimitWithMemory(key, config, now);
@@ -128,7 +134,7 @@ export function getClientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
     const ips = forwarded.split(',').map((ip) => ip.trim()).filter(Boolean);
-    return ips[ips.length - 1] || 'unknown';
+    return ips[0] || 'unknown';
   }
 
   return 'unknown';

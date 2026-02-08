@@ -12,7 +12,7 @@ export function Skeleton({ className }: SkeletonProps): React.ReactElement {
 
 export function ProductCardSkeleton(): React.ReactElement {
   return (
-    <div className="bg-muted rounded-lg overflow-hidden">
+    <div className="bg-muted overflow-hidden">
       <div className="relative aspect-[4/5] overflow-hidden">
         <Skeleton className="absolute inset-0 rounded-none" />
         <div className="absolute top-4 left-4">
@@ -49,7 +49,7 @@ export function FilterTabsSkeleton(): React.ReactElement {
   return (
     <div className="flex justify-center gap-2">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-20 rounded-full" />
+        <Skeleton key={i} className="h-10 w-20" />
       ))}
     </div>
   );
@@ -93,7 +93,7 @@ export function ProductDetailSkeleton(): React.ReactElement {
               <Skeleton className="h-4 w-2/3" />
             </div>
 
-            <Skeleton className="h-14 w-full rounded-full mt-4" />
+            <Skeleton className="h-14 w-full mt-4" />
           </div>
         </div>
       </div>

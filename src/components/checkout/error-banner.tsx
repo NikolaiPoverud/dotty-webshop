@@ -25,6 +25,7 @@ export function ErrorBanner({ error, description, onDismiss }: ErrorBannerProps)
       </div>
       <button
         onClick={onDismiss}
+        aria-label="Dismiss"
         className="text-muted-foreground hover:text-foreground transition-colors"
       >
         <X className="w-5 h-5" />

@@ -82,7 +82,7 @@ export function DiscountCodeInput({
           type="button"
           onClick={handleApply}
           disabled={isDisabled || !discountInput.trim()}
-          className="px-6 py-4 sm:py-3 bg-muted hover:bg-muted/80 active:bg-muted/80 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          className="px-6 py-4 sm:py-3 bg-muted hover:bg-muted/80 active:bg-muted/80 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t.apply}
         </button>

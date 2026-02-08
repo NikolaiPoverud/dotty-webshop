@@ -8,6 +8,8 @@ import { validateCheckoutRequest } from '@/lib/schemas/checkout';
 import { validateCartServerSide, calculateArtistLevy } from '@/lib/checkout-validation';
 import type { ShippingAddress, OrderItem, Locale } from '@/types';
 
+const VALID_SHIPPING_COST = 9900; // 99 NOK in ore - flat shipping fee
+
 const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 60000 };
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -76,6 +78,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   // Use server-validated prices and discount
   const validatedItems = cartValidationResult.items!;
   const validatedDiscountAmount = cartValidationResult.discountAmount ?? 0;
+
+  // Server-validate shipping cost against known rates
+  let hasFreeShipping = false;
+  if (discount_code) {
+    const supabaseAdmin = createAdminClient();
+    const { data: discountData } = await supabaseAdmin
+      .from('discount_codes')
+      .select('free_shipping')
+      .eq('code', discount_code.toUpperCase())
+      .eq('is_active', true)
+      .single();
+    hasFreeShipping = discountData?.free_shipping === true;
+  }
+  const expectedShippingCost = hasFreeShipping ? 0 : VALID_SHIPPING_COST;
+  if (shipping_cost !== expectedShippingCost) {
+    return NextResponse.json(
+      { error: 'Invalid shipping cost. Please refresh the page and try again.' },
+      { status: 400 },
+    );
+  }
 
   const stripe = getStripe();
   const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
