@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import type { CheckoutText } from '@/lib/i18n/cart-checkout-text';
@@ -18,6 +19,28 @@ export function MobileCheckoutBar({
   isLoading,
   onCheckout,
 }: MobileCheckoutBarProps): React.ReactElement {
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  useEffect(() => {
+    function handleFocusIn(e: FocusEvent): void {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+        setIsInputFocused(true);
+      }
+    }
+    function handleFocusOut(): void {
+      setIsInputFocused(false);
+    }
+    document.addEventListener('focusin', handleFocusIn);
+    document.addEventListener('focusout', handleFocusOut);
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn);
+      document.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
+
+  if (isInputFocused) return <></>;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 lg:hidden">
       <div className="flex items-center justify-between mb-2">

@@ -11,12 +11,12 @@ const COUNTRY_OF_ORIGIN = { '@type': 'Country', name: 'Norway' } as const;
 const PRODUCT_TYPE_INFO = {
   original: {
     label: 'Original',
-    category: 'Original Artwork',
+    category: 'Visual Arts > Original Artwork > Hand-Painted Pop Art',
     material: 'Canvas',
   },
   print: {
     label: 'Print',
-    category: 'Art Print',
+    category: 'Visual Arts > Art Prints > Limited Edition Signed Print',
     material: 'Fine Art Paper',
   },
 } as const;
@@ -112,11 +112,19 @@ export function ProductJsonLd({ product, lang, testimonials }: ProductJsonLdProp
     ? 'https://schema.org/InStock'
     : 'https://schema.org/OutOfStock';
 
+  const defaultDescription = product.product_type === 'original'
+    ? (lang === 'no'
+      ? `${product.title} – håndmalt originalt pop-art kunstverk av norsk kunstner Dotty. Signert og unikt.`
+      : `${product.title} – hand-painted original pop-art artwork by Norwegian artist Dotty. Signed and unique.`)
+    : (lang === 'no'
+      ? `${product.title} – signert limited edition pop-art kunsttrykk av norsk kunstner Dotty.`
+      : `${product.title} – signed limited edition pop-art print by Norwegian artist Dotty.`);
+
   const structuredData: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
-    description: product.description || `${typeInfo.label} pop-art by Dotty.`,
+    description: product.description || defaultDescription,
     image: product.image_url,
     sku: product.id,
     brand: BRAND,
@@ -124,6 +132,9 @@ export function ProductJsonLd({ product, lang, testimonials }: ProductJsonLdProp
     category: typeInfo.category,
     material: typeInfo.material,
     countryOfOrigin: COUNTRY_OF_ORIGIN,
+    keywords: product.product_type === 'original'
+      ? 'pop-art, original artwork, painting, hand-painted, signed art, wall art, norwegian art, modern art'
+      : 'pop-art, art print, poster, art poster, limited edition, signed art, wall art, norwegian art, art gift',
     offers: buildOffers(product, lang, availability),
   };
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, Menu, ShoppingBag, X } from 'lucide-react';
 
 import { CartPanel } from '@/components/cart/cart-panel';
@@ -126,6 +126,13 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
       window.removeEventListener('open-cart', handleOpenCart);
     };
   }, [isProductPage]);
+
+  // Body scroll lock for mobile menu
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [isMenuOpen]);
 
   function handleLogoClick(): void {
     if (isHomePage) {
@@ -263,134 +270,136 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
         </div>
       </div>
 
-      {isMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="sm:hidden absolute top-full left-0 right-0 bg-background border-b-[3px] border-primary max-h-[calc(100vh-4rem)] overflow-y-auto"
-        >
-          <nav className="flex flex-col p-5 gap-1">
-            {!isHomePage && (
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="sm:hidden absolute top-full left-0 right-0 bg-background border-b-[3px] border-primary max-h-[calc(100dvh-4rem)] overflow-y-auto"
+          >
+            <nav className="flex flex-col p-5 gap-1">
+              {!isHomePage && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 }}
+                >
+                  <Link
+                    href={`/${lang}`}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-xl font-bold uppercase tracking-widest hover:text-primary active:text-primary transition-colors py-4 block touch-manipulation"
+                  >
+                    {t.home}
+                  </Link>
+                </motion.div>
+              )}
+
+              {NAV_SECTIONS.map((section, i) => {
+                const hash = `#${section}`;
+                const isActive = activeHash === hash;
+                return (
+                  <motion.div
+                    key={section}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 * (i + 1) }}
+                  >
+                    <Link
+                      href={`/${lang}${hash}`}
+                      onClick={(e) => handleMobileNavClick(e, hash)}
+                      className={cn(
+                        'text-xl font-bold uppercase tracking-widest transition-colors py-4 block touch-manipulation',
+                        isActive ? 'text-primary' : 'hover:text-primary active:text-primary'
+                      )}
+                    >
+                      {t[section]}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+
+              <div className="border-t-2 border-border my-3" />
+
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 }}
+                transition={{ delay: 0.2 }}
               >
                 <Link
-                  href={`/${lang}`}
+                  href={getLocalizedPath(lang, 'shop')}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-xl font-bold uppercase tracking-widest hover:text-primary active:text-primary transition-colors py-4 block touch-manipulation"
+                  className="text-xl font-bold uppercase tracking-widest hover:text-primary active:text-primary transition-colors py-4 flex items-center justify-between touch-manipulation"
                 >
-                  {t.home}
+                  {t.shop}
+                  <ChevronRight className="w-6 h-6 text-primary" />
                 </Link>
               </motion.div>
-            )}
 
-            {NAV_SECTIONS.map((section, i) => {
-              const hash = `#${section}`;
-              const isActive = activeHash === hash;
-              return (
+              {collections.length > 0 && (
                 <motion.div
-                  key={section}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 * (i + 1) }}
+                  className="pt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.25 }}
                 >
-                  <Link
-                    href={`/${lang}${hash}`}
-                    onClick={(e) => handleMobileNavClick(e, hash)}
-                    className={cn(
-                      'text-xl font-bold uppercase tracking-widest transition-colors py-4 block touch-manipulation',
-                      isActive ? 'text-primary' : 'hover:text-primary active:text-primary'
-                    )}
-                  >
-                    {t[section]}
-                  </Link>
-                </motion.div>
-              );
-            })}
-
-            <div className="border-t-2 border-border my-3" />
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Link
-                href={getLocalizedPath(lang, 'shop')}
-                onClick={() => setIsMenuOpen(false)}
-                className="text-xl font-bold uppercase tracking-widest hover:text-primary active:text-primary transition-colors py-4 flex items-center justify-between touch-manipulation"
-              >
-                {t.shop}
-                <ChevronRight className="w-6 h-6 text-primary" />
-              </Link>
-            </motion.div>
-
-            {collections.length > 0 && (
-              <motion.div
-                className="pt-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.25 }}
-              >
-                <p className="text-xs uppercase tracking-widest text-muted-foreground py-2 font-medium">
-                  {t.collections}
-                </p>
-                <div className="flex flex-col">
-                  {collections.map((collection, i) => (
-                    <motion.div
-                      key={collection.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.25 + (i * 0.05) }}
-                    >
-                      <Link
-                        href={`${getLocalizedPath(lang, 'shop')}?collection=${collection.id}`}
-                        onClick={() => setIsMenuOpen(false)}
-                        className="text-lg hover:text-primary active:text-primary transition-colors py-3 pl-3 border-l-[3px] border-muted hover:border-primary active:border-primary block touch-manipulation"
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground py-2 font-medium">
+                    {t.collections}
+                  </p>
+                  <div className="flex flex-col">
+                    {collections.map((collection, i) => (
+                      <motion.div
+                        key={collection.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 + (i * 0.05) }}
                       >
-                        {collection.name}
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            <div className="border-t-2 border-border my-3" />
-
-            <motion.button
-              onClick={openCart}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.35 }}
-              className="text-xl font-bold uppercase tracking-widest hover:text-primary active:text-primary transition-colors py-4 flex items-center gap-3 w-full text-left touch-manipulation"
-            >
-              <ShoppingBag className="w-6 h-6" />
-              {t.cart}
-              {itemCount > 0 && (
-                <span className="ml-auto bg-primary text-background text-sm font-bold px-3 py-1 rounded-full">
-                  {itemCount}
-                </span>
+                        <Link
+                          href={`${getLocalizedPath(lang, 'shop')}?collection=${collection.id}`}
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg hover:text-primary active:text-primary transition-colors py-3 pl-3 border-l-[3px] border-muted hover:border-primary active:border-primary block touch-manipulation"
+                        >
+                          {collection.name}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
               )}
-            </motion.button>
 
-            <motion.a
-              href={langSwitchUrl}
-              onClick={() => setIsMenuOpen(false)}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-base uppercase tracking-widest text-muted-foreground hover:text-primary active:text-primary transition-colors py-4 touch-manipulation"
-            >
-              {altLang === 'en' ? '🇬🇧 English' : '🇳🇴 Norsk'}
-            </motion.a>
-          </nav>
-        </motion.div>
-      )}
+              <div className="border-t-2 border-border my-3" />
+
+              <motion.button
+                onClick={openCart}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 }}
+                className="text-xl font-bold uppercase tracking-widest hover:text-primary active:text-primary transition-colors py-4 flex items-center gap-3 w-full text-left touch-manipulation"
+              >
+                <ShoppingBag className="w-6 h-6" />
+                {t.cart}
+                {itemCount > 0 && (
+                  <span className="ml-auto bg-primary text-background text-sm font-bold px-3 py-1 rounded-full">
+                    {itemCount}
+                  </span>
+                )}
+              </motion.button>
+
+              <motion.a
+                href={langSwitchUrl}
+                onClick={() => setIsMenuOpen(false)}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-base uppercase tracking-widest text-muted-foreground hover:text-primary active:text-primary transition-colors py-4 touch-manipulation"
+              >
+                {altLang === 'en' ? '🇬🇧 English' : '🇳🇴 Norsk'}
+              </motion.a>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <CartPanel isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} lang={lang} />
     </header>

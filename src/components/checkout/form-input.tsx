@@ -11,6 +11,8 @@ export interface FormInputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  pattern?: string;
 }
 
 const AUTOCOMPLETE_MAP: Record<string, string> = {
@@ -31,6 +33,8 @@ export function FormInput({
   value,
   onChange,
   className,
+  inputMode,
+  pattern,
 }: FormInputProps): React.ReactElement {
   const autoComplete = AUTOCOMPLETE_MAP[type] ?? AUTOCOMPLETE_MAP[name];
   const inputId = `field-${name}`;
@@ -50,6 +54,8 @@ export function FormInput({
         onChange={onChange}
         className={INPUT_CLASS}
         autoComplete={autoComplete}
+        inputMode={inputMode}
+        pattern={pattern}
       />
     </div>
   );

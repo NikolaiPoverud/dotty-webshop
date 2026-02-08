@@ -53,20 +53,20 @@ export const SEO_TEMPLATES: Record<PageType, {
       en: 'Dotty. | Buy Pop-Art from Norwegian Artist',
     },
     descriptionTemplate: {
-      no: 'Kjøp unik pop-art veggkunst. Håndmalte originaler og signerte limited edition trykk fra norsk kunstner i Oslo. Kunstgaver og interiørkunst med personlighet.',
-      en: 'Buy unique pop-art wall art. Hand-painted originals and signed limited edition prints from Norwegian artist in Oslo. Art gifts and interior art with personality.',
+      no: 'Kjøp unike pop-art malerier, plakater og kunsttrykk. Håndmalte originaler og signerte limited edition trykk fra norsk kunstner i Oslo. Kunstgaver og veggkunst med personlighet.',
+      en: 'Buy unique pop-art paintings, posters and art prints. Hand-painted originals and signed limited edition prints from Norwegian artist in Oslo. Art gifts and wall art with personality.',
     },
     priority: 1.0,
     changeFrequency: 'daily',
   },
   shop: {
     titleTemplate: {
-      no: 'Kunstbutikk | Kjøp Veggkunst & Pop-Art | Dotty.',
-      en: 'Art Shop | Buy Wall Art & Pop-Art | Dotty.',
+      no: 'Kunstbutikk | Malerier, Plakater & Pop-Art | Dotty.',
+      en: 'Art Shop | Paintings, Posters & Pop-Art | Dotty.',
     },
     descriptionTemplate: {
-      no: 'Kjøp signert pop-art veggkunst. Håndmalte originaler og limited edition kunsttrykk fra norsk kunstner. Frakt 99 kr.',
-      en: 'Buy signed pop-art wall art. Hand-painted originals and limited edition art prints from Norwegian artist. Shipping 99 kr.',
+      no: 'Kjøp signerte pop-art malerier, kunstplakater og veggkunst. Håndmalte originaler og limited edition trykk fra norsk kunstner. Frakt 99 kr.',
+      en: 'Buy signed pop-art paintings, art posters and wall art. Hand-painted originals and limited edition prints from Norwegian artist. Shipping 99 kr.',
     },
     priority: 0.9,
     changeFrequency: 'daily',

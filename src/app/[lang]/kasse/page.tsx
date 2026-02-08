@@ -313,6 +313,8 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
                   required
                   value={formData.postalCode}
                   onChange={handleInputChange}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
                 <FormInput
                   label={t.city}
@@ -324,13 +326,23 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
                 />
               </div>
 
-              <FormInput
-                label={t.country}
-                name="country"
-                required
-                value={formData.country}
-                onChange={handleInputChange}
-              />
+              <div>
+                <label htmlFor="field-country" className="block text-sm font-bold uppercase tracking-wide mb-2 text-muted-foreground">
+                  {t.country}
+                  <span className="text-primary"> *</span>
+                </label>
+                <select
+                  id="field-country"
+                  name="country"
+                  required
+                  value={formData.country}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, country: e.target.value }))}
+                  className="w-full px-4 py-4 sm:py-3 bg-muted border-2 border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-colors appearance-none"
+                  autoComplete="country-name"
+                >
+                  <option value="Norge">{locale === 'no' ? 'Norge' : 'Norway'}</option>
+                </select>
+              </div>
 
               <ConsentCheckboxes
                 locale={locale}

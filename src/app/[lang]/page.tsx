@@ -79,16 +79,16 @@ export async function generateMetadata({
   const isNorwegian = lang === 'no';
 
   const title = isNorwegian
-    ? 'Dotty. | Kjøp Pop-Art Veggkunst fra Norsk Kunstner'
-    : 'Dotty. | Buy Pop-Art Wall Art from Norwegian Artist';
+    ? 'Dotty. | Kjøp Pop-Art Malerier & Plakater fra Norsk Kunstner'
+    : 'Dotty. | Buy Pop-Art Paintings & Posters from Norwegian Artist';
 
   const description = isNorwegian
-    ? 'Kjøp unik pop-art veggkunst med personlighet. Håndmalte originaler og signerte limited edition kunsttrykk fra norsk kunstner i Oslo. Perfekt kunstgave og interiørkunst.'
-    : 'Buy unique pop-art wall art with personality. Hand-painted originals and signed limited edition art prints from Norwegian artist in Oslo. Perfect art gift and interior art.';
+    ? 'Kjøp unike pop-art malerier, kunstplakater og veggkunst. Håndmalte originaler og signerte limited edition kunsttrykk fra norsk kunstner i Oslo. Bilder til vegg, kunstgaver og interiørkunst.'
+    : 'Buy unique pop-art paintings, art posters and wall art. Hand-painted originals and signed limited edition art prints from Norwegian artist in Oslo. Pictures for wall, art gifts and interior art.';
 
   const keywords = isNorwegian
-    ? ['pop-art', 'kjøp kunst', 'veggkunst', 'norsk kunstner', 'kunsttrykk', 'originale kunstverk', 'kunstgave', 'interiørkunst', 'signert kunst', 'limited edition', 'håndmalt kunst', 'moderne kunst', 'skandinavisk kunst', 'oslo']
-    : ['pop-art', 'buy art', 'wall art', 'norwegian artist', 'art prints', 'original artwork', 'art gift', 'interior art', 'signed art', 'limited edition', 'hand-painted art', 'modern art', 'scandinavian art', 'oslo'];
+    ? ['pop-art', 'kjøp kunst', 'veggkunst', 'norsk kunstner', 'kunsttrykk', 'originale kunstverk', 'malerier', 'plakater', 'kunstplakater', 'kunstgave', 'interiørkunst', 'signert kunst', 'limited edition', 'håndmalt kunst', 'moderne kunst', 'skandinavisk kunst', 'bilder til vegg', 'oslo']
+    : ['pop-art', 'buy art', 'wall art', 'norwegian artist', 'art prints', 'original artwork', 'paintings', 'posters', 'art posters', 'art gift', 'interior art', 'signed art', 'limited edition', 'hand-painted art', 'modern art', 'scandinavian art', 'pictures for wall', 'oslo'];
 
   return {
     title,

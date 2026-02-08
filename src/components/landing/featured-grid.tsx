@@ -102,7 +102,7 @@ export function FeaturedGrid({
         >
           <Link
             href={getLocalizedPath(lang, 'shop')}
-            className="text-sm uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+            className="text-sm uppercase tracking-widest text-primary hover:text-primary/80 transition-colors py-3 px-4 touch-manipulation"
           >
             {t.viewAll} →
           </Link>

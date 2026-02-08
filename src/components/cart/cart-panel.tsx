@@ -11,7 +11,7 @@ import type { CartItem, Locale } from '@/types';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { formatPrice } from '@/lib/utils';
-import { overlay, slideIn, fadeUp, tap } from '@/lib/animations';
+import { overlay, slideIn, fadeUp } from '@/lib/animations';
 
 interface CartDictionary {
   title: string;
@@ -64,6 +64,13 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Body scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   // Escape key handler
   useEffect(() => {
@@ -123,8 +130,7 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed right-0 top-0 w-full sm:max-w-md bg-background border-l border-border z-[80] flex flex-col shadow-2xl"
-            style={{ height: '100vh' }}
+            className="fixed right-0 top-0 w-full sm:max-w-md bg-background border-l border-border z-[80] flex flex-col shadow-2xl h-dvh"
           >
             <div className="flex items-center justify-between p-4 border-b-[3px] border-primary">
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -243,13 +249,12 @@ export function CartPanel({ isOpen, onClose, lang, dictionary }: CartPanelProps)
                   <span className="text-lg font-bold">{formatPrice(cart.subtotal)}</span>
                 </div>
 
-                <Link href={getLocalizedPath(lang, 'checkout')} onClick={onClose} className="block w-full">
-                  <motion.button
-                    className="w-full py-4 sm:py-3 bg-background border-[3px] border-primary text-primary font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5 touch-manipulation"
-                    whileTap={tap}
-                  >
-                    {t.checkout}
-                  </motion.button>
+                <Link
+                  href={getLocalizedPath(lang, 'checkout')}
+                  onClick={onClose}
+                  className="block w-full py-4 sm:py-3 bg-background border-[3px] border-primary text-primary font-bold text-sm uppercase tracking-wider text-center transition-all duration-200 hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5 touch-manipulation"
+                >
+                  {t.checkout}
                 </Link>
               </div>
             )}

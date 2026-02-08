@@ -135,16 +135,16 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       title = template.titleTemplate[locale];
       description = template.descriptionTemplate[locale];
       keywords = locale === 'no'
-        ? ['pop-art', 'kunst', 'kjøp kunst', 'norsk kunst', 'oslo', 'originale kunstverk', 'kunsttrykk', 'veggkunst', 'moderne kunst', 'kunstgave', 'signert kunst', 'limited edition', 'håndmalt', 'interiørkunst', 'skandinavisk kunst']
-        : ['pop-art', 'art', 'buy art online', 'norwegian art', 'oslo', 'original artwork', 'art prints', 'wall art', 'modern art', 'art gift', 'signed art', 'limited edition', 'hand-painted', 'interior art', 'scandinavian art'];
+        ? ['pop-art', 'kunst', 'kjøp kunst', 'norsk kunst', 'oslo', 'originale kunstverk', 'kunsttrykk', 'malerier', 'plakater', 'kunstplakater', 'veggkunst', 'moderne kunst', 'kunstgave', 'signert kunst', 'limited edition', 'håndmalt', 'interiørkunst', 'bilder til vegg', 'skandinavisk kunst']
+        : ['pop-art', 'art', 'buy art online', 'norwegian art', 'oslo', 'original artwork', 'art prints', 'paintings', 'posters', 'art posters', 'wall art', 'modern art', 'art gift', 'signed art', 'limited edition', 'hand-painted', 'interior art', 'pictures for wall', 'scandinavian art'];
       break;
 
     case 'shop':
       title = template.titleTemplate[locale];
       description = template.descriptionTemplate[locale];
       keywords = locale === 'no'
-        ? ['kjøp kunst', 'pop-art butikk', 'kunsttrykk', 'originale malerier', 'veggkunst', 'kunstbutikk online', 'signert kunst', 'limited edition trykk', 'norsk kunstner', 'kunst til salgs']
-        : ['buy art', 'pop-art shop', 'art prints', 'original paintings', 'wall art', 'online art shop', 'signed art', 'limited edition prints', 'norwegian artist', 'art for sale'];
+        ? ['kjøp kunst', 'pop-art butikk', 'kunsttrykk', 'originale malerier', 'plakater', 'kunstplakater', 'veggkunst', 'bilder til vegg', 'kunstbutikk online', 'signert kunst', 'limited edition trykk', 'norsk kunstner', 'kunst til salgs']
+        : ['buy art', 'pop-art shop', 'art prints', 'original paintings', 'posters', 'art posters', 'wall art', 'pictures for wall', 'online art shop', 'signed art', 'limited edition prints', 'norwegian artist', 'art for sale'];
       break;
 
     case 'shop-paginated': {
@@ -172,9 +172,9 @@ export function generateMetadata(options: MetadataOptions): Metadata {
       // Product-specific keywords
       keywords = locale === 'no'
         ? [product.title, typeLabel.toLowerCase(), 'pop-art', 'dotty', 'kjøp kunst', 'norsk kunst', 'signert kunst', 'veggkunst',
-           ...(product.product_type === 'original' ? ['håndmalt', 'originalt kunstverk', 'kunstinvestering'] : ['limited edition', 'kunsttrykk', 'kunstgave'])]
+           ...(product.product_type === 'original' ? ['håndmalt', 'originalt kunstverk', 'maleri', 'kunstinvestering'] : ['limited edition', 'kunsttrykk', 'plakat', 'kunstplakat', 'kunstgave'])]
         : [product.title, typeLabel.toLowerCase(), 'pop-art', 'dotty', 'buy art', 'norwegian art', 'signed art', 'wall art',
-           ...(product.product_type === 'original' ? ['hand-painted', 'original artwork', 'art investment'] : ['limited edition', 'art print', 'art gift'])];
+           ...(product.product_type === 'original' ? ['hand-painted', 'original artwork', 'painting', 'art investment'] : ['limited edition', 'art print', 'poster', 'art poster', 'art gift'])];
       break;
     }
 

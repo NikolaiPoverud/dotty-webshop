@@ -157,15 +157,21 @@ function buildAlternates(lang: string, slug: string): Metadata['alternates'] {
 }
 
 function buildCollectionMetadata(collection: CollectionCard, lang: string, isNorwegian: boolean): Metadata {
-  const title = isNorwegian ? `${collection.name} | Kjop Pop-Art` : `${collection.name} | Buy Pop-Art`;
+  const title = isNorwegian
+    ? `${collection.name} | Kjøp Pop-Art Veggkunst | Dotty.`
+    : `${collection.name} | Buy Pop-Art Wall Art | Dotty.`;
   const description = collection.description ?? (isNorwegian
-    ? `Utforsk var ${collection.name.toLowerCase()} samling. Unike pop-art verk fra Dotty.`
-    : `Explore our ${collection.name.toLowerCase()} collection. Unique pop-art pieces from Dotty.`);
+    ? `Utforsk ${collection.name}-samlingen. Signerte pop-art kunstverk fra norsk kunstner. Håndmalte originaler og limited edition trykk.`
+    : `Explore the ${collection.name} collection. Signed pop-art from Norwegian artist. Hand-painted originals and limited edition prints.`);
+  const keywords = isNorwegian
+    ? [collection.name, 'pop-art', 'kjøp kunst', 'veggkunst', 'norsk kunstner', 'signert kunst']
+    : [collection.name, 'pop-art', 'buy art', 'wall art', 'norwegian artist', 'signed art'];
   const ogImage = `${BASE_URL}/og-image.jpg`;
 
   return {
     title,
     description,
+    keywords,
     openGraph: {
       title,
       description,
@@ -173,7 +179,7 @@ function buildCollectionMetadata(collection: CollectionCard, lang: string, isNor
       locale: isNorwegian ? 'nb_NO' : 'en_US',
       url: `${BASE_URL}/${lang}/shop/${collection.slug}`,
       siteName: 'Dotty.',
-      images: [{ url: ogImage, width: 1200, height: 630, alt: `Dotty. ${collection.name}` }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${collection.name} – Pop-Art fra Dotty.` }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [ogImage] },
     alternates: buildAlternates(lang, collection.slug),
@@ -182,23 +188,35 @@ function buildCollectionMetadata(collection: CollectionCard, lang: string, isNor
 
 function getProductTypeLabel(productType: Product['product_type'], isNorwegian: boolean): string {
   return productType === 'original'
-    ? (isNorwegian ? 'Original kunstverk' : 'Original artwork')
-    : (isNorwegian ? 'Kunsttrykk' : 'Art print');
+    ? (isNorwegian ? 'Håndmalt originalt kunstverk' : 'Hand-painted original artwork')
+    : (isNorwegian ? 'Signert kunsttrykk' : 'Signed art print');
 }
 
 function buildProductMetadata(product: Product, lang: string, isNorwegian: boolean): Metadata {
   const productTypeLabel = getProductTypeLabel(product.product_type, isNorwegian);
-  const title = isNorwegian ? `${product.title} | Kjop ${productTypeLabel}` : `${product.title} | Buy ${productTypeLabel}`;
+  const isOriginal = product.product_type === 'original';
+
+  const title = isNorwegian
+    ? `${product.title} | Kjøp ${isOriginal ? 'Originalt Kunstverk' : 'Kunsttrykk'} | Dotty.`
+    : `${product.title} | Buy ${isOriginal ? 'Original Artwork' : 'Art Print'} | Dotty.`;
+
   const description = (isNorwegian
-    ? `Kjøp ${product.title} - ${productTypeLabel} pop-art fra Dotty. ${product.description || ''} Fri frakt over 2000 kr.`
-    : `Buy ${product.title} - ${productTypeLabel} pop-art from Dotty. ${product.description || ''} Free shipping over 2000 kr.`
+    ? `Kjøp ${product.title} – ${productTypeLabel} pop-art fra norsk kunstner. ${product.description || ''} ${isOriginal ? 'Unikt håndmalt verk.' : 'Limited edition trykk.'} Frakt 99 kr.`
+    : `Buy ${product.title} – ${productTypeLabel} pop-art from Norwegian artist. ${product.description || ''} ${isOriginal ? 'Unique hand-painted piece.' : 'Limited edition print.'} Shipping 99 kr.`
   ).replace(/\s{2,}/g, ' ').trim();
 
-  const images = product.image_url ? [{ url: product.image_url, width: 1200, height: 630, alt: product.title }] : [];
+  const keywords = isNorwegian
+    ? [product.title, 'pop-art', 'kjøp kunst', 'norsk kunstner', 'veggkunst', 'signert kunst',
+       ...(isOriginal ? ['håndmalt', 'originalt kunstverk', 'maleri', 'kunstinvestering'] : ['limited edition', 'kunsttrykk', 'plakat', 'kunstplakat', 'kunstgave'])]
+    : [product.title, 'pop-art', 'buy art', 'norwegian artist', 'wall art', 'signed art',
+       ...(isOriginal ? ['hand-painted', 'original artwork', 'painting', 'art investment'] : ['limited edition', 'art print', 'poster', 'art poster', 'art gift'])];
+
+  const images = product.image_url ? [{ url: product.image_url, width: 1200, height: 630, alt: `${product.title} – ${productTypeLabel}` }] : [];
 
   return {
     title,
     description,
+    keywords,
     openGraph: {
       title,
       description,

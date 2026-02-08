@@ -9,9 +9,14 @@ export function OrganizationJsonLd(): ReactElement {
     name: 'Dotty.',
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
-    description: 'Pop-art med personlighet. Unike kunstverk som bringer energi og farge til ditt hjem.',
+    description: 'Norsk pop-art kunstner fra Oslo. Kjøp håndmalte originale kunstverk og signerte limited edition kunsttrykk. Unik veggkunst og kunstgaver med personlighet.',
+    foundingLocation: {
+      '@type': 'Place',
+      name: 'Oslo, Norway',
+    },
     address: {
       '@type': 'PostalAddress',
+      addressLocality: 'Oslo',
       addressCountry: 'NO',
     },
     contactPoint: {
@@ -19,6 +24,7 @@ export function OrganizationJsonLd(): ReactElement {
       contactType: 'customer service',
       availableLanguage: ['Norwegian', 'English'],
     },
+    knowsAbout: ['Pop Art', 'Contemporary Art', 'Modern Art', 'Wall Art', 'Art Prints', 'Art Posters', 'Original Artwork', 'Paintings', 'Scandinavian Art'],
   };
 
   return <JsonLd data={structuredData} />;

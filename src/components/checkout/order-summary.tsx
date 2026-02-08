@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Loader2, Shield, HelpCircle } from 'lucide-react';
@@ -31,6 +32,7 @@ export function OrderSummary({
   onCheckout,
   selectedShipping,
 }: OrderSummaryProps): React.ReactElement {
+  const [showLevyTooltip, setShowLevyTooltip] = useState(false);
   const { cart } = useCart();
   const hasDiscount = cart.discountCode && (cart.discountAmount > 0 || cart.freeShipping);
   const shippingCost = cart.freeShipping ? 0 : (selectedShipping?.priceWithVat ?? cart.shippingCost);
@@ -73,9 +75,17 @@ export function OrderSummary({
           <div className="flex justify-between">
             <div className="flex items-start gap-1.5">
               <span className="text-muted-foreground">{t.artistLevy}</span>
-              <div className="group relative">
-                <HelpCircle className="w-4 h-4 text-muted-foreground/50 cursor-help" />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-foreground text-background text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-48 text-center z-10">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowLevyTooltip(!showLevyTooltip)}
+                  onBlur={() => setShowLevyTooltip(false)}
+                  className="p-1 touch-manipulation"
+                  aria-label="Info"
+                >
+                  <HelpCircle className="w-4 h-4 text-muted-foreground/50" />
+                </button>
+                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-foreground text-background text-xs rounded-lg transition-all duration-200 w-48 text-center z-10 ${showLevyTooltip ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                   {t.artistLevyExplainer}
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
                 </div>

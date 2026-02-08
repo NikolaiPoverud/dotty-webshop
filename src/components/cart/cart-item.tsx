@@ -90,7 +90,7 @@ export const CartItemRow = memo(function CartItemRow({
 
           <button
             onClick={() => removeItem(product.id, selectedSize)}
-            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2.5 -mr-1 text-muted-foreground hover:text-foreground active:text-foreground transition-colors touch-manipulation"
             aria-label={t.remove}
           >
             <X className="w-5 h-5" />
@@ -108,7 +108,7 @@ export const CartItemRow = memo(function CartItemRow({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => updateQuantity(product.id, quantity - 1, selectedSize)}
-                className="p-1 rounded bg-muted hover:bg-muted/80 transition-colors"
+                className="p-2.5 rounded bg-muted hover:bg-muted/80 active:bg-muted/80 transition-colors touch-manipulation"
                 aria-label="Decrease quantity"
               >
                 <Minus className="w-4 h-4" />
@@ -117,7 +117,7 @@ export const CartItemRow = memo(function CartItemRow({
               <button
                 onClick={() => updateQuantity(product.id, quantity + 1, selectedSize)}
                 disabled={!canIncrement}
-                className="p-1 rounded bg-muted hover:bg-muted/80 transition-colors disabled:opacity-50"
+                className="p-2.5 rounded bg-muted hover:bg-muted/80 active:bg-muted/80 transition-colors disabled:opacity-50 touch-manipulation"
                 aria-label="Increase quantity"
               >
                 <Plus className="w-4 h-4" />

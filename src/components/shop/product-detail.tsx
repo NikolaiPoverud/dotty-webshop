@@ -124,14 +124,14 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   useEffect(() => {
     if (!isSizeDropdownOpen) return;
 
-    function handleClickOutside(event: MouseEvent): void {
+    function handleClickOutside(event: PointerEvent): void {
       if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
         setIsSizeDropdownOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, [isSizeDropdownOpen]);
 
   useEffect(() => {
