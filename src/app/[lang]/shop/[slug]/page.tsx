@@ -288,13 +288,19 @@ export default async function ShopSlugPage({ params }: Props): Promise<React.JSX
             <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
               <span className="gradient-text">{collection.name}</span>
             </h1>
-            <ShopContent
-              products={products}
-              collections={allCollections}
-              lang={locale}
-              dictionary={dictionary}
-              initialCollection={collection.id}
-            />
+            {products.length > 0 ? (
+              <ShopContent
+                products={products}
+                collections={allCollections}
+                lang={locale}
+                dictionary={dictionary}
+                initialCollection={collection.id}
+              />
+            ) : (
+              <p className="text-muted-foreground text-center py-12">
+                {dictionary.shop.empty}
+              </p>
+            )}
           </div>
         </div>
       </>
