@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { trackProductView, trackAddToCart } from '@/lib/analytics';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw } from 'lucide-react';
-import type { Dictionary, Locale, Product, GalleryImage, ProductSize } from '@/types';
+import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw, ChevronDown } from 'lucide-react';
+import type { Dictionary, Locale, Product, GalleryImage, ProductSize, TestimonialCard } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
 import { ProductGallery } from './product-gallery';
+import { VisaLogo, MastercardLogo, VippsMarkLogo } from '@/components/ui/payment-logos';
 
 type InquiryStatus = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -102,9 +103,10 @@ interface ProductDetailProps {
   collectionSlug?: string | null;
   lang: Locale;
   dictionary: Dictionary;
+  testimonials?: TestimonialCard[];
 }
 
-export function ProductDetail({ product, collectionName, collectionSlug, lang, dictionary }: ProductDetailProps): React.ReactElement {
+export function ProductDetail({ product, collectionName, collectionSlug, lang, dictionary, testimonials }: ProductDetailProps): React.ReactElement {
   const t = dictionary.productDetail;
   const { addItem, cart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
@@ -112,7 +114,10 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [inquiryStatus, setInquiryStatus] = useState<InquiryStatus>('idle');
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(null);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [expandedBadge, setExpandedBadge] = useState<string | null>(null);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
+  const purchaseSectionRef = useRef<HTMLDivElement>(null);
 
   // Track product view
   useEffect(() => {
@@ -131,6 +136,18 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isSizeDropdownOpen]);
+
+  useEffect(() => {
+    const el = purchaseSectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const isInCart = cart.items.some((item) => item.product.id === product.id);
   const isSold = !product.is_available || product.stock_quantity === 0;
@@ -156,8 +173,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
     const sizeToAdd = isPrint && selectedSize ? selectedSize : sizes[0];
     addItem(product, 1, undefined, undefined, sizeToAdd);
     trackAddToCart(product.id);
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 3000);
+    window.dispatchEvent(new CustomEvent('open-cart'));
   }
 
   async function handleInquirySubmit(type: 'product_inquiry' | 'sold_out_inquiry', e: React.FormEvent): Promise<void> {
@@ -276,7 +292,7 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-8">
+    <div className="min-h-screen pt-24 pb-20 lg:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back to Shop Navigation */}
         <motion.div
@@ -490,8 +506,12 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
               {/* Availability */}
               <div className="flex justify-between items-center pb-3 border-b border-border">
                 <span className="text-muted-foreground text-sm">{t.availability}</span>
-                <span className={`font-medium text-sm ${isSold ? 'text-error' : ''}`}>
-                  {isSold ? t.soldOut : t.available}
+                <span className={`font-medium text-sm ${isSold ? 'text-error' : isPrint && product.stock_quantity !== null && product.stock_quantity >= 1 && product.stock_quantity <= 3 ? 'text-warning' : ''}`}>
+                  {isSold
+                    ? t.soldOut
+                    : isPrint && product.stock_quantity !== null && product.stock_quantity >= 1 && product.stock_quantity <= 3
+                      ? `${product.stock_quantity} ${lang === 'no' ? 'igjen' : 'left'}`
+                      : t.available}
                 </span>
               </div>
             </div>
@@ -504,19 +524,60 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
             )}
 
             {/* Trust Badges - Shipping & Returns */}
-            <div className="flex flex-wrap gap-4 mb-6 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Truck className="w-4 h-4 text-primary" />
-                <span>{t.shippingEstimate}</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <RotateCcw className="w-4 h-4 text-primary" />
-                <span>{t.returnPolicy}</span>
+            <div className="space-y-2 mb-6 text-sm">
+              <button
+                type="button"
+                onClick={() => setExpandedBadge(expandedBadge === 'shipping' ? null : 'shipping')}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-full text-left touch-manipulation"
+              >
+                <Truck className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="flex-1">{t.shippingEstimate}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${expandedBadge === 'shipping' ? 'rotate-180' : ''}`} />
+              </button>
+              {expandedBadge === 'shipping' && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="text-xs text-muted-foreground pl-6 leading-relaxed"
+                >
+                  {lang === 'no'
+                    ? 'Vi sender med Bring innen 1-3 virkedager. Fri frakt over 2000 kr.'
+                    : 'We ship via Bring within 1-3 business days. Free shipping over 2000 kr.'}
+                </motion.p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setExpandedBadge(expandedBadge === 'returns' ? null : 'returns')}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-full text-left touch-manipulation"
+              >
+                <RotateCcw className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="flex-1">{t.returnPolicy}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${expandedBadge === 'returns' ? 'rotate-180' : ''}`} />
+              </button>
+              {expandedBadge === 'returns' && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="text-xs text-muted-foreground pl-6 leading-relaxed"
+                >
+                  {lang === 'no'
+                    ? '14 dagers angrerett. Varen må returneres i original emballasje og ubrukt stand.'
+                    : '14-day return policy. Items must be returned in original packaging and unused condition.'}
+                </motion.p>
+              )}
+
+              <div className="flex items-center gap-3 text-muted-foreground/50 pt-1">
+                <VisaLogo className="h-4 w-auto" />
+                <MastercardLogo className="h-4 w-auto" />
+                <VippsMarkLogo className="h-4 w-auto" />
               </div>
             </div>
 
             {/* Purchase / Inquiry Section */}
-            {renderPurchaseSection()}
+            <div ref={purchaseSectionRef}>
+              {renderPurchaseSection()}
+            </div>
 
             {/* Artist Bio Section */}
             <div className="mt-8 pt-6 border-t border-border">
@@ -541,6 +602,18 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
                 </div>
               </Link>
             </div>
+
+            {/* Customer Testimonial */}
+            {testimonials && testimonials.length > 0 && (
+              <div className="mt-4 p-4 bg-muted/30 border border-border rounded-lg">
+                <blockquote className="text-sm text-muted-foreground italic leading-relaxed">
+                  &ldquo;{testimonials[0].feedback}&rdquo;
+                </blockquote>
+                <p className="mt-2 text-xs font-medium text-foreground">
+                  &mdash; {testimonials[0].name}
+                </p>
+              </div>
+            )}
 
             {/* Guide Links */}
             <div className="mt-4 flex flex-wrap gap-3">
@@ -570,6 +643,25 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
           </motion.div>
         </div>
       </div>
+
+      {/* Sticky mobile add-to-cart bar */}
+      {showStickyBar && !isSold && !product.requires_inquiry && !isInCart && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="font-bold text-sm truncate">{product.title}</p>
+            <p className="text-primary font-bold text-sm">{formatPrice(displayPrice)}</p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={needsSizeSelection && selectedSizeIndex === null}
+            className="flex-shrink-0 px-6 py-3 bg-primary text-background font-semibold uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          >
+            {needsSizeSelection && selectedSizeIndex === null
+              ? (lang === 'no' ? 'Velg str.' : 'Select size')
+              : t.addToCart}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

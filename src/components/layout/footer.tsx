@@ -6,6 +6,7 @@ import type { Dictionary, Locale, Collection } from '@/types';
 import { NewsletterForm } from '@/components/landing/newsletter-form';
 import { Logo } from '@/components/ui/logo';
 import { CookieResetButton } from '@/components/layout/cookie-reset-button';
+import { VisaLogo, MastercardLogo, VippsMarkLogo } from '@/components/ui/payment-logos';
 
 interface TrustBadgeProps {
   icon: LucideIcon;
@@ -72,6 +73,11 @@ export function Footer({ lang, collections = [], dictionary }: FooterProps): Rea
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-8 pb-8 border-b border-border">
           <TrustBadge icon={RotateCcw} label={t.returns} />
           <TrustBadge icon={Shield} label={t.securePayment} />
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <VisaLogo className="h-5 w-auto" />
+            <MastercardLogo className="h-5 w-auto" />
+            <VippsMarkLogo className="h-5 w-auto" />
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-6">

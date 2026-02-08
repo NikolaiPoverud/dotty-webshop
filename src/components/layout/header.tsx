@@ -112,12 +112,18 @@ export function Header({ lang, collections = [], dictionary }: HeaderProps): Rea
       }
     }
 
+    function handleOpenCart(): void {
+      setIsCartOpen(true);
+    }
+
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('open-cart', handleOpenCart);
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('open-cart', handleOpenCart);
     };
   }, [isProductPage]);
 

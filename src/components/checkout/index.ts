@@ -4,3 +4,4 @@ export { DiscountCodeInput } from './discount-code-input';
 export { ConsentCheckboxes } from './consent-checkboxes';
 export { OrderSummary } from './order-summary';
 export { ShippingSelector } from './shipping-selector';
+export { MobileCheckoutBar } from './mobile-checkout-bar';

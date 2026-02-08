@@ -8,6 +8,7 @@ import type { ShippingOption } from '@/types';
 import type { CheckoutText } from '@/lib/i18n/cart-checkout-text';
 import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/utils';
+import { VisaLogo, MastercardLogo, VippsMarkLogo } from '@/components/ui/payment-logos';
 
 interface OrderSummaryProps {
   t: CheckoutText;
@@ -124,9 +125,16 @@ export function OrderSummary({
         <p className="text-xs text-muted-foreground">{t.includingVat}</p>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mb-4 py-2 bg-background/50 rounded-lg">
-        <Shield className="w-4 h-4 text-success" />
-        <span className="text-xs font-medium text-muted-foreground">{t.securePayment}</span>
+      <div className="flex flex-col items-center gap-2 mb-4 py-3 bg-background/50 rounded-lg">
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-success" />
+          <span className="text-xs font-medium text-muted-foreground">{t.securePayment}</span>
+        </div>
+        <div className="flex items-center gap-3 text-muted-foreground/60">
+          <VisaLogo className="h-4 w-auto" />
+          <MastercardLogo className="h-4 w-auto" />
+          <VippsMarkLogo className="h-4 w-auto" />
+        </div>
       </div>
 
       <div className="space-y-3">

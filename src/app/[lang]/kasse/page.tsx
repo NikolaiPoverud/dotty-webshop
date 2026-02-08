@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useEffect, useState } from 'react';
+import { Suspense, use, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -12,6 +12,7 @@ import {
   DiscountCodeInput,
   ErrorBanner,
   FormInput,
+  MobileCheckoutBar,
   OrderSummary,
   ShippingSelector,
 } from '@/components/checkout';
@@ -55,6 +56,17 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [checkoutToken, setCheckoutToken] = useState<string | null>(null);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const firstInvalid = document.querySelector<HTMLInputElement>('input:invalid');
+      if (firstInvalid) {
+        firstInvalid.focus({ preventScroll: true });
+      }
+    }
+  }, [error]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -226,15 +238,20 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
     }
   }
 
+  const shippingCost = cart.freeShipping ? 0 : (selectedShipping?.priceWithVat ?? cart.shippingCost);
+  const total = cart.subtotal + shippingCost + cart.artistLevy - cart.discountAmount;
+
   return (
-    <div className="min-h-screen pt-20 sm:pt-24 pb-16">
+    <div className="min-h-screen pt-20 sm:pt-24 pb-28 lg:pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {error && (
-          <ErrorBanner
-            error={error}
-            description={error === t.paymentCanceled ? t.paymentCanceledDesc : undefined}
-            onDismiss={() => setError(null)}
-          />
+          <div ref={errorRef}>
+            <ErrorBanner
+              error={error}
+              description={error === t.paymentCanceled ? t.paymentCanceledDesc : undefined}
+              onDismiss={() => setError(null)}
+            />
+          </div>
         )}
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
@@ -325,6 +342,13 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
               />
             </form>
 
+            <DiscountCodeInput
+              t={t}
+              onApplyDiscount={applyDiscount}
+              existingCode={cart.discountCode}
+              subtotal={cart.subtotal}
+            />
+
             {formData.country === 'Norge' && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold mb-4">{t.shippingMethod}</h2>
@@ -339,13 +363,6 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
                 />
               </div>
             )}
-
-            <DiscountCodeInput
-              t={t}
-              onApplyDiscount={applyDiscount}
-              existingCode={cart.discountCode}
-              subtotal={cart.subtotal}
-            />
           </motion.div>
 
           <motion.div
@@ -361,6 +378,13 @@ function CheckoutContent({ locale, t }: { locale: Locale; t: CheckoutText }): Re
           </motion.div>
         </div>
       </div>
+
+      <MobileCheckoutBar
+        total={total}
+        t={t}
+        isLoading={isLoading}
+        onCheckout={handleCheckout}
+      />
     </div>
   );
 }

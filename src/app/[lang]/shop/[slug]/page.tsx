@@ -312,6 +312,7 @@ export default async function ShopSlugPage({ params }: Props): Promise<React.JSX
         collectionSlug={collectionInfo.slug}
         lang={locale}
         dictionary={dictionary}
+        testimonials={testimonials}
       />
       {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} lang={locale} />}
     </>
