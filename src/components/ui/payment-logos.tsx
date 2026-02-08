@@ -61,7 +61,6 @@ export function MastercardLogo({ className }: LogoProps): React.ReactElement {
       viewBox="0 0 32 20"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect width="32" height="20" rx="2" fill="#1A1F71" />
       <circle cx="12" cy="10" r="6" fill="#EB001B" />
       <circle cx="20" cy="10" r="6" fill="#F79E1B" />
       <path d="M16 5.5a6 6 0 010 9 6 6 0 010-9z" fill="#FF5F00" />
