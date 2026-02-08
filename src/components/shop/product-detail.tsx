@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Check, ArrowLeft, Mail, Send, Loader2, Truck, RotateCcw, ChevronDown } from 'lucide-react';
-import type { Dictionary, Locale, Product, GalleryImage, ProductSize, TestimonialCard } from '@/types';
+import type { Dictionary, Locale, Product, GalleryImage, ProductSize } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart/cart-provider';
 import { getLocalizedPath } from '@/lib/i18n/get-dictionary';
@@ -579,65 +579,25 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
               {renderPurchaseSection()}
             </div>
 
-            {/* Artist Bio Section */}
-            <div className="mt-8 pt-6 border-t border-border">
+            {/* Artist Link */}
+            <div className="mt-8">
               <Link
                 href={`/${lang}/about`}
-                className="group flex items-center gap-4 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                className="group flex items-center gap-3"
               >
-                <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary/20 group-hover:border-primary transition-colors">
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary shadow-[2px_2px_0_0_theme(colors.primary)] group-hover:shadow-[3px_3px_0_0_theme(colors.primary)] group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] transition-all">
                   <Image
                     src="/artist.jpg"
                     alt="Dotty"
-                    width={64}
-                    height={64}
+                    width={40}
+                    height={40}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1 min-w-0 flex items-center justify-between">
-                  <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
-                    {t.aboutArtist || (lang === 'no' ? 'Om kunstneren' : 'About the artist')}
-                  </h3>
-                  <ArrowLeft className="w-5 h-5 rotate-180 text-primary" />
-                </div>
-              </Link>
-            </div>
-
-            {/* Customer Testimonial */}
-            {testimonials && testimonials.length > 0 && (
-              <div className="mt-4 p-4 bg-muted/30 border border-border rounded-lg">
-                <blockquote className="text-sm text-muted-foreground italic leading-relaxed">
-                  &ldquo;{testimonials[0].feedback}&rdquo;
-                </blockquote>
-                <p className="mt-2 text-xs font-medium text-foreground">
-                  &mdash; {testimonials[0].name}
-                </p>
-              </div>
-            )}
-
-            {/* Guide Links */}
-            <div className="mt-4 flex flex-wrap gap-3">
-              {isPrint && (
-                <Link
-                  href={`/${lang}/guide/ta-vare-pa-kunsttrykk`}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
-                >
-                  {lang === 'no' ? 'Slik tar du vare på kunsttrykk' : 'How to care for art prints'}
-                </Link>
-              )}
-              {!isPrint && (
-                <Link
-                  href={`/${lang}/guide/hva-er-pop-art`}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
-                >
-                  {lang === 'no' ? 'Hva er pop-art?' : 'What is pop art?'}
-                </Link>
-              )}
-              <Link
-                href={`/${lang}/guide/velg-kunst-til-hjemmet`}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
-              >
-                {lang === 'no' ? 'Velg kunst til hjemmet' : 'Choose art for your home'}
+                <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
+                  {t.aboutArtist || (lang === 'no' ? 'Om kunstneren' : 'About the artist')}
+                </span>
+                <ArrowLeft className="w-4 h-4 rotate-180 text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
             </div>
           </motion.div>
