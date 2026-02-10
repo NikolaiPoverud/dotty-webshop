@@ -15,9 +15,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
   const supabase = createAdminClient();
   const body = await request.json();
 
+  // SEC: Only allow updating known fields to prevent arbitrary column writes
+  const ALLOWED_FIELDS = ['name', 'slug', 'description', 'display_order', 'shipping_cost', 'is_active', 'is_public'] as const;
+  const sanitized: Record<string, unknown> = {};
+  for (const key of ALLOWED_FIELDS) {
+    if (key in body) sanitized[key] = body[key];
+  }
+
   const { data, error } = await supabase
     .from('collections')
-    .update(body)
+    .update(sanitized)
     .eq('id', id)
     .select()
     .single();
@@ -27,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
     console.error('Failed to update collection:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update collection' }, { status: 500 });
   }
 
   invalidateCollectionCache();
@@ -48,7 +55,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams): Pr
 
   if (error) {
     console.error('Failed to delete collection:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete collection' }, { status: 500 });
   }
 
   invalidateCollectionCache();

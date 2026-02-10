@@ -14,9 +14,16 @@ export async function PUT(
     const body = await request.json();
     const supabase = createAdminClient();
 
+    // SEC: Only allow updating known fields to prevent arbitrary column writes
+    const ALLOWED_FIELDS = ['code', 'discount_type', 'discount_value', 'discount_percent', 'discount_amount', 'free_shipping', 'min_order_amount', 'max_uses', 'uses_remaining', 'valid_from', 'valid_until', 'expires_at', 'is_active'] as const;
+    const sanitized: Record<string, unknown> = {};
+    for (const key of ALLOWED_FIELDS) {
+      if (key in body) sanitized[key] = body[key];
+    }
+
     const { data, error } = await supabase
       .from('discount_codes')
-      .update(body)
+      .update(sanitized)
       .eq('id', id)
       .select()
       .single();

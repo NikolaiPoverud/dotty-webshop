@@ -18,5 +18,5 @@ export async function getSession(): Promise<Session | null> {
 
 export async function isAdmin(): Promise<boolean> {
   const user = await getUser();
-  return user !== null;
+  return user?.user_metadata?.role === 'admin';
 }

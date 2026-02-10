@@ -21,7 +21,11 @@ export default function MFAVerifyPage(): React.ReactElement {
   const [factorId, setFactorId] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
-  const redirectTo = searchParams.get('redirect') || '/admin/dashboard';
+  // SEC: Validate redirect parameter to prevent open redirect attacks
+  const rawRedirect = searchParams.get('redirect') || '/admin/dashboard';
+  const redirectTo = rawRedirect.startsWith('/admin/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://')
+    ? rawRedirect
+    : '/admin/dashboard';
 
   useEffect(() => {
     async function loadFactorId(): Promise<void> {

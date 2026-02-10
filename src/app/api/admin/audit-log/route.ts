@@ -9,8 +9,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = createAdminClient();
   const { searchParams } = new URL(request.url);
 
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '50');
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') || '50') || 50));
   const action = searchParams.get('action');
   const entityType = searchParams.get('entity_type');
   const actorType = searchParams.get('actor_type');
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   if (error) {
     console.error('Error fetching audit logs:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 });
   }
 
   const total = count || 0;

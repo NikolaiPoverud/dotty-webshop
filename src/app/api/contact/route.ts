@@ -101,6 +101,15 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!EMAIL_REGEX.test(email)) {
     return errors.badRequest('Invalid email address');
   }
+  if (typeof message !== 'string' || message.length > 5000) {
+    return errors.badRequest('Message must be at most 5000 characters');
+  }
+  if (name && (typeof name !== 'string' || name.length > 200)) {
+    return errors.badRequest('Name must be at most 200 characters');
+  }
+  if (product_title && (typeof product_title !== 'string' || product_title.length > 300)) {
+    return errors.badRequest('Product title too long');
+  }
 
   const supabase = createAdminClient();
   const { data, error: dbError } = await supabase

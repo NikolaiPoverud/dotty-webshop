@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import type { ShippingOption } from '@/lib/bring';
 
 // TEMPORARY: Flat fee shipping - restore Bring API integration when ready
 const FLAT_SHIPPING_FEE = 9900; // 99 NOK in øre
+const RATE_LIMIT_CONFIG = { maxRequests: 20, windowMs: 60 * 1000 };
 
 const ShippingRequestSchema = z.object({
   postalCode: z.string().length(4, 'Postal code must be 4 digits'),
@@ -13,6 +15,16 @@ const ShippingRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`shipping:${clientIp}`, RATE_LIMIT_CONFIG);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: getRateLimitHeaders(rateLimitResult) }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

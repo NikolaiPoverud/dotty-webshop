@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 
 interface CronAuthResult {
   authorized: boolean;
   response?: NextResponse;
+}
+
+function timingSafeStringEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
 export function verifyCronAuth(request: NextRequest): CronAuthResult {
@@ -22,8 +28,9 @@ export function verifyCronAuth(request: NextRequest): CronAuthResult {
   }
 
   const authHeader = request.headers.get('authorization');
+  const expectedHeader = `Bearer ${cronSecret}`;
 
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!authHeader || !timingSafeStringEqual(authHeader, expectedHeader)) {
     console.warn('Unauthorized cron access attempt');
     return {
       authorized: false,

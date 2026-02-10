@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import { SupabaseClient } from '@supabase/supabase-js';
+
+const UNSUBSCRIBE_RATE_LIMIT = { maxRequests: 10, windowMs: 60 * 1000 };
 
 interface Subscriber {
   id: string;
@@ -73,6 +76,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`unsubscribe:${clientIp}`, UNSUBSCRIBE_RATE_LIMIT);
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: getRateLimitHeaders(rateLimitResult) }
+    );
+  }
+
   try {
     const { email } = await request.json();
 
