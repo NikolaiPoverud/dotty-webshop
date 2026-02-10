@@ -110,29 +110,14 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const [isAdded, setIsAdded] = useState(false);
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryStatus, setInquiryStatus] = useState<InquiryStatus>('idle');
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(null);
-  const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState<number>(0);
   const [showStickyBar, setShowStickyBar] = useState(false);
-  const sizeDropdownRef = useRef<HTMLDivElement>(null);
   const purchaseSectionRef = useRef<HTMLDivElement>(null);
 
   // Track product view
   useEffect(() => {
     trackProductView(product.id);
   }, [product.id]);
-
-  useEffect(() => {
-    if (!isSizeDropdownOpen) return;
-
-    function handleClickOutside(event: PointerEvent): void {
-      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
-        setIsSizeDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener('pointerdown', handleClickOutside);
-    return () => document.removeEventListener('pointerdown', handleClickOutside);
-  }, [isSizeDropdownOpen]);
 
   useEffect(() => {
     const el = purchaseSectionRef.current;
@@ -154,18 +139,11 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
   const isPrint = product.product_type === 'print';
   const hasMultipleSizes = sizes.length > 1;
   const needsSizeSelection = isPrint && hasMultipleSizes;
-  const selectedSize = selectedSizeIndex !== null ? sizes[selectedSizeIndex] : null;
-
-  // Use size-specific price if selected, otherwise show product base price
+  const selectedSize = sizes[selectedSizeIndex] ?? null;
   const displayPrice = selectedSize?.price ?? product.price;
 
-  // Get lowest price for "from" display when no size selected
-  const lowestPrice = sizes.length > 0
-    ? Math.min(...sizes.map(s => s.price ?? product.price))
-    : product.price;
-
   function handleAddToCart(): void {
-    if (isSold || (needsSizeSelection && selectedSizeIndex === null)) return;
+    if (isSold) return;
 
     const sizeToAdd = isPrint && selectedSize ? selectedSize : sizes[0];
     addItem(product, 1, undefined, undefined, sizeToAdd);
@@ -262,27 +240,39 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
       );
     }
 
-    const sizeNotSelected = needsSizeSelection && selectedSizeIndex === null;
-
     return (
-      <div className="space-y-2">
-        {sizeNotSelected && (
-          <p className="text-warning text-sm font-medium text-center">
-            {lang === 'no' ? 'Velg størrelse for å legge i handlekurv' : 'Select a size to add to cart'}
-          </p>
+      <div className="space-y-3">
+        {needsSizeSelection && (
+          <div className="flex gap-3">
+            {sizes.map((size, index) => {
+              const sizePrice = size.price ?? product.price;
+              const isSelected = selectedSizeIndex === index;
+              return (
+                <button
+                  key={`${size.width}x${size.height}`}
+                  type="button"
+                  onClick={() => setSelectedSizeIndex(index)}
+                  className={`flex-1 py-3 px-4 border-[3px] font-semibold uppercase tracking-wider text-sm transition-all touch-manipulation ${
+                    isSelected
+                      ? 'border-primary bg-primary text-background shadow-[3px_3px_0_0_theme(colors.primary)]'
+                      : 'border-border bg-background text-foreground hover:border-primary/50'
+                  }`}
+                >
+                  <span className="block">{size.label}</span>
+                  <span className={`block text-xs mt-0.5 ${isSelected ? 'text-background/80' : 'text-muted-foreground'}`}>
+                    {formatPrice(sizePrice)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
         <motion.button
           onClick={handleAddToCart}
-          disabled={sizeNotSelected}
-          aria-label={sizeNotSelected ? (lang === 'no' ? 'Velg størrelse' : 'Select size') : t.addToCart}
-          className={`group w-full py-4 font-semibold uppercase tracking-wider transition-all duration-200 touch-manipulation ${
-            sizeNotSelected
-              ? 'bg-muted border-[3px] border-muted-foreground/30 text-muted-foreground cursor-not-allowed shadow-[0_4px_0_0_theme(colors.border)]'
-              : 'bg-background border-[3px] border-primary text-primary hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5'
-          }`}
-          whileTap={sizeNotSelected ? {} : { scale: 0.98, y: 2 }}
+          className="group w-full py-4 font-semibold uppercase tracking-wider transition-all duration-200 touch-manipulation bg-background border-[3px] border-primary text-primary hover:bg-primary hover:text-background active:bg-primary active:text-background shadow-[0_4px_0_0_theme(colors.primary)] hover:shadow-[0_6px_0_0_theme(colors.primary)] hover:-translate-y-0.5"
+          whileTap={{ scale: 0.98, y: 2 }}
         >
-          {sizeNotSelected ? (lang === 'no' ? 'Velg størrelse' : 'Select size') : t.addToCart}
+          {t.addToCart}
         </motion.button>
       </div>
     );
@@ -360,121 +350,8 @@ export function ProductDetail({ product, collectionName, collectionSlug, lang, d
 
             {/* Price */}
             <p className="text-2xl sm:text-3xl font-bold mb-6">
-              {needsSizeSelection && selectedSizeIndex === null ? (
-                <>
-                  <span className="text-muted-foreground/60 text-lg font-normal">{lang === 'no' ? 'fra ' : 'from '}</span>
-                  {formatPrice(lowestPrice)}
-                </>
-              ) : (
-                formatPrice(displayPrice)
-              )}
+              {formatPrice(displayPrice)}
             </p>
-
-            {/* Size Selector for Prints with Multiple Sizes */}
-            {isPrint && hasMultipleSizes && (
-              <div className="mb-6">
-                <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-                  {t.dimensions}
-                </label>
-                <div className="relative" ref={sizeDropdownRef}>
-                  <button
-                    type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded={isSizeDropdownOpen}
-                    aria-label={lang === 'no' ? 'Velg størrelse' : 'Select size'}
-                    onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape' && isSizeDropdownOpen) {
-                        e.preventDefault();
-                        setIsSizeDropdownOpen(false);
-                      } else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !isSizeDropdownOpen) {
-                        e.preventDefault();
-                        setIsSizeDropdownOpen(true);
-                      }
-                    }}
-                    className={`w-full px-4 py-4 sm:py-3 bg-background border-[3px] text-left font-semibold flex items-center justify-between transition-all touch-manipulation ${
-                      selectedSizeIndex === null
-                        ? 'border-warning shadow-[3px_3px_0_0_theme(colors.warning)] hover:shadow-[4px_4px_0_0_theme(colors.warning)] active:shadow-[4px_4px_0_0_theme(colors.warning)]'
-                        : 'border-primary shadow-[3px_3px_0_0_theme(colors.primary)] hover:shadow-[4px_4px_0_0_theme(colors.primary)] active:shadow-[4px_4px_0_0_theme(colors.primary)]'
-                    } hover:-translate-x-[1px] hover:-translate-y-[1px]`}
-                  >
-                    <span className="uppercase tracking-wider text-sm">
-                      {selectedSize?.label || (lang === 'no' ? 'Velg størrelse' : 'Select size')}
-                    </span>
-                    {selectedSize && (
-                      <span className="text-primary font-bold">
-                        {formatPrice(displayPrice)}
-                      </span>
-                    )}
-                    <motion.span
-                      animate={{ rotate: isSizeDropdownOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <svg
-                        className="w-5 h-5 text-primary"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </motion.span>
-                  </button>
-
-                  {isSizeDropdownOpen && (
-                    <motion.div
-                      role="listbox"
-                      aria-label={lang === 'no' ? 'Størrelse' : 'Size'}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute z-20 w-full mt-1 bg-background border-[3px] border-primary shadow-[4px_4px_0_0_theme(colors.primary)]"
-                    >
-                      {sizes.map((size, index) => {
-                        const sizePrice = size.price ?? product.price;
-                        const isSelected = selectedSizeIndex === index;
-                        return (
-                          <button
-                            key={`${size.width}x${size.height}`}
-                            type="button"
-                            role="option"
-                            aria-selected={isSelected}
-                            onClick={() => {
-                              setSelectedSizeIndex(index);
-                              setIsSizeDropdownOpen(false);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'ArrowDown') {
-                                e.preventDefault();
-                                const next = (e.currentTarget.nextElementSibling as HTMLElement | null);
-                                next?.focus();
-                              } else if (e.key === 'ArrowUp') {
-                                e.preventDefault();
-                                const prev = (e.currentTarget.previousElementSibling as HTMLElement | null);
-                                prev?.focus();
-                              } else if (e.key === 'Escape') {
-                                e.preventDefault();
-                                setIsSizeDropdownOpen(false);
-                              }
-                            }}
-                            className={`w-full px-4 py-4 sm:py-3 text-left uppercase tracking-wider text-sm font-semibold transition-colors flex justify-between items-center touch-manipulation ${
-                              isSelected
-                                ? 'bg-primary text-background'
-                                : 'hover:bg-primary/10 active:bg-primary/10'
-                            }`}
-                          >
-                            <span>{size.label}</span>
-                            <span className={isSelected ? 'text-background font-bold' : 'text-primary font-bold'}>
-                              {formatPrice(sizePrice)}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Specifications */}
             <div className="space-y-3 mb-6">
