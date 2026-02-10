@@ -454,8 +454,20 @@ export function newsletterConfirmationTemplate(confirmUrl: string): string {
     'Thank you for subscribing to the Dotty newsletter! Click the button below to confirm your subscription.'
   );
 
-  const contentNo = `${heading.no}${paragraph.no}${button('Bekreft abonnement', confirmUrl)}`;
-  const contentEn = `${heading.en}${paragraph.en}${button('Confirm subscription', confirmUrl)}`;
+  const discountBoxNo = infoBox(`
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: ${COLORS.mutedForeground};">Din velkomstrabatt:</p>
+    <p style="margin: 0; font-size: 28px; font-weight: 700; color: ${COLORS.primary}; font-family: ${STYLES.monoFont}; text-align: center;">VELKOMST10</p>
+    <p style="margin: 8px 0 0 0; font-size: 13px; color: ${COLORS.mutedForeground}; text-align: center;">10% rabatt – bruk koden i kassen</p>
+  `);
+
+  const discountBoxEn = infoBox(`
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: ${COLORS.mutedForeground};">Your welcome discount:</p>
+    <p style="margin: 0; font-size: 28px; font-weight: 700; color: ${COLORS.primary}; font-family: ${STYLES.monoFont}; text-align: center;">VELKOMST10</p>
+    <p style="margin: 8px 0 0 0; font-size: 13px; color: ${COLORS.mutedForeground}; text-align: center;">10% off – use the code at checkout</p>
+  `);
+
+  const contentNo = `${heading.no}${paragraph.no}${button('Bekreft abonnement', confirmUrl)}${discountBoxNo}`;
+  const contentEn = `${heading.en}${paragraph.en}${button('Confirm subscription', confirmUrl)}${discountBoxEn}`;
 
   return bilingualEmailWrapper(contentNo, contentEn, 'Bekreft nyhetsbrev-abonnement | Confirm newsletter subscription');
 }

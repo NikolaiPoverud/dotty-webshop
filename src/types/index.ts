@@ -420,6 +420,23 @@ export interface Dictionary {
     moreQuestions: string;
     contact: string;
   };
+  newsletterPopup: {
+    title: string;
+    subtitle: string;
+    placeholder: string;
+    subscribe: string;
+    privacyNotice: string;
+    privacyLink: string;
+    successTitle: string;
+    successCode: string;
+    successMessage: string;
+    alreadyTitle: string;
+    alreadyMessage: string;
+    copied: string;
+    copyCode: string;
+    browseShop: string;
+    error: string;
+  };
 }
 
 export interface ApiResponse<T> {

@@ -223,5 +223,22 @@
     "subtitle": "Alt du trenger å vite om kjøp av kunst fra Dotty.",
     "moreQuestions": "Har du flere spørsmål?",
     "contact": "Ta kontakt"
+  },
+  "newsletterPopup": {
+    "title": "Få 10% rabatt!",
+    "subtitle": "Meld deg på nyhetsbrevet og få en eksklusiv velkomstkode.",
+    "placeholder": "Din e-postadresse",
+    "subscribe": "Ja, send meg koden!",
+    "privacyNotice": "Ved å melde deg på godtar du vår",
+    "privacyLink": "personvernerklæring",
+    "successTitle": "Koden din er klar!",
+    "successCode": "VELKOMST10",
+    "successMessage": "Sjekk e-posten din for å bekrefte abonnementet. Bruk koden i kassen for 10% rabatt.",
+    "alreadyTitle": "Du er allerede abonnent!",
+    "alreadyMessage": "Her er rabattkoden din likevel – bruk den i kassen.",
+    "copied": "Kopiert!",
+    "copyCode": "Kopier kode",
+    "browseShop": "Utforsk shop",
+    "error": "Noe gikk galt. Prøv igjen."
   }
 }

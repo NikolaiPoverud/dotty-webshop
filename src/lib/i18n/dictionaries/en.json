@@ -223,5 +223,22 @@
     "subtitle": "Everything you need to know about buying art from Dotty.",
     "moreQuestions": "Have more questions?",
     "contact": "Get in touch"
+  },
+  "newsletterPopup": {
+    "title": "Get 10% off!",
+    "subtitle": "Join our newsletter and receive an exclusive welcome code.",
+    "placeholder": "Your email address",
+    "subscribe": "Yes, send me the code!",
+    "privacyNotice": "By signing up you agree to our",
+    "privacyLink": "privacy policy",
+    "successTitle": "Your code is ready!",
+    "successCode": "VELKOMST10",
+    "successMessage": "Check your email to confirm your subscription. Use the code at checkout for 10% off.",
+    "alreadyTitle": "You're already subscribed!",
+    "alreadyMessage": "Here's your discount code anyway – use it at checkout.",
+    "copied": "Copied!",
+    "copyCode": "Copy code",
+    "browseShop": "Browse shop",
+    "error": "Something went wrong. Please try again."
   }
 }

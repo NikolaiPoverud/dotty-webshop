@@ -3,6 +3,7 @@ import { locales, getDictionary } from '@/lib/i18n/get-dictionary';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CookieConsent } from '@/components/gdpr/cookie-consent';
+import { NewsletterPopup } from '@/components/newsletter/newsletter-popup';
 import { createPublicClient } from '@/lib/supabase/public';
 
 export const revalidate = 300;
@@ -47,6 +48,7 @@ export default async function LangLayout({
       <main className="flex-1">{children}</main>
       <Footer lang={locale} collections={collections} dictionary={dictionary} />
       <CookieConsent lang={locale} dictionary={dictionary} />
+      <NewsletterPopup lang={locale} dictionary={dictionary} />
     </div>
   );
 }
