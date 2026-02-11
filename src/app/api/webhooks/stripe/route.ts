@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type Stripe from 'stripe';
+import * as Sentry from '@sentry/nextjs';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderEmails } from '@/lib/email/send';
 import { constructWebhookEvent } from '@/lib/stripe';
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     event = constructWebhookEvent(body, signature);
     console.log('Stripe webhook event verified:', event.type);
   } catch (err) {
+    Sentry.captureException(err, { tags: { stripe_event: 'signature_failed' } });
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
@@ -84,6 +86,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     return;
   }
 
+  Sentry.setUser({ email: metadata.customer_email });
+
   const tokenValidation = validateCheckoutToken(metadata.checkout_token);
   if (!tokenValidation.valid) {
     console.warn('Checkout token validation warning for session:', session.id, tokenValidation.error);
@@ -115,6 +119,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   }
 
   if (!result?.success) {
+    Sentry.captureMessage('Order processing failed', {
+      level: 'error',
+      extra: { sessionId: session.id, rpcError: result?.error },
+    });
     console.error('Order processing failed:', result?.error);
     return;
   }
@@ -183,6 +191,7 @@ async function handleCheckoutCompletedFallback(
     .single();
 
   if (error) {
+    Sentry.captureException(error, { extra: { sessionId: session.id } });
     console.error('Failed to create order:', error);
     return;
   }
@@ -229,6 +238,10 @@ async function updateInventory(supabase: SupabaseClient, items: OrderItemInput[]
     });
 
     if (stockError) {
+      Sentry.captureMessage(`Stock decrement failed for product ${item.product_id}`, {
+        level: 'error',
+        extra: { productId: item.product_id, error: stockError.message },
+      });
       console.error(`Failed to decrement stock for product ${item.product_id}:`, stockError.message);
       continue;
     }
@@ -258,6 +271,7 @@ async function sendOrderEmailsSafe(order: Order, items: OrderItem[]): Promise<vo
       console.error('Artist notification failed:', emailResults.alert.error);
     }
   } catch (error) {
+    Sentry.captureException(error, { extra: { orderId: order.id } });
     console.error('Email sending error:', error);
   }
 }

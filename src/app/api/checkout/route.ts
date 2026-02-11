@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import * as Sentry from '@sentry/nextjs';
 import { getStripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
@@ -70,6 +71,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     newsletter_opt_in,
   } = body;
 
+  Sentry.setUser({ email: customer_email });
+  if (discount_code) {
+    Sentry.setTag('discount_code', discount_code);
+  }
+
   const cartValidationResult = await validateCartServerSide(items, discount_code);
   if (!cartValidationResult.valid) {
     return NextResponse.json({ error: cartValidationResult.error }, { status: 400 });
@@ -130,32 +136,40 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const successUrl = `${origin}${isEnglish ? '/en/checkout/success' : '/no/kasse/bekreftelse'}?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${origin}${isEnglish ? '/en/checkout' : '/no/kasse'}?canceled=true`;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    line_items: lineItems,
-    customer_email,
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata,
-    locale: locale === 'no' ? 'nb' : 'en',
-    payment_intent_data: {
-      shipping: {
-        name: customer_name,
-        phone: customer_phone,
-        address: {
-          line1: shipping_address.line1,
-          line2: shipping_address.line2 || undefined,
-          city: shipping_address.city,
-          postal_code: shipping_address.postal_code,
-          country: shipping_address.country === 'Norge' ? 'NO' : shipping_address.country,
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      customer_email,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata,
+      locale: locale === 'no' ? 'nb' : 'en',
+      payment_intent_data: {
+        shipping: {
+          name: customer_name,
+          phone: customer_phone,
+          address: {
+            line1: shipping_address.line1,
+            line2: shipping_address.line2 || undefined,
+            city: shipping_address.city,
+            postal_code: shipping_address.postal_code,
+            country: shipping_address.country === 'Norge' ? 'NO' : shipping_address.country,
+          },
         },
       },
-    },
-    discounts: validatedDiscountAmount > 0
-      ? [{ coupon: await createStripeCoupon(stripe, validatedDiscountAmount, discount_code) }]
-      : undefined,
-  });
+      discounts: validatedDiscountAmount > 0
+        ? [{ coupon: await createStripeCoupon(stripe, validatedDiscountAmount, discount_code) }]
+        : undefined,
+    });
+  } catch (err) {
+    Sentry.captureException(err, {
+      extra: { customer_email, itemCount: items.length },
+    });
+    throw err;
+  }
 
   return NextResponse.json({ sessionId: session.id, url: session.url });
 }

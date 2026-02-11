@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 
 export interface ApiSuccessResponse<T = unknown> {
   success: true;
@@ -54,6 +55,11 @@ export function handleApiError(
 ): NextResponse<ApiErrorResponse> {
   const errorMessage = err instanceof Error ? err.message : String(err);
   const errorStack = err instanceof Error ? err.stack : undefined;
+
+  Sentry.captureException(err, {
+    tags: { context },
+    extra: { userMessage },
+  });
 
   console.error(`[${context}] Error:`, {
     message: errorMessage,
